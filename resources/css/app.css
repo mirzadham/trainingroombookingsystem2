@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-mimos-50: #fdf2f9;
+  --color-mimos-100: #fae6f4;
+  --color-mimos-200: #f5cced;
+  --color-mimos-300: #eea3e0;
+  --color-mimos-400: #e36bcc;
+  --color-mimos-500: #d041b3;
+  --color-mimos-600: #a72190;
+  --color-mimos-700: #8b1a75;
+  --color-mimos-800: #721860;
+  --color-mimos-900: #5f1951;
+  --color-mimos-950: #3d0831;
+}
