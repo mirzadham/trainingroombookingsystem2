@@ -7,7 +7,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Public pages
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
-import BookingForm from './pages/BookingForm';
+import BookingWizard from './pages/booking/BookingWizard';
 import MyBookings from './pages/MyBookings';
 import CalendarPage from './pages/CalendarPage';
 import Login from './pages/Login';
@@ -44,7 +44,7 @@ export default function AppRouter() {
             <Route element={<PublicLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/search" element={<SearchResults />} />
-                <Route path="/book" element={<BookingForm />} />
+                <Route path="/book" element={<BookingWizard />} />
                 <Route path="/my-bookings" element={<MyBookings />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/login" element={<Login />} />

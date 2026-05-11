@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as api from '../services/api';
+import { isAdminRole } from '../constants/roles';
 
 const AuthContext = createContext(null);
 
@@ -75,7 +76,7 @@ export function AuthProvider({ children }) {
         user,
         loading,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'super_admin' || user?.role === 'location_admin',
+        isAdmin: isAdminRole(user?.role),
         isSuperAdmin: user?.role === 'super_admin',
         login,
         adminLogin,
