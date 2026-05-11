@@ -41,6 +41,7 @@ class BookingController extends Controller
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'attendees' => 'required|integer|min:1',
+            'phone' => 'required|string|max:20',
         ]);
 
         $booking = $this->bookingService->create($validated, $request->user());
@@ -81,6 +82,7 @@ class BookingController extends Controller
             'start_time' => 'sometimes|date',
             'end_time' => 'sometimes|date|after:start_time',
             'attendees' => 'sometimes|integer|min:1',
+            'phone' => 'sometimes|required|string|max:20',
         ]);
 
         $booking = $this->bookingService->update($booking, $validated, $request->user());
@@ -116,6 +118,7 @@ class BookingController extends Controller
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'attendees' => 'required|integer|min:1',
+            'phone' => 'required|string|max:20',
             'weeks' => 'required|integer|min:2|max:52',
         ]);
 

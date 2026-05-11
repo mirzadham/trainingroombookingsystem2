@@ -23,6 +23,7 @@ export default function BookingForm() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [attendees, setAttendees] = useState('');
+    const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [bookingResult, setBookingResult] = useState(null);
@@ -36,6 +37,13 @@ export default function BookingForm() {
     const [authLoading, setAuthLoading] = useState(false);
     const [authError, setAuthError] = useState('');
 
+    // Pre-fill phone from user profile if authenticated and phone not yet entered
+    React.useEffect(() => {
+        if (user?.phone && !phone) {
+            setPhone(user.phone);
+        }
+    }, [user]);
+
     const formatTime = (dt) => {
         if (!dt) return '';
         return new Date(dt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -47,7 +55,7 @@ export default function BookingForm() {
     };
 
     // Step 1: Fill form
-    const canProceedToReview = title.trim() && attendees && parseInt(attendees) > 0;
+    const canProceedToReview = title.trim() && attendees && parseInt(attendees) > 0 && phone.trim();
 
     const handleNext = () => {
         if (step === 0 && !canProceedToReview) return;
@@ -75,6 +83,7 @@ export default function BookingForm() {
                     email: authEmail,
                     password: authPassword,
                     password_confirmation: authPasswordConfirm,
+                    phone: phone,
                 });
             }
             // After successful auth, submit the booking
@@ -91,15 +100,16 @@ export default function BookingForm() {
         setSubmitting(true);
         setError('');
 
-        try {
-            const result = await api.createBooking({
-                room_id: parseInt(roomId),
-                title,
-                description: description || null,
-                start_time: startTime,
-                end_time: endTime,
-                attendees: parseInt(attendees),
-            });
+         try {
+             const result = await api.createBooking({
+                 room_id: parseInt(roomId),
+                 title,
+                 description: description || null,
+                 start_time: startTime,
+                 end_time: endTime,
+                 attendees: parseInt(attendees),
+                 phone,
+             });
             setBookingResult(result);
             setStep(3);
         } catch (err) {
@@ -190,18 +200,30 @@ export default function BookingForm() {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Number of Attendees *</label>
-                        <input
-                            type="number"
-                            value={attendees}
-                            onChange={e => setAttendees(e.target.value)}
-                            min="1"
-                            max={capacity}
-                            placeholder={`Max ${capacity}`}
-                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 transition"
-                        />
-                    </div>
+                     <div>
+                         <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Number of Attendees *</label>
+                         <input
+                             type="number"
+                             value={attendees}
+                             onChange={e => setAttendees(e.target.value)}
+                             min="1"
+                             max={capacity}
+                             placeholder={`Max ${capacity}`}
+                             className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 transition"
+                         />
+                     </div>
+
+                     <div>
+                         <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Phone Number *</label>
+                         <input
+                             type="tel"
+                             value={phone}
+                             onChange={e => setPhone(e.target.value)}
+                             placeholder="+60 12 345 6789"
+                             autoComplete="tel"
+                             className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 transition"
+                         />
+                     </div>
 
                     <button
                         onClick={handleNext}
@@ -242,10 +264,14 @@ export default function BookingForm() {
                             <span className="text-slate-500">Time</span>
                             <span className="text-slate-900">{formatTime(startTime)} – {formatTime(endTime)}</span>
                         </div>
-                        <div className="flex justify-between py-2 border-b border-slate-100">
-                            <span className="text-slate-500">Attendees</span>
-                            <span className="text-slate-900">{attendees}</span>
-                        </div>
+                         <div className="flex justify-between py-2 border-b border-slate-100">
+                             <span className="text-slate-500">Attendees</span>
+                             <span className="text-slate-900">{attendees}</span>
+                         </div>
+                         <div className="flex justify-between py-2 border-b border-slate-100">
+                             <span className="text-slate-500">Contact Phone</span>
+                             <span className="text-slate-900">{phone}</span>
+                         </div>
                     </div>
 
                     <div className="flex gap-3 pt-2">
@@ -347,11 +373,12 @@ export default function BookingForm() {
                         Your booking is <span className="text-amber-500 font-medium">pending approval</span>. You'll be notified once an admin reviews it.
                     </p>
 
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 text-left space-y-2 text-sm">
-                        <div className="flex justify-between"><span className="text-slate-500">Booking ID</span><span className="text-slate-900 font-mono">#{bookingResult.id}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Room</span><span className="text-slate-900">{bookingResult.room?.name}</span></div>
-                        <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-amber-500 font-medium uppercase text-xs">{bookingResult.status}</span></div>
-                    </div>
+                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 text-left space-y-2 text-sm">
+                         <div className="flex justify-between"><span className="text-slate-500">Booking ID</span><span className="text-slate-900 font-mono">#{bookingResult.id}</span></div>
+                         <div className="flex justify-between"><span className="text-slate-500">Room</span><span className="text-slate-900">{bookingResult.room?.name}</span></div>
+                         <div className="flex justify-between"><span className="text-slate-500">Contact Phone</span><span className="text-slate-900">{bookingResult.phone}</span></div>
+                         <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-amber-500 font-medium uppercase text-xs">{bookingResult.status}</span></div>
+                     </div>
 
                     <div className="flex gap-3">
                         <button onClick={() => navigate('/my-bookings')} className="flex-1 px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition cursor-pointer">

@@ -100,6 +100,7 @@ class AdminController extends Controller
             'start_time' => 'sometimes|date',
             'end_time' => 'sometimes|date|after:start_time',
             'attendees' => 'sometimes|integer|min:1',
+            'phone' => 'sometimes|required|string|max:20',
         ]);
 
         $booking = $this->approvalService->adminUpdate($booking, $validated, $request->user());

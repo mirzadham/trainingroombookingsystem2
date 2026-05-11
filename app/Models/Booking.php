@@ -18,6 +18,7 @@ class Booking extends Model
         'start_time',
         'end_time',
         'attendees',
+        'phone',
         'status',
         'rejection_reason',
         'recurrence_group_id',

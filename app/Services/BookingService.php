@@ -35,6 +35,7 @@ class BookingService
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],
             'attendees' => $data['attendees'],
+            'phone' => $data['phone'],
             'status' => Booking::STATUS_PENDING,
         ]);
 
@@ -80,7 +81,7 @@ class BookingService
 
         $this->validateBookingRules($data);
 
-        $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id']);
+        $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
         $booking->update([
             'room_id' => $data['room_id'] ?? $booking->room_id,
@@ -89,9 +90,10 @@ class BookingService
             'start_time' => $data['start_time'] ?? $booking->start_time,
             'end_time' => $data['end_time'] ?? $booking->end_time,
             'attendees' => $data['attendees'] ?? $booking->attendees,
+            'phone' => $data['phone'] ?? $booking->phone,
         ]);
 
-        $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id']);
+        $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
         $this->auditService->log($user, $booking, 'updated', [
             'before' => $before,
@@ -143,6 +145,7 @@ class BookingService
                 'start_time' => $weekStart,
                 'end_time' => $weekEnd,
                 'attendees' => $data['attendees'],
+                'phone' => $data['phone'],
                 'status' => Booking::STATUS_PENDING,
                 'recurrence_group_id' => $groupId,
             ]);

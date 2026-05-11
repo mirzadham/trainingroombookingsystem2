@@ -104,7 +104,7 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id']);
+        $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
         // If time/room changed on an approved booking, re-validate availability
         if ($booking->status === Booking::STATUS_APPROVED) {
@@ -126,9 +126,10 @@ class ApprovalService
             'start_time' => $data['start_time'] ?? null,
             'end_time' => $data['end_time'] ?? null,
             'attendees' => $data['attendees'] ?? null,
+            'phone' => $data['phone'] ?? null,
         ], fn($v) => !is_null($v)));
 
-        $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id']);
+        $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
         $this->auditService->log($admin, $booking, 'admin_updated', [
             'before' => $before,

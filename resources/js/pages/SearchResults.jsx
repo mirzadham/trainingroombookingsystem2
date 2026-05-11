@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, MapPin, Users, Calendar } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Users } from 'lucide-react';
 import RoomDrawer from '../components/RoomDrawer';
 import * as api from '../services/api';
 
@@ -16,6 +16,11 @@ export default function SearchResults() {
     // Drawer state
     const [selectedRoomData, setSelectedRoomData] = useState(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    // Scroll to top when search params change
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [searchParams]);
 
     // Fetch rooms with timeline data
     const { data, isLoading, error } = useQuery({
@@ -39,16 +44,6 @@ export default function SearchResults() {
         setTimeout(() => setSelectedRoomData(null), 300);
     };
 
-    const formatDate = (dateStr) => {
-        if (!dateStr) return '';
-        return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-MY', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
-
     const formatAmenity = (amenity) => {
         return amenity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
@@ -65,24 +60,6 @@ export default function SearchResults() {
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Available Rooms</h1>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
-                        <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {formatDate(date)}
-                        </span>
-                        {locationId && (
-                            <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5" />
-                                {locationId === '1' ? 'TPM' : 'KHTP'}
-                            </span>
-                        )}
-                        {attendees && (
-                            <span className="flex items-center gap-1">
-                                <Users className="w-3.5 h-3.5" />
-                                {attendees} people
-                            </span>
-                        )}
-                    </div>
                 </div>
             </div>
 

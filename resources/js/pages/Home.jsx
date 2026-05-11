@@ -1,30 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Calendar, Users, ArrowRight, Sparkles } from 'lucide-react';
-import * as api from '../services/api';
+import React from 'react';
+import { Sparkles } from 'lucide-react';
+import SearchBar from '../components/SearchBar';
 
 export default function Home() {
-    const navigate = useNavigate();
-    const [location, setLocation] = useState('');
-    const [date, setDate] = useState('');
-    const [attendees, setAttendees] = useState('');
-
-    const { data: locations } = useQuery({
-        queryKey: ['locations'],
-        queryFn: api.getLocations,
-    });
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (!date) return;
-        const params = new URLSearchParams();
-        if (location) params.set('location_id', location);
-        params.set('date', date);
-        if (attendees) params.set('attendees', attendees);
-        navigate(`/search?${params.toString()}`);
-    };
-
     return (
         <div className="relative">
             {/* Hero Section */}
@@ -64,77 +42,7 @@ export default function Home() {
 
                     {/* Smart Search Bar */}
                     <div className="max-w-4xl mx-auto">
-                        <form onSubmit={handleSearch} className="relative">
-                            <div className="bg-white/80 backdrop-blur-2xl border border-slate-200 rounded-2xl p-6 shadow-xl shadow-slate-200/50">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    {/* Location */}
-                                    <div className="relative">
-                                        <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Location</label>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <select
-                                                id="search-location"
-                                                value={location}
-                                                onChange={(e) => setLocation(e.target.value)}
-                                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition appearance-none cursor-pointer"
-                                            >
-                                                <option value="" className="bg-white">All Locations</option>
-                                {(locations || []).map(loc => (
-                                    <option key={loc.id} value={loc.id} className="bg-white">{loc.name} ({loc.code})</option>
-                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* Date */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Date</label>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input
-                                                id="search-date"
-                                                type="date"
-                                                value={date}
-                                                onChange={(e) => setDate(e.target.value)}
-                                                min={new Date().toISOString().split('T')[0]}
-                                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition [color-scheme:light]"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Attendees */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">People</label>
-                                        <div className="relative">
-                                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                            <input
-                                                id="search-attendees"
-                                                type="number"
-                                                value={attendees}
-                                                onChange={(e) => setAttendees(e.target.value)}
-                                                placeholder="e.g. 10"
-                                                min="1"
-                                                max="200"
-                                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Search Button */}
-                                <div className="mt-5 flex justify-center">
-                                    <button
-                                        id="search-button"
-                                        type="submit"
-                                        className="group flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40 transition-all duration-300 cursor-pointer"
-                                    >
-                                        <Search className="w-4.5 h-4.5" />
-                                        Search Available Rooms
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                        <SearchBar />
                     </div>
 
                     {/* Stats */}

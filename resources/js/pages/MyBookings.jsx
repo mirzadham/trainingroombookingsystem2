@@ -75,18 +75,19 @@ export default function MyBookings() {
                                         {booking.status}
                                     </span>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{booking.room?.name} ({booking.room?.location?.code})</span>
-                                    <span className="flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {new Date(booking.start_time).toLocaleDateString('en-MY', { month: 'short', day: 'numeric' })}
-                                        {' · '}
-                                        {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        {' – '}
-                                        {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                    <span className="flex items-center gap-1"><Users className="w-3 h-3" />{booking.attendees}</span>
-                                </div>
+                                 <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                                     <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{booking.room?.name} ({booking.room?.location?.code})</span>
+                                     <span className="flex items-center gap-1">
+                                         <Clock className="w-3 h-3" />
+                                         {new Date(booking.start_time).toLocaleDateString('en-MY', { month: 'short', day: 'numeric' })}
+                                         {' · '}
+                                         {new Date(booking.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                         {' – '}
+                                         {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                     </span>
+                                     <span className="flex items-center gap-1"><Users className="w-3 h-3" />{booking.attendees}</span>
+                                     {booking.phone && <span className="flex items-center gap-1 text-slate-700 font-medium">📞 {booking.phone}</span>}
+                                 </div>
                                 {booking.rejection_reason && (
                                     <div className="mt-2 text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2">
                                         <strong>Reason:</strong> {booking.rejection_reason}
