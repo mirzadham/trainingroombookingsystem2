@@ -9,11 +9,6 @@ use Illuminate\Support\Collection;
 
 class AvailabilityService
 {
-    // Operating hours
-    const OPEN_HOUR = 7;   // 7 AM
-    const CLOSE_HOUR = 19; // 7 PM
-    const SLOT_DURATION_MINUTES = 30;
-
     /**
      * Check if a specific room is available for the given time range.
      * Only APPROVED bookings block availability.
@@ -87,12 +82,15 @@ class AvailabilityService
 
         $rooms = $query->orderBy('name')->get();
 
-        // Generate time slots (30-min intervals from 7AM to 7PM)
+        // Generate time slots (configurable intervals)
         $slots = $this->generateTimeSlots($date);
 
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+
         // Get all approved bookings for these rooms on this date
-        $dayStart = $date->copy()->setTime(self::OPEN_HOUR, 0);
-        $dayEnd = $date->copy()->setTime(self::CLOSE_HOUR, 0);
+        $dayStart = $date->copy()->setTime($openHour, 0);
+        $dayEnd = $date->copy()->setTime($closeHour, 0);
 
         $bookings = Booking::approved()
             ->whereIn('room_id', $rooms->pluck('id'))
@@ -132,6 +130,8 @@ class AvailabilityService
                     'location' => $room->location->name,
                     'location_code' => $room->location->code,
                     'amenities' => $room->amenities ?? [],
+                    'image_url' => $room->image_url,
+                    'description' => $room->description,
                 ],
                 'slots' => $roomSlots,
             ];
@@ -174,16 +174,20 @@ class AvailabilityService
     }
 
     /**
-     * Generate 30-minute time slots for a given date.
+     * Generate time slots for a given date based on configured duration.
      */
     private function generateTimeSlots(Carbon $date): array
     {
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+        $slotMinutes = config('booking.slot_duration_minutes');
+
         $slots = [];
-        $current = $date->copy()->setTime(self::OPEN_HOUR, 0);
-        $end = $date->copy()->setTime(self::CLOSE_HOUR, 0);
+        $current = $date->copy()->setTime($openHour, 0);
+        $end = $date->copy()->setTime($closeHour, 0);
 
         while ($current < $end) {
-            $slotEnd = $current->copy()->addMinutes(self::SLOT_DURATION_MINUTES);
+            $slotEnd = $current->copy()->addMinutes($slotMinutes);
             $slots[] = [
                 'start' => $current->toDateTimeString(),
                 'end' => $slotEnd->toDateTimeString(),
@@ -196,7 +200,7 @@ class AvailabilityService
     }
 
     /**
-     * Find nearby available time slots (shift by 30-min increments, ±2 hours).
+     * Find nearby available time slots (shift by slot-duration increments, ±2 hours).
      */
     private function findNearbySlots(
         ?int $locationId,
@@ -207,6 +211,8 @@ class AvailabilityService
         int $durationMinutes
     ): Collection {
         $suggestions = collect();
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
 
         $query = Room::active();
         if ($locationId) $query->where('location_id', $locationId);
@@ -221,10 +227,10 @@ class AvailabilityService
             $newEnd = $newStart->copy()->addMinutes($durationMinutes);
 
             // Skip if outside operating hours
-            if ($newStart->hour < self::OPEN_HOUR || $newEnd->hour > self::CLOSE_HOUR) {
+            if ($newStart->hour < $openHour || $newEnd->hour > $closeHour) {
                 continue;
             }
-            if ($newEnd->hour === self::CLOSE_HOUR && $newEnd->minute > 0) {
+            if ($newEnd->hour === $closeHour && $newEnd->minute > 0) {
                 continue;
             }
 

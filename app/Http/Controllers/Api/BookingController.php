@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Booking\StoreBookingRequest;
+use App\Http\Requests\Booking\StoreRecurringBookingRequest;
+use App\Http\Requests\Booking\UpdateBookingRequest;
+use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
@@ -32,21 +36,13 @@ class BookingController extends Controller
      * POST /api/bookings
      * Create a new booking.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreBookingRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'attendees' => 'required|integer|min:1',
-            'phone' => 'required|string|max:20',
-        ]);
+        $booking = $this->bookingService->create($request->validated(), $request->user());
 
-        $booking = $this->bookingService->create($validated, $request->user());
-
-        return response()->json($booking, 201);
+        return (new BookingResource($booking))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -55,39 +51,22 @@ class BookingController extends Controller
      */
     public function show(Request $request, Booking $booking): JsonResponse
     {
-        // Users can only view their own bookings
-        if ($booking->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
+        $this->authorize('view', $booking);
 
-        return response()->json(
+        return (new BookingResource(
             $booking->load(['room.location', 'user', 'approver'])
-        );
+        ))->response();
     }
 
     /**
      * PUT /api/bookings/{booking}
      * Update a pending booking.
      */
-    public function update(Request $request, Booking $booking): JsonResponse
+    public function update(UpdateBookingRequest $request, Booking $booking): JsonResponse
     {
-        if ($booking->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
+        $booking = $this->bookingService->update($booking, $request->validated(), $request->user());
 
-        $validated = $request->validate([
-            'room_id' => 'sometimes|exists:rooms,id',
-            'title' => 'sometimes|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'start_time' => 'sometimes|date',
-            'end_time' => 'sometimes|date|after:start_time',
-            'attendees' => 'sometimes|integer|min:1',
-            'phone' => 'sometimes|required|string|max:20',
-        ]);
-
-        $booking = $this->bookingService->update($booking, $validated, $request->user());
-
-        return response()->json($booking);
+        return (new BookingResource($booking))->response();
     }
 
     /**
@@ -96,31 +75,20 @@ class BookingController extends Controller
      */
     public function cancel(Request $request, Booking $booking): JsonResponse
     {
-        if ($booking->user_id !== $request->user()->id && !$request->user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
+        $this->authorize('cancel', $booking);
 
         $booking = $this->bookingService->cancel($booking, $request->user());
 
-        return response()->json($booking);
+        return (new BookingResource($booking))->response();
     }
 
     /**
      * POST /api/bookings/recurring
      * Create a recurring weekly booking series.
      */
-    public function storeRecurring(Request $request): JsonResponse
+    public function storeRecurring(StoreRecurringBookingRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'room_id' => 'required|exists:rooms,id',
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
-            'attendees' => 'required|integer|min:1',
-            'phone' => 'required|string|max:20',
-            'weeks' => 'required|integer|min:2|max:52',
-        ]);
+        $validated = $request->validated();
 
         $bookings = $this->bookingService->createRecurringSeries(
             $validated,
@@ -128,7 +96,10 @@ class BookingController extends Controller
             $validated['weeks']
         );
 
-        return response()->json($bookings, 201);
+        return response()->json(
+            BookingResource::collection($bookings),
+            201
+        );
     }
 
     /**

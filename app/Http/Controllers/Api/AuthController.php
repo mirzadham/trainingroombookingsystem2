@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,24 +17,16 @@ class AuthController extends Controller
 {
     /**
      * POST /api/auth/register
-     * Register a new user (for booking flow step 6).
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'phone' => 'required|string|max:20',
-            'user_type' => 'nullable|in:internal,external',
-            'department' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => User::ROLE_USER,
+            'role' => UserRole::User,
             'user_type' => $validated['user_type'] ?? 'external',
             'phone' => $validated['phone'] ?? null,
             'department' => $validated['department'] ?? null,
@@ -39,31 +35,26 @@ class AuthController extends Controller
         $token = $user->createToken('booking-app')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ], 201);
     }
 
     /**
      * POST /api/auth/login
-     * User login (for booking flow step 6).
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'The provided credentials are incorrect.',
             ]);
         }
 
-        // Regular login is only for non-admin users
         if ($user->isAdmin()) {
             throw ValidationException::withMessages([
                 'email' => 'Please use the admin login portal.',
@@ -73,25 +64,21 @@ class AuthController extends Controller
         $token = $user->createToken('booking-app')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
 
     /**
      * POST /api/auth/admin/login
-     * Separate admin login endpoint.
      */
-    public function adminLogin(Request $request): JsonResponse
+    public function adminLogin(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'The provided credentials are incorrect.',
             ]);
@@ -106,7 +93,7 @@ class AuthController extends Controller
         $token = $user->createToken('admin-panel')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('location'),
+            'user' => new UserResource($user->load('location')),
             'token' => $token,
         ]);
     }
@@ -123,12 +110,11 @@ class AuthController extends Controller
 
     /**
      * GET /api/auth/user
-     * Get the authenticated user.
      */
     public function user(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => $request->user()->load('location'),
+            'user' => new UserResource($request->user()->load('location')),
         ]);
     }
 }

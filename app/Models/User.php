@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,13 +37,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
-
-    // Role constants
-    const ROLE_USER = 'user';
-    const ROLE_LOCATION_ADMIN = 'location_admin';
-    const ROLE_SUPER_ADMIN = 'super_admin';
 
     public function location(): BelongsTo
     {
@@ -56,21 +53,21 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, [self::ROLE_LOCATION_ADMIN, self::ROLE_SUPER_ADMIN]);
+        return $this->role->isAdmin();
     }
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        return $this->role === UserRole::SuperAdmin;
     }
 
     public function isLocationAdmin(): bool
     {
-        return $this->role === self::ROLE_LOCATION_ADMIN;
+        return $this->role === UserRole::LocationAdmin;
     }
 
     /**
-     * Check if admin has access to a specific location
+     * Check if admin has access to a specific location.
      */
     public function hasLocationAccess(int $locationId): bool
     {

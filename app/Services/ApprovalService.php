@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\User;
 use Carbon\Carbon;
@@ -23,9 +24,9 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        if (!$booking->canTransitionTo(Booking::STATUS_APPROVED)) {
+        if (!$booking->canTransitionTo(BookingStatus::Approved)) {
             throw ValidationException::withMessages([
-                'status' => "Cannot approve a booking with status '{$booking->status}'.",
+                'status' => "Cannot approve a booking with status '{$booking->status->value}'.",
             ]);
         }
 
@@ -34,7 +35,7 @@ class ApprovalService
             $booking = Booking::lockForUpdate()->findOrFail($booking->id);
 
             // Re-check status (may have changed between initial check and lock)
-            if ($booking->status !== Booking::STATUS_PENDING) {
+            if ($booking->status !== BookingStatus::Pending) {
                 throw ValidationException::withMessages([
                     'status' => 'This booking is no longer pending.',
                 ]);
@@ -53,7 +54,7 @@ class ApprovalService
             }
 
             $booking->update([
-                'status' => Booking::STATUS_APPROVED,
+                'status' => BookingStatus::Approved,
                 'approved_by' => $admin->id,
                 'approved_at' => Carbon::now(),
             ]);
@@ -72,9 +73,9 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        if (!$booking->canTransitionTo(Booking::STATUS_REJECTED)) {
+        if (!$booking->canTransitionTo(BookingStatus::Rejected)) {
             throw ValidationException::withMessages([
-                'status' => "Cannot reject a booking with status '{$booking->status}'.",
+                'status' => "Cannot reject a booking with status '{$booking->status->value}'.",
             ]);
         }
 
@@ -85,7 +86,7 @@ class ApprovalService
         }
 
         $booking->update([
-            'status' => Booking::STATUS_REJECTED,
+            'status' => BookingStatus::Rejected,
             'rejection_reason' => $reason,
         ]);
 
@@ -107,7 +108,7 @@ class ApprovalService
         $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
         // If time/room changed on an approved booking, re-validate availability
-        if ($booking->status === Booking::STATUS_APPROVED) {
+        if ($booking->status === BookingStatus::Approved) {
             $newStart = isset($data['start_time']) ? Carbon::parse($data['start_time']) : $booking->start_time;
             $newEnd = isset($data['end_time']) ? Carbon::parse($data['end_time']) : $booking->end_time;
             $newRoomId = $data['room_id'] ?? $booking->room_id;

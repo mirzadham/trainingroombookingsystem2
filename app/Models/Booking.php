@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,20 +32,7 @@ class Booking extends Model
         'end_time' => 'datetime',
         'approved_at' => 'datetime',
         'attendees' => 'integer',
-    ];
-
-    // Status constants
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
-    const STATUS_CANCELLED = 'cancelled';
-
-    // Allowed state transitions
-    const ALLOWED_TRANSITIONS = [
-        self::STATUS_PENDING => [self::STATUS_APPROVED, self::STATUS_REJECTED],
-        self::STATUS_APPROVED => [self::STATUS_CANCELLED],
-        self::STATUS_REJECTED => [], // No transitions allowed from rejected
-        self::STATUS_CANCELLED => [], // No transitions allowed from cancelled
+        'status' => BookingStatus::class,
     ];
 
     public function user(): BelongsTo
@@ -63,32 +51,31 @@ class Booking extends Model
     }
 
     /**
-     * Check if a status transition is allowed per the state machine
+     * Check if a status transition is allowed per the state machine.
      */
-    public function canTransitionTo(string $newStatus): bool
+    public function canTransitionTo(BookingStatus $newStatus): bool
     {
-        $allowed = self::ALLOWED_TRANSITIONS[$this->status] ?? [];
-        return in_array($newStatus, $allowed);
+        return $this->status->canTransitionTo($newStatus);
     }
 
     /**
-     * Scope: only approved bookings (source of truth for availability)
+     * Scope: only approved bookings (source of truth for availability).
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', self::STATUS_APPROVED);
+        return $query->where('status', BookingStatus::Approved);
     }
 
     /**
-     * Scope: pending bookings
+     * Scope: pending bookings.
      */
     public function scopePending($query)
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', BookingStatus::Pending);
     }
 
     /**
-     * Scope: bookings that overlap with a given time range
+     * Scope: bookings that overlap with a given time range.
      * Overlap condition: (start < existing_end) AND (end > existing_start)
      */
     public function scopeOverlapping($query, $startTime, $endTime)
@@ -98,7 +85,7 @@ class Booking extends Model
     }
 
     /**
-     * Scope: bookings for a specific room
+     * Scope: bookings for a specific room.
      */
     public function scopeForRoom($query, int $roomId)
     {
@@ -106,7 +93,7 @@ class Booking extends Model
     }
 
     /**
-     * Check if this booking is part of a recurring series
+     * Check if this booking is part of a recurring series.
      */
     public function isRecurring(): bool
     {

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
@@ -36,7 +37,7 @@ class BookingService
             'end_time' => $data['end_time'],
             'attendees' => $data['attendees'],
             'phone' => $data['phone'],
-            'status' => Booking::STATUS_PENDING,
+            'status' => BookingStatus::Pending,
         ]);
 
         $this->auditService->log($user, $booking, 'created');
@@ -50,18 +51,18 @@ class BookingService
      */
     public function cancel(Booking $booking, User $user): Booking
     {
-        if (!$booking->canTransitionTo(Booking::STATUS_CANCELLED)) {
+        if (!$booking->canTransitionTo(BookingStatus::Cancelled)) {
             throw ValidationException::withMessages([
-                'status' => "Cannot cancel a booking with status '{$booking->status}'.",
+                'status' => "Cannot cancel a booking with status '{$booking->status->value}'.",
             ]);
         }
 
         $oldStatus = $booking->status;
-        $booking->update(['status' => Booking::STATUS_CANCELLED]);
+        $booking->update(['status' => BookingStatus::Cancelled]);
 
         $this->auditService->log($user, $booking, 'cancelled', [
-            'before' => ['status' => $oldStatus],
-            'after' => ['status' => Booking::STATUS_CANCELLED],
+            'before' => ['status' => $oldStatus->value],
+            'after' => ['status' => BookingStatus::Cancelled->value],
         ]);
 
         return $booking->fresh(['room.location', 'user']);
@@ -73,7 +74,7 @@ class BookingService
      */
     public function update(Booking $booking, array $data, User $user): Booking
     {
-        if ($booking->status !== Booking::STATUS_PENDING) {
+        if ($booking->status !== BookingStatus::Pending) {
             throw ValidationException::withMessages([
                 'status' => 'Only pending bookings can be updated.',
             ]);
@@ -146,7 +147,7 @@ class BookingService
                 'end_time' => $weekEnd,
                 'attendees' => $data['attendees'],
                 'phone' => $data['phone'],
-                'status' => Booking::STATUS_PENDING,
+                'status' => BookingStatus::Pending,
                 'recurrence_group_id' => $groupId,
             ]);
 
@@ -171,15 +172,22 @@ class BookingService
         $end = Carbon::parse($data['end_time']);
         $now = Carbon::now();
 
-        // Operating hours: 7 AM – 7 PM
-        if ($start->hour < AvailabilityService::OPEN_HOUR || $end->hour > AvailabilityService::CLOSE_HOUR) {
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+        $minDuration = config('booking.min_duration_minutes');
+        $maxDuration = config('booking.max_duration_minutes');
+        $advanceMinutes = config('booking.same_day_advance_minutes');
+
+        // Operating hours
+        $closeDisplay = $closeHour - 12;
+        if ($start->hour < $openHour || $end->hour > $closeHour) {
             throw ValidationException::withMessages([
-                'time' => 'Bookings must be within operating hours (7:00 AM – 7:00 PM).',
+                'time' => "Bookings must be within operating hours ({$openHour}:00 AM – {$closeDisplay}:00 PM).",
             ]);
         }
-        if ($end->hour === AvailabilityService::CLOSE_HOUR && $end->minute > 0) {
+        if ($end->hour === $closeHour && $end->minute > 0) {
             throw ValidationException::withMessages([
-                'time' => 'Bookings must end by 7:00 PM.',
+                'time' => "Bookings must end by {$closeDisplay}:00 PM.",
             ]);
         }
 
@@ -190,25 +198,26 @@ class BookingService
             ]);
         }
 
-        // Min duration: 30 minutes
+        // Min duration
         $durationMinutes = $start->diffInMinutes($end);
-        if ($durationMinutes < 30) {
+        if ($durationMinutes < $minDuration) {
             throw ValidationException::withMessages([
-                'duration' => 'Minimum booking duration is 30 minutes.',
+                'duration' => "Minimum booking duration is {$minDuration} minutes.",
             ]);
         }
 
-        // Max duration: 8 hours
-        if ($durationMinutes > 480) {
+        // Max duration
+        if ($durationMinutes > $maxDuration) {
+            $maxHours = $maxDuration / 60;
             throw ValidationException::withMessages([
-                'duration' => 'Maximum booking duration is 8 hours.',
+                'duration' => "Maximum booking duration is {$maxHours} hours.",
             ]);
         }
 
-        // Same-day booking must be at least 1 hour before start
-        if ($start->isSameDay($now) && $start->diffInMinutes($now, false) > -60) {
+        // Same-day booking must be at least N minutes before start
+        if ($start->isSameDay($now) && $start->diffInMinutes($now, false) > -$advanceMinutes) {
             throw ValidationException::withMessages([
-                'start_time' => 'Same-day bookings must be made at least 1 hour before the start time.',
+                'start_time' => "Same-day bookings must be made at least {$advanceMinutes} minutes before the start time.",
             ]);
         }
 
@@ -237,7 +246,7 @@ class BookingService
     {
         $exists = Booking::where('user_id', $user->id)
             ->where('room_id', $data['room_id'])
-            ->whereNotIn('status', [Booking::STATUS_REJECTED, Booking::STATUS_CANCELLED])
+            ->whereNotIn('status', [BookingStatus::Rejected, BookingStatus::Cancelled])
             ->overlapping($data['start_time'], $data['end_time'])
             ->exists();
 

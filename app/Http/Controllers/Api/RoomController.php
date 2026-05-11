@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Room\StoreRoomRequest;
+use App\Http\Requests\Room\UpdateRoomRequest;
+use App\Http\Resources\RoomResource;
 use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +24,9 @@ class RoomController extends Controller
             $query->where('location_id', $request->location_id);
         }
 
-        return response()->json($query->orderBy('name')->get());
+        return response()->json(
+            RoomResource::collection($query->orderBy('name')->get())
+        );
     }
 
     /**
@@ -32,46 +37,27 @@ class RoomController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
         $query = Room::with('location');
 
         if ($user->isLocationAdmin()) {
             $query->where('location_id', $user->location_id);
         }
 
-        return response()->json($query->orderBy('name')->get());
+        return response()->json(
+            RoomResource::collection($query->orderBy('name')->get())
+        );
     }
 
     /**
      * POST /api/admin/rooms
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreRoomRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $room = Room::create($request->validated());
 
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
-        $validated = $request->validate([
-            'location_id' => 'required|exists:locations,id',
-            'name' => 'required|string|max:100',
-            'capacity' => 'required|integer|min:1',
-            'amenities' => 'nullable|array',
-            'description' => 'nullable|string|max:500',
-        ]);
-
-        // Location admins can only add rooms to their location
-        if ($user->isLocationAdmin() && $validated['location_id'] !== $user->location_id) {
-            return response()->json(['message' => 'You can only manage rooms at your location.'], 403);
-        }
-
-        $room = Room::create($validated);
-
-        return response()->json($room->load('location'), 201);
+        return (new RoomResource($room->load('location')))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -79,35 +65,17 @@ class RoomController extends Controller
      */
     public function show(Request $request, Room $room): JsonResponse
     {
-        return response()->json($room->load('location'));
+        return (new RoomResource($room->load('location')))->response();
     }
 
     /**
      * PUT /api/admin/rooms/{room}
      */
-    public function update(Request $request, Room $room): JsonResponse
+    public function update(UpdateRoomRequest $request, Room $room): JsonResponse
     {
-        $user = $request->user();
+        $room->update($request->validated());
 
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
-        if ($user->isLocationAdmin() && $room->location_id !== $user->location_id) {
-            return response()->json(['message' => 'You can only manage rooms at your location.'], 403);
-        }
-
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:100',
-            'capacity' => 'sometimes|integer|min:1',
-            'amenities' => 'nullable|array',
-            'description' => 'nullable|string|max:500',
-            'is_active' => 'sometimes|boolean',
-        ]);
-
-        $room->update($validated);
-
-        return response()->json($room->fresh('location'));
+        return (new RoomResource($room->fresh('location')))->response();
     }
 
     /**
@@ -116,15 +84,7 @@ class RoomController extends Controller
      */
     public function destroy(Request $request, Room $room): JsonResponse
     {
-        $user = $request->user();
-
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
-
-        if ($user->isLocationAdmin() && $room->location_id !== $user->location_id) {
-            return response()->json(['message' => 'You can only manage rooms at your location.'], 403);
-        }
+        $this->authorize('delete', $room);
 
         $room->update(['is_active' => false]);
 

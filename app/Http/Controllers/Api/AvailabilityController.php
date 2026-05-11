@@ -134,6 +134,7 @@ class AvailabilityController extends Controller
         $date = Carbon::parse($request->date);
 
         // Get the full timeline grid (rooms + slots)
+        // Note: getTimelineGrid now includes image_url and description in room data
         $grid = $this->availabilityService->getTimelineGrid(
             $request->location_id,
             $date
@@ -145,16 +146,13 @@ class AvailabilityController extends Controller
             $rooms = $rooms->filter(fn($row) => $row['room']['capacity'] >= (int)$request->attendees);
         }
 
-        // Enrich room data with image_url, description, and availability count
+        // Enrich room data with availability counts (no extra queries needed)
         $enrichedRooms = $rooms->map(function ($row) {
-            $room = \App\Models\Room::find($row['room']['id']);
             $availableCount = collect($row['slots'])->where('status', 'available')->count();
             $totalSlots = count($row['slots']);
 
             return [
                 'room' => array_merge($row['room'], [
-                    'image_url' => $room->image_url,
-                    'description' => $room->description,
                     'available_slots' => $availableCount,
                     'total_slots' => $totalSlots,
                 ]),

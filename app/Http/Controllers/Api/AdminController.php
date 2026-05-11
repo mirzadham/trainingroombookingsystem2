@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AdminUpdateBookingRequest;
+use App\Http\Requests\Admin\RejectBookingRequest;
+use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Services\ApprovalService;
 use Illuminate\Http\JsonResponse;
@@ -21,10 +24,6 @@ class AdminController extends Controller
     public function bookings(Request $request): JsonResponse
     {
         $user = $request->user();
-
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
 
         $query = Booking::with(['room.location', 'user', 'approver']);
 
@@ -58,32 +57,32 @@ class AdminController extends Controller
      */
     public function approve(Request $request, Booking $booking): JsonResponse
     {
+        $this->authorize('approve', $booking);
+
         $booking = $this->approvalService->approve($booking, $request->user());
 
         return response()->json([
             'message' => 'Booking approved successfully.',
-            'booking' => $booking,
+            'booking' => new BookingResource($booking),
         ]);
     }
 
     /**
      * POST /api/admin/bookings/{booking}/reject
      */
-    public function reject(Request $request, Booking $booking): JsonResponse
+    public function reject(RejectBookingRequest $request, Booking $booking): JsonResponse
     {
-        $request->validate([
-            'reason' => 'required|string|max:1000',
-        ]);
+        $this->authorize('reject', $booking);
 
         $booking = $this->approvalService->reject(
             $booking,
             $request->user(),
-            $request->reason
+            $request->validated()['reason']
         );
 
         return response()->json([
             'message' => 'Booking rejected.',
-            'booking' => $booking,
+            'booking' => new BookingResource($booking),
         ]);
     }
 
@@ -91,21 +90,13 @@ class AdminController extends Controller
      * PUT /api/admin/bookings/{booking}
      * Admin edits a booking (must re-validate availability).
      */
-    public function updateBooking(Request $request, Booking $booking): JsonResponse
+    public function updateBooking(AdminUpdateBookingRequest $request, Booking $booking): JsonResponse
     {
-        $validated = $request->validate([
-            'room_id' => 'sometimes|exists:rooms,id',
-            'title' => 'sometimes|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'start_time' => 'sometimes|date',
-            'end_time' => 'sometimes|date|after:start_time',
-            'attendees' => 'sometimes|integer|min:1',
-            'phone' => 'sometimes|required|string|max:20',
-        ]);
+        $this->authorize('adminUpdate', $booking);
 
-        $booking = $this->approvalService->adminUpdate($booking, $validated, $request->user());
+        $booking = $this->approvalService->adminUpdate($booking, $request->validated(), $request->user());
 
-        return response()->json($booking);
+        return (new BookingResource($booking))->response();
     }
 
     /**
@@ -115,10 +106,6 @@ class AdminController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
-
-        if (!$user->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
-        }
 
         $baseQuery = Booking::query();
 
@@ -151,7 +138,7 @@ class AdminController extends Controller
 
         return response()->json([
             'stats' => $stats,
-            'recent_bookings' => $recentBookings,
+            'recent_bookings' => BookingResource::collection($recentBookings),
         ]);
     }
 }

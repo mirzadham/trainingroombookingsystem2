@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Room;
-use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -29,7 +27,10 @@ class ReportController extends Controller
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);
         $totalDays = $start->diffInDays($end) + 1;
-        $hoursPerDay = AvailabilityService::CLOSE_HOUR - AvailabilityService::OPEN_HOUR;
+
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+        $hoursPerDay = $closeHour - $openHour;
         $totalAvailableHours = $totalDays * $hoursPerDay;
 
         $query = Room::active()->with('location');
@@ -80,6 +81,9 @@ class ReportController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+
         $query = Booking::approved()
             ->where('start_time', '>=', $request->start_date)
             ->where('end_time', '<=', Carbon::parse($request->end_date)->endOfDay());
@@ -90,7 +94,7 @@ class ReportController extends Controller
         }
 
         $bookings = $query->get();
-        $hourCounts = array_fill(AvailabilityService::OPEN_HOUR, AvailabilityService::CLOSE_HOUR - AvailabilityService::OPEN_HOUR, 0);
+        $hourCounts = array_fill($openHour, $closeHour - $openHour, 0);
 
         foreach ($bookings as $booking) {
             $startHour = $booking->start_time->hour;
