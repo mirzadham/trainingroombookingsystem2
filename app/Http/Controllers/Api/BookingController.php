@@ -11,6 +11,7 @@ use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class BookingController extends Controller
 {
@@ -51,7 +52,7 @@ class BookingController extends Controller
      */
     public function show(Request $request, Booking $booking): JsonResponse
     {
-        $this->authorize('view', $booking);
+        Gate::authorize('view', $booking);
 
         return (new BookingResource(
             $booking->load(['room.location', 'user', 'approver'])
@@ -75,7 +76,7 @@ class BookingController extends Controller
      */
     public function cancel(Request $request, Booking $booking): JsonResponse
     {
-        $this->authorize('cancel', $booking);
+        Gate::authorize('cancel', $booking);
 
         $booking = $this->bookingService->cancel($booking, $request->user());
 
