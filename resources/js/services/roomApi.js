@@ -3,6 +3,9 @@ import api from './apiClient';
 export const getPublicRooms = (params) =>
     api.get('/rooms', { params }).then(r => r.data);
 
+export const getPublicRoom = (id, params) =>
+    api.get(`/rooms/${id}`, { params }).then(r => r.data);
+
 export const getRoomsWithTimeline = (params) =>
     api.get('/rooms/available', { params }).then(r => r.data);
 

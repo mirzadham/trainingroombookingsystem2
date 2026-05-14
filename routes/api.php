@@ -58,3 +58,4 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 Route::get('/calendar', [App\Http\Controllers\Api\CalendarController::class, 'index']);
 Route::get('/locations', [App\Http\Controllers\Api\LocationController::class, 'index']);
 Route::get('/rooms', [App\Http\Controllers\Api\RoomController::class, 'publicIndex']);
+Route::get('/rooms/{room}', [App\Http\Controllers\Api\RoomController::class, 'publicShow']);

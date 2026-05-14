@@ -1,90 +1,86 @@
 import React from 'react';
-import { LogIn } from 'lucide-react';
+import { LogIn, ArrowRight } from 'lucide-react';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
 export default function AuthGateStep({ form }) {
     const {
         authMode, setAuthMode,
-        authEmail, setAuthEmail,
         authPassword, setAuthPassword,
-        authName, setAuthName,
         authPasswordConfirm, setAuthPasswordConfirm,
         authLoading, authError, setAuthError,
+        guestEmail, guestName,
         handleAuth,
     } = form;
 
     return (
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
-            <div className="text-center mb-6">
-                <LogIn className="w-8 h-8 text-mimos-600 mx-auto mb-2" />
-                <h2 className="text-lg font-semibold text-slate-900">Sign in to complete your booking</h2>
-                <p className="text-sm text-slate-500 mt-1">Your booking details are saved</p>
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-xl font-extrabold text-slate-900">Verify Your Account</h2>
+                <p className="text-sm text-slate-500 mt-1">To secure your booking and easily manage it later.</p>
             </div>
 
             {/* Tabs */}
-            <div className="flex rounded-xl bg-white border border-slate-200 p-1 mb-6">
+            <div className="flex rounded-xl bg-slate-100 p-1">
                 <button
-                    onClick={() => { setAuthMode('login'); setAuthError(''); }}
-                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition cursor-pointer ${authMode === 'login' ? 'bg-mimos-500/20 text-mimos-600' : 'text-slate-600 hover:text-slate-900'}`}
+                    onClick={() => { setAuthMode('login'); setAuthError(''); setAuthPassword(''); }}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer ${authMode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
-                    Sign In
+                    Existing User
                 </button>
                 <button
-                    onClick={() => { setAuthMode('register'); setAuthError(''); }}
-                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition cursor-pointer ${authMode === 'register' ? 'bg-mimos-500/20 text-mimos-600' : 'text-slate-600 hover:text-slate-900'}`}
+                    onClick={() => { setAuthMode('register'); setAuthError(''); setAuthPassword(''); setAuthPasswordConfirm(''); }}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer ${authMode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
-                    Register
+                    New User
                 </button>
             </div>
 
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-slate-400">
+                    <LogIn className="w-5 h-5" />
+                </div>
+                <div>
+                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{authMode === 'login' ? 'Logging in as' : 'Registering as'}</div>
+                    <div className="text-sm font-bold text-slate-900">{guestEmail}</div>
+                </div>
+            </div>
+
             {authError && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium">
                     {authError}
                 </div>
             )}
 
-            <form onSubmit={handleAuth} className="space-y-4">
-                {authMode === 'register' && (
-                    <Input
-                        label="Full Name"
-                        type="text"
-                        value={authName}
-                        onChange={e => setAuthName(e.target.value)}
-                        required
-                    />
-                )}
+            <form onSubmit={handleAuth} className="space-y-5">
                 <Input
-                    label="Email"
-                    type="email"
-                    value={authEmail}
-                    onChange={e => setAuthEmail(e.target.value)}
-                    required
-                />
-                <Input
-                    label="Password"
+                    label="Password *"
                     type="password"
                     value={authPassword}
                     onChange={e => setAuthPassword(e.target.value)}
                     required
+                    autoFocus
                 />
+                
                 {authMode === 'register' && (
                     <Input
-                        label="Confirm Password"
+                        label="Confirm Password *"
                         type="password"
                         value={authPasswordConfirm}
                         onChange={e => setAuthPasswordConfirm(e.target.value)}
                         required
                     />
                 )}
+                
                 <Button
                     type="submit"
                     loading={authLoading}
-                    disabled={authLoading}
+                    disabled={authLoading || !authPassword || (authMode === 'register' && !authPasswordConfirm)}
                     size="lg"
-                    className="w-full"
+                    className="w-full group py-3 text-base"
                 >
-                    {authMode === 'login' ? 'Sign In & Book' : 'Register & Book'}
+                    {authMode === 'login' ? 'Sign In & Submit Booking' : 'Register & Submit Booking'}
+                    {!authLoading && <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />}
                 </Button>
             </form>
         </div>

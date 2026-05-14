@@ -30,6 +30,18 @@ class RoomController extends Controller
     }
 
     /**
+     * GET /api/rooms/{room} (public)
+     * Show a specific room with location info.
+     */
+    public function publicShow(Request $request, Room $room): JsonResponse
+    {
+        if (!$room->is_active) {
+            abort(404, 'Room not found.');
+        }
+        return (new RoomResource($room->load('location')))->response();
+    }
+
+    /**
      * GET /api/admin/rooms
      * List all rooms for admin management.
      */

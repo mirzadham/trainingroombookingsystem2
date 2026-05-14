@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarCheck } from 'lucide-react';
+import { CalendarCheck, ChevronRight, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/ui/Button';
 
@@ -10,35 +10,56 @@ export default function ConfirmationStep({ form }) {
     if (!bookingResult) return null;
 
     return (
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 text-center">
-            <div className="inline-flex p-3 rounded-full bg-emerald-500/10 mb-4">
-                <CalendarCheck className="w-8 h-8 text-emerald-500" />
+        <div className="text-center py-6">
+            <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 mb-6">
+                <CalendarCheck className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Booking Submitted!</h2>
-            <p className="text-sm text-slate-500 mb-6">
-                Your booking is <span className="text-amber-500 font-medium">pending approval</span>. You'll be notified once an admin reviews it.
+            
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Booking Submitted!</h2>
+            <p className="text-sm text-slate-500 mb-8 max-w-sm mx-auto">
+                Your request is <span className="text-amber-500 font-bold">Pending Approval</span>. You'll receive a confirmation email once an administrator reviews it.
             </p>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 text-left space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-500">Booking ID</span><span className="text-slate-900 font-mono">#{bookingResult.id}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Room</span><span className="text-slate-900">{bookingResult.room?.name}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Contact Phone</span><span className="text-slate-900">{bookingResult.phone}</span></div>
-                <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-amber-500 font-medium uppercase text-xs">{bookingResult.status}</span></div>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8 text-left max-w-sm mx-auto shadow-inner relative overflow-hidden">
+                {/* Decorative element */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-mimos-500/10 to-pink-500/10 rounded-bl-full -mr-4 -mt-4" />
+                
+                <div className="space-y-4 relative z-10">
+                    <div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+                            <Hash className="w-3 h-3" /> Booking ID
+                        </div>
+                        <div className="text-xl font-mono font-bold text-slate-900">
+                            {String(bookingResult.id).padStart(5, '0')}
+                        </div>
+                    </div>
+                    
+                    <div className="h-px bg-slate-200" />
+                    
+                    <div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</div>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            {bookingResult.status || 'Pending'}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
                 <Button
                     variant="secondary"
                     onClick={() => navigate('/my-bookings')}
-                    className="flex-1"
+                    className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border-0"
                 >
-                    My Bookings
+                    View Bookings
                 </Button>
                 <Button
                     onClick={() => navigate('/')}
-                    className="flex-1"
+                    className="flex-1 py-3 group shadow-md shadow-mimos-500/20"
                 >
-                    Book Another
+                    New Search
+                    <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                 </Button>
             </div>
         </div>

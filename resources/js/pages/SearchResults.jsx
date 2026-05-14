@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, MapPin, Users } from 'lucide-react';
-import RoomDrawer from '../components/RoomDrawer';
 import * as api from '../services/api';
 
 export default function SearchResults() {
@@ -12,10 +11,6 @@ export default function SearchResults() {
     const locationId = searchParams.get('location_id') || '';
     const date = searchParams.get('date') || '';
     const attendees = searchParams.get('attendees') || '';
-
-    // Drawer state
-    const [selectedRoomData, setSelectedRoomData] = useState(null);
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     // Scroll to top when search params change
     useEffect(() => {
@@ -33,15 +28,8 @@ export default function SearchResults() {
         enabled: !!date,
     });
 
-    const handleCardClick = (roomEntry) => {
-        setSelectedRoomData(roomEntry);
-        setIsDrawerOpen(true);
-    };
-
-    const handleDrawerClose = () => {
-        setIsDrawerOpen(false);
-        // Delay clearing data to allow slide-out animation
-        setTimeout(() => setSelectedRoomData(null), 300);
+    const handleCardClick = (entry) => {
+        navigate(`/rooms/${entry.room.id}?date=${date}`);
     };
 
     const formatAmenity = (amenity) => {
@@ -128,15 +116,6 @@ export default function SearchResults() {
                     ))}
                 </div>
             )}
-
-            {/* Room Drawer */}
-            <RoomDrawer
-                room={selectedRoomData?.room || null}
-                slots={selectedRoomData?.slots || []}
-                date={date}
-                isOpen={isDrawerOpen}
-                onClose={handleDrawerClose}
-            />
         </div>
     );
 }
