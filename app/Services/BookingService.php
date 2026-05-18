@@ -44,29 +44,31 @@ class BookingService
         return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates) {
             // Iterate inclusive from start_date to end_date
             for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
-                // Build full datetimes for this specific day in Asia/Kuala_Lumpur
+                // Build MYT datetimes (local time = clock-face hours from booking config)
                 $dayStart = Carbon::createFromTimeString($timeStart, 'Asia/Kuala_Lumpur')
                     ->setDate($current->year, $current->month, $current->day);
                 $dayEnd   = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
                     ->setDate($current->year, $current->month, $current->day);
 
-                // Convert to UTC for persistence (matches existing single-day flow)
-                $dayStartUtc = $dayStart->setTimezone('UTC');
-                $dayEndUtc   = $dayEnd->setTimezone('UTC');
-
-                $dayData = array_merge($data, [
-                    'start_time' => $dayStartUtc->toDateTimeString(),
-                    'end_time'   => $dayEndUtc->toDateTimeString(),
-                ]);
-
-                // Validate business rules for this specific day
-                $this->validateBookingRules($dayData);
-
-                // Check availability — only APPROVED bookings block
-                if ($this->availabilityService->hasConflict($data['room_id'], $dayStartUtc, $dayEndUtc)) {
+                // 1) Check availability in MYT — AvailabilityService::hasConflict converts
+                //    to the app DB timezone internally, so MYT is fine here.
+                if ($this->availabilityService->hasConflict($data['room_id'], $dayStart, $dayEnd)) {
                     $unavailableDates->push($current->format('Y-m-d'));
                     continue;
                 }
+
+                // 2) Strict validation using MYT so that operating-hours comparisons
+                //    match app-timezone values (e.g. 09:00 MYT is 09:00, not 01:00 UTC).
+                $this->validateBookingRules([
+                    'start_time' => $dayStart->toDateTimeString(),
+                    'end_time'   => $dayEnd->toDateTimeString(),
+                    'room_id'    => $data['room_id'],
+                    'attendees'  => $data['attendees'],
+                ]);
+
+                // 3) Convert to UTC only for persistence in the database.
+                $dayStartUtc = $dayStart->copy()->setTimezone('UTC');
+                $dayEndUtc   = $dayEnd->copy()->setTimezone('UTC');
 
                 $booking = Booking::create([
                     'user_id'              => $user->id,
