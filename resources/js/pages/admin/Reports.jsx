@@ -40,29 +40,29 @@ export default function Reports() {
     return (
         <div>
             <div className="mb-6">
-                <h1 className="text-2xl font-bold text-white">Reports & Analytics</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Reports & Analytics</h1>
                 <p className="text-sm text-slate-500 mt-1">Room utilization and booking trends</p>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-6 p-4 bg-white/5 border border-white/10 rounded-2xl">
+            <div className="flex flex-wrap gap-3 mb-6 p-4 bg-white border border-slate-200 shadow-sm rounded-2xl">
                 <div>
                     <label className="block text-[10px] font-medium text-slate-500 mb-1 uppercase">Start Date</label>
                     <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 [color-scheme:dark]" />
+                        className="px-3 py-2 bg-white border border-slate-200 shadow-sm rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
                 </div>
                 <div>
                     <label className="block text-[10px] font-medium text-slate-500 mb-1 uppercase">End Date</label>
                     <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 [color-scheme:dark]" />
+                        className="px-3 py-2 bg-white border border-slate-200 shadow-sm rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
                 </div>
                 <div>
                     <label className="block text-[10px] font-medium text-slate-500 mb-1 uppercase">Location</label>
                     <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)}
-                        className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer">
-                        <option value="" className="bg-slate-900">All</option>
+                        className="px-3 py-2 bg-white border border-slate-200 shadow-sm rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none cursor-pointer">
+                        <option value="" className="bg-white">All</option>
                         {(locations || []).map(loc => (
-                            <option key={loc.id} value={loc.id} className="bg-slate-900">{loc.code}</option>
+                            <option key={loc.id} value={loc.id} className="bg-white">{loc.code}</option>
                         ))}
                     </select>
                 </div>
@@ -77,10 +77,10 @@ export default function Reports() {
             {!isLoading && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Room Utilization */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
                         <div className="flex items-center gap-2 mb-5">
-                            <TrendingUp className="w-5 h-5 text-emerald-400" />
-                            <h2 className="text-lg font-semibold text-white">Room Utilization</h2>
+                            <TrendingUp className="w-5 h-5 text-emerald-500" />
+                            <h2 className="text-lg font-semibold text-slate-900">Room Utilization</h2>
                         </div>
 
                         {utilization?.rooms?.length === 0 && (
@@ -91,12 +91,12 @@ export default function Reports() {
                             {(utilization?.rooms || []).map((room) => (
                                 <div key={room.room}>
                                     <div className="flex justify-between text-sm mb-1">
-                                        <span className="text-slate-300">{room.room}
-                                            <span className="text-xs text-slate-600 ml-1">({room.location})</span>
+                                        <span className="text-slate-700 font-medium">{room.room}
+                                            <span className="text-xs text-slate-500 ml-1 font-normal">({room.location})</span>
                                         </span>
-                                        <span className="text-white font-medium">{room.utilization_pct}%</span>
+                                        <span className="text-slate-900 font-medium">{room.utilization_pct}%</span>
                                     </div>
-                                    <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                                         <div
                                             className="h-full rounded-full transition-all duration-500"
                                             style={{
@@ -118,10 +118,10 @@ export default function Reports() {
                     </div>
 
                     {/* Peak Hours */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
                         <div className="flex items-center gap-2 mb-5">
-                            <Clock className="w-5 h-5 text-blue-400" />
-                            <h2 className="text-lg font-semibold text-white">Peak Hours</h2>
+                            <Clock className="w-5 h-5 text-blue-500" />
+                            <h2 className="text-lg font-semibold text-slate-900">Peak Hours</h2>
                         </div>
 
                         <div className="flex items-end gap-1.5 h-48">
