@@ -9,6 +9,11 @@ export default function ConfirmationStep({ form }) {
 
     if (!bookingResult) return null;
 
+    // bookingResult may be a single booking object or an array (multi-day)
+    const bookings = Array.isArray(bookingResult) ? bookingResult : [bookingResult];
+    const primary = bookings[0];
+    const totalDays = bookings.length;
+
     return (
         <div className="text-center py-6">
             <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 mb-6">
@@ -27,11 +32,20 @@ export default function ConfirmationStep({ form }) {
                 <div className="space-y-4 relative z-10">
                     <div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1">
-                            <Hash className="w-3 h-3" /> Booking ID
+                            <Hash className="w-3 h-3" /> Booking ID{totalDays > 1 ? `s (${totalDays} days)` : ''}
                         </div>
                         <div className="text-xl font-mono font-bold text-slate-900">
-                            {String(bookingResult.id).padStart(5, '0')}
+                            {String(bookings.map(b => b.id).join(', '))}
                         </div>
+
+                        {totalDays > 1 && (
+                            <>
+                                <div className="h-px bg-slate-200 mt-3 mb-1" />
+                                <div className="text-[10px] font-medium text-mimos-600">
+                                    {totalDays} separate records linked under group {String(primary?.group_id || '').substring(0, 8)}
+                                </div>
+                            </>
+                        )}
                     </div>
                     
                     <div className="h-px bg-slate-200" />

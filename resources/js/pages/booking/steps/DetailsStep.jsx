@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowRight, CalendarPlus } from 'lucide-react';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
+import DatePicker from '../../components/ui/DatePicker';
 
 export default function DetailsStep({ form }) {
-    const { title, setTitle, description, setDescription, attendees, setAttendees, roomInfo, canProceedToAccount, handleNext } = form;
+    const { title, setTitle, description, setDescription, attendees, setAttendees, endDate, setEndDate, roomInfo, canProceedToAccount, handleNext } = form;
     const titleRef = useRef(null);
 
     // Auto-focus Title input on mount
@@ -58,6 +59,44 @@ export default function DetailsStep({ form }) {
                     />
                     {isOverCapacity && (
                         <p className="mt-1.5 text-xs text-red-500 font-medium">Attendees cannot exceed room capacity ({roomInfo.capacity}).</p>
+                    )}
+                </div>
+
+                {/* Multi-day section */}
+                <div className="space-y-2">
+                    {endDate && endDate !== roomInfo.date ? (
+                        <div className="p-4 rounded-xl bg-mimos-50/50 border border-mimos-100">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CalendarPlus className="w-4 h-4 text-mimos-600" />
+                                <span className="text-xs font-bold text-mimos-700 uppercase tracking-wider">Multi-day Booking</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">End Date</label>
+                                    <DatePicker
+                                        value={endDate}
+                                        onChange={setEndDate}
+                                        min={roomInfo.date || ''}
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setEndDate('')}
+                                    className="mt-5 text-xs text-slate-400 hover:text-red-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => setEndDate(roomInfo.date || '')}
+                            className="flex items-center gap-2 text-sm text-mimos-600 hover:text-mimos-700 font-medium transition-colors"
+                        >
+                            <CalendarPlus className="w-4 h-4" />
+                            Book consecutive days
+                        </button>
                     )}
                 </div>
             </div>

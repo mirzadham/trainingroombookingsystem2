@@ -23,6 +23,7 @@ class BookingResource extends JsonResource
             'status' => $this->status,
             'rejection_reason' => $this->rejection_reason,
             'recurrence_group_id' => $this->recurrence_group_id,
+            'group_id' => $this->group_id,
             'approved_at' => $this->approved_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'room' => new RoomResource($this->whenLoaded('room')),
