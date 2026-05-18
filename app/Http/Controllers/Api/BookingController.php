@@ -35,11 +35,23 @@ class BookingController extends Controller
 
     /**
      * POST /api/bookings
-     * Create a new booking.
+     * Create a new booking. Supports single-day and consecutive multi-day bookings.
      */
     public function store(StoreBookingRequest $request): JsonResponse
     {
-        $booking = $this->bookingService->create($request->validated(), $request->user());
+        $validated = $request->validated();
+
+        // Multi-day booking: end_date present and differs from start_date
+        if (!empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date']) {
+            $bookings = $this->bookingService->createMultiDayBookings($validated, $request->user());
+
+            return (BookingResource::collection($bookings))
+                ->response()
+                ->setStatusCode(201);
+        }
+
+        // Single-day booking (existing path)
+        $booking = $this->bookingService->create($validated, $request->user());
 
         return (new BookingResource($booking))
             ->response()

@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,114 @@ class BookingService
         private AvailabilityService $availabilityService,
         private AuditService $auditService
     ) {}
+
+    /**
+     * Create consecutive multi-day bookings.
+     * Expands the date range (start_date → end_date) into one Booking record per day,
+     * all sharing the same group_id, wrapped in a DB transaction for atomicity.
+     */
+    public function createMultiDayBookings(array $data, User $user): Collection
+    {
+        $startDate = Carbon::parse($data['start_date']);
+        $endDate   = Carbon::parse($data['end_date']);
+
+        $this->validateMultiDayRules($data, $startDate, $endDate);
+
+        // Extract time-of-day portion from start_time / end_time strings (e.g. "09:00:00" → "09:00")
+        $rawStart = Carbon::parse($data['start_time']);
+        $rawEnd   = Carbon::parse($data['end_time']);
+        $timeStart = $rawStart->format('H:i:s');
+        $timeEnd   = $rawEnd->format('H:i:s');
+
+        $groupId = Str::uuid()->toString();
+        $bookings = collect();
+        $unavailableDates = collect();
+
+        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates) {
+            // Iterate inclusive from start_date to end_date
+            for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
+                // Build full datetimes for this specific day in Asia/Kuala_Lumpur
+                $dayStart = Carbon::createFromTimeString($timeStart, 'Asia/Kuala_Lumpur')
+                    ->setDate($current->year, $current->month, $current->day);
+                $dayEnd   = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
+                    ->setDate($current->year, $current->month, $current->day);
+
+                // Convert to UTC for persistence (matches existing single-day flow)
+                $dayStartUtc = $dayStart->setTimezone('UTC');
+                $dayEndUtc   = $dayEnd->setTimezone('UTC');
+
+                $dayData = array_merge($data, [
+                    'start_time' => $dayStartUtc->toDateTimeString(),
+                    'end_time'   => $dayEndUtc->toDateTimeString(),
+                ]);
+
+                // Validate business rules for this specific day
+                $this->validateBookingRules($dayData);
+
+                // Check availability — only APPROVED bookings block
+                if ($this->availabilityService->hasConflict($data['room_id'], $dayStartUtc, $dayEndUtc)) {
+                    $unavailableDates->push($current->format('Y-m-d'));
+                    continue;
+                }
+
+                $booking = Booking::create([
+                    'user_id'              => $user->id,
+                    'room_id'              => $data['room_id'],
+                    'title'                => $data['title'],
+                    'description'          => $data['description'] ?? null,
+                    'start_time'           => $dayStartUtc,
+                    'end_time'             => $dayEndUtc,
+                    'attendees'            => $data['attendees'],
+                    'phone'                => $data['phone'],
+                    'status'               => BookingStatus::Pending,
+                    'group_id'             => $groupId,
+                ]);
+
+                $this->auditService->log($user, $booking, 'created', [
+                    'group_id'            => $groupId,
+                    'booking_date'        => $current->format('Y-m-d'),
+                    'multi_day_booking'   => true,
+                ]);
+
+                $bookings->push($booking);
+            }
+
+            // If every single day was unavailable, throw a helpful error
+            if ($bookings->isEmpty() && $unavailableDates->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'end_date' => 'The selected room is unavailable for all dates in the range '
+                        . $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d')
+                        . '. Please select a different room or time slot.',
+                ]);
+            }
+
+            // If only *some* days were unavailable, surface the specific dates
+            if ($unavailableDates->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'end_date' => 'The selected room is unavailable on the following dates: '
+                        . $unavailableDates->join(', ') . '. Please adjust your date range.',
+                ]);
+            }
+
+            return $bookings;
+        });
+    }
+
+    /**
+     * Only validation relevant to the multi-day range itself.
+     * Per-day time/occupancy rules are enforced inside createMultiDayBookings.
+     */
+    private function validateMultiDayRules(array $data, Carbon $startDate, Carbon $endDate): void
+    {
+        $maxDays = (int) config('booking.max_duration_days', 14);
+        $totalDays = $startDate->diffInDays($endDate) + 1; // inclusive
+
+        if ($totalDays > $maxDays) {
+            throw ValidationException::withMessages([
+                'end_date' => "Consecutive multi-day bookings cannot exceed {$maxDays} days.",
+            ]);
+        }
+    }
 
     /**
      * Create a new booking.
