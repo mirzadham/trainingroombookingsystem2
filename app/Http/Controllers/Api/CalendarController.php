@@ -37,8 +37,10 @@ class CalendarController extends Controller
             'start' => $b->start_time->toIso8601String(),
             'end' => $b->end_time->toIso8601String(),
             'room' => $b->room->name,
+            'room_id' => $b->room_id,
             'location' => $b->room->location->code,
             'booked_by' => $b->user->name,
+            'group_id' => $b->group_id,
         ]);
 
         return response()->json($events);
