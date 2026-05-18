@@ -35,7 +35,7 @@ export default function BookingWizard() {
                 {/* Left Column: Wizard Steps */}
                 <div className="flex-1 w-full max-w-2xl">
                     {/* Step indicator */}
-                    <div className="flex items-center gap-2 mb-10">
+                    <div className="flex items-center w-full mb-10">
                         {STEPS.map((label, i) => {
                             // Don't show AuthGate as a real step if authenticated (it gets skipped)
                             if (isAuthenticated && i === 2) return null;
@@ -43,22 +43,25 @@ export default function BookingWizard() {
                             const isActive = i === step;
                             const isCompleted = i < step;
                             
+                            // Adjust display number so it doesn't jump from 2 to 4 when authenticated
+                            const displayNum = isAuthenticated && i > 2 ? i : i + 1;
+                            
                             return (
-                                <div key={label}>
-                                    <div className={`flex items-center gap-2 text-xs font-medium ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
+                                <React.Fragment key={label}>
+                                    <div className={`flex items-center gap-2 text-xs font-medium shrink-0 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
                                             isCompleted ? 'bg-mimos-500 text-white shadow-sm' :
                                             isActive ? 'bg-mimos-50 text-mimos-600 ring-2 ring-mimos-500 shadow-sm' :
                                             'bg-slate-50 border border-slate-200 text-slate-400'
                                         }`}>
-                                            {isCompleted ? <Check className="w-4 h-4" /> : i + 1}
+                                            {isCompleted ? <Check className="w-4 h-4" /> : displayNum}
                                         </div>
                                         <span className="hidden sm:inline">{label}</span>
                                     </div>
-                                    {i < STEPS.length - 1 && (!isAuthenticated || i !== 1) && (
-                                        <div className={`flex-1 h-px ${isCompleted ? 'bg-mimos-500/50' : 'bg-slate-200'}`} />
+                                    {i < STEPS.length - 1 && (
+                                        <div className={`flex-1 h-px mx-2 sm:mx-4 ${isCompleted ? 'bg-mimos-500/50' : 'bg-slate-200'}`} />
                                     )}
-                                </div>
+                                </React.Fragment>
                             );
                         })}
                     </div>
