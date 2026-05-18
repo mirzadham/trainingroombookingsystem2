@@ -40,8 +40,9 @@ class BookingService
         $groupId = Str::uuid()->toString();
         $bookings = collect();
         $unavailableDates = collect();
+        $maxMultidayDuration = (int) config('booking.max_multiday_duration_minutes', 1140);
 
-        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates) {
+        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration) {
             // Iterate inclusive from start_date to end_date
             for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
                 // Build MYT datetimes (local time = clock-face hours from booking config)
@@ -58,13 +59,14 @@ class BookingService
                 }
 
                 // 2) Strict validation using MYT so that operating-hours comparisons
-                //    match app-timezone values (e.g. 09:00 MYT is 09:00, not 01:00 UTC).
+                //    match app-timezone values.  Uses the multi-day duration cap so that
+                //    longer but valid consecutive bookings are accepted.
                 $this->validateBookingRules([
                     'start_time' => $dayStart->toDateTimeString(),
                     'end_time'   => $dayEnd->toDateTimeString(),
                     'room_id'    => $data['room_id'],
                     'attendees'  => $data['attendees'],
-                ]);
+                ], $maxMultidayDuration);
 
                 // 3) Convert to UTC only for persistence in the database.
                 $dayStartUtc = $dayStart->copy()->setTimezone('UTC');
@@ -276,8 +278,10 @@ class BookingService
 
     /**
      * Validate booking business rules.
+     * $data params: start_time, end_time, room_id, attendees
+     * $maxDurationMinutes: optional override (null = use default single-day cap)
      */
-    private function validateBookingRules(array $data): void
+    private function validateBookingRules(array $data, ?int $maxDurationMinutes = null): void
     {
         $start = Carbon::parse($data['start_time']);
         $end = Carbon::parse($data['end_time']);
@@ -286,7 +290,7 @@ class BookingService
         $openHour = config('booking.operating_hours.open');
         $closeHour = config('booking.operating_hours.close');
         $minDuration = config('booking.min_duration_minutes');
-        $maxDuration = config('booking.max_duration_minutes');
+        $maxDuration = $maxDurationMinutes ?? config('booking.max_duration_minutes');
         $advanceMinutes = config('booking.same_day_advance_minutes');
 
         // Operating hours
@@ -320,8 +324,9 @@ class BookingService
         // Max duration
         if ($durationMinutes > $maxDuration) {
             $maxHours = $maxDuration / 60;
+            $displayHours = floor($maxHours) === $maxHours ? (int)$maxHours : round($maxHours, 1);
             throw ValidationException::withMessages([
-                'duration' => "Maximum booking duration is {$maxHours} hours.",
+                'duration' => "Maximum booking duration is {$displayHours} hours.",
             ]);
         }
 
