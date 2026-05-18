@@ -23,6 +23,7 @@ class Booking extends Model
         'status',
         'rejection_reason',
         'recurrence_group_id',
+        'group_id',
         'approved_by',
         'approved_at',
     ];
