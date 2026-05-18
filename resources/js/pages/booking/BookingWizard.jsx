@@ -108,8 +108,15 @@ export default function BookingWizard() {
                                             <Calendar className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Date</div>
-                                            <div className="text-sm font-medium text-slate-900">{formatDate(roomInfo.date)}</div>
+                                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                                                {form.endDate && form.endDate !== roomInfo.date ? 'Dates' : 'Date'}
+                                            </div>
+                                            <div className="text-sm font-medium text-slate-900">
+                                                {form.endDate && form.endDate !== roomInfo.date
+                                                    ? `${formatDate(roomInfo.date)} — ${formatDate(form.endDate)}`
+                                                    : formatDate(roomInfo.date)
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                     

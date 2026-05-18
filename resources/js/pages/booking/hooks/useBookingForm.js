@@ -50,6 +50,7 @@ export default function useBookingForm() {
     const [title, setTitle] = useState(() => getStoredState('title', ''));
     const [description, setDescription] = useState(() => getStoredState('description', ''));
     const [attendees, setAttendees] = useState(() => getStoredState('attendees', ''));
+    const [endDate, setEndDate] = useState(() => getStoredState('endDate', ''));
     
     // Account step
     const [guestName, setGuestName] = useState(() => getStoredState('guestName', ''));
@@ -61,6 +62,7 @@ export default function useBookingForm() {
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_title`, title), [title]);
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_description`, description), [description]);
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_attendees`, attendees), [attendees]);
+    useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_endDate`, endDate), [endDate]);
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_guestName`, guestName), [guestName]);
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_guestEmail`, guestEmail), [guestEmail]);
     useEffect(() => sessionStorage.setItem(`${SESSION_KEY}_phone`, phone), [phone]);
@@ -87,7 +89,8 @@ export default function useBookingForm() {
     }, [isAuthenticated, user]);
 
     // Validations
-    const canProceedToAccount = title.trim() && attendees && parseInt(attendees) > 0 && parseInt(attendees) <= parseInt(roomInfo.capacity || 9999);
+    const canProceedToAccount = title.trim() && attendees && parseInt(attendees) > 0 && parseInt(attendees) <= parseInt(roomInfo.capacity || 9999)
+        && (!endDate || endDate >= (roomInfo.date || ''));
     const canProceedToAuthOrSubmit = guestName.trim() && guestEmail.trim() && phone.trim();
 
     const handleSubmit = useCallback(async () => {
@@ -99,6 +102,8 @@ export default function useBookingForm() {
                 room_id: parseInt(roomInfo.roomId),
                 title,
                 description: description || null,
+                start_date: roomInfo.date,
+                end_date: endDate || roomInfo.date,
                 start_time: `${roomInfo.date} ${roomInfo.startTime}:00`,
                 end_time: `${roomInfo.date} ${roomInfo.endTime}:00`,
                 attendees: parseInt(attendees),
@@ -108,7 +113,7 @@ export default function useBookingForm() {
             setStep(3); // Move to confirmation
             
             // Clear session storage on success using explicit keys for cross-browser reliability
-            const keysToRemove = ['room', 'step', 'title', 'description', 'attendees', 'guestName', 'guestEmail', 'phone'];
+            const keysToRemove = ['room', 'step', 'title', 'description', 'attendees', 'endDate', 'guestName', 'guestEmail', 'phone'];
             keysToRemove.forEach(k => sessionStorage.removeItem(`${SESSION_KEY}_${k}`));
         } catch (err) {
             const errors = err.response?.data?.errors;
@@ -120,7 +125,7 @@ export default function useBookingForm() {
         } finally {
             setSubmitting(false);
         }
-    }, [roomInfo, title, description, attendees, phone]);
+    }, [roomInfo, title, description, attendees, endDate, phone]);
 
     const handleNext = useCallback(() => {
         if (step === 0 && canProceedToAccount) {
@@ -198,6 +203,7 @@ export default function useBookingForm() {
         title, setTitle,
         description, setDescription,
         attendees, setAttendees,
+        endDate, setEndDate,
         guestName, setGuestName,
         guestEmail, setGuestEmail,
         phone, setPhone,

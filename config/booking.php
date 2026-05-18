@@ -32,7 +32,8 @@ return [
     */
 
     'min_duration_minutes' => 30,
-    'max_duration_minutes' => 480,  // 8 hours
+    'max_duration_minutes' => 480,  // 8 hours (single-day / standard booking)
+    'max_multiday_duration_minutes' => 1140,  // 19 hours for consecutive multi-day bookings
 
     /*
     |--------------------------------------------------------------------------
@@ -49,5 +50,13 @@ return [
     */
 
     'max_recurring_weeks' => 52,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consecutive Multi-Day Booking Limit
+    |--------------------------------------------------------------------------
+    */
+
+    'max_duration_days' => 14,
 
 ];

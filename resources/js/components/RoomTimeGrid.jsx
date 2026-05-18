@@ -25,10 +25,10 @@ const ALL_SLOTS = generateAllSlots();
 
 export default function RoomTimeGrid({ room, date, timelineSlots }) {
     const navigate = useNavigate();
-    
+
     // Step 1 or Step 2
     const [step, setStep] = useState(1);
-    
+
     // Selected times
     const [startTime, setStartTime] = useState(null);
     const [duration, setDuration] = useState(null); // in minutes (30, 60, 90, etc.)
@@ -52,7 +52,7 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
     // Calculate possible durations from the selected start time.
     const possibleDurations = useMemo(() => {
         if (!startTime || !timelineSlots) return [];
-        
+
         const startIndex = ALL_SLOTS.findIndex(s => s.time === startTime);
         if (startIndex === -1) return [];
 
@@ -61,14 +61,14 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
 
         for (let i = startIndex; i < ALL_SLOTS.length; i++) {
             const currentSlot = ALL_SLOTS[i];
-            
+
             // If the slot itself is occupied, we cannot stretch duration into it
             if (getSlotStatus(currentSlot.time) === 'occupied') {
                 break;
             }
 
             accumulatedMinutes += 30;
-            
+
             // End time string for display (this is the boundary *after* the slot)
             let endH = parseInt(currentSlot.time.substring(0, 2));
             let endM = parseInt(currentSlot.time.substring(3, 5)) + 30;
@@ -76,14 +76,17 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
                 endM = 0;
                 endH += 1;
             }
-            
+
             const endLabel = `${endH > 12 ? endH - 12 : endH === 0 ? 12 : endH}:${endM === 0 ? '00' : '30'} ${endH >= 12 && endH < 24 ? 'PM' : 'AM'}`;
             const endTimeStr = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+            const durationLabel = accumulatedMinutes >= 60 ? (accumulatedMinutes / 60) + ' hr' : accumulatedMinutes + ' min';
 
             durations.push({
                 minutes: accumulatedMinutes,
                 endTimeStr,
-                label: `UNTIL ${endLabel} (${accumulatedMinutes >= 60 ? accumulatedMinutes / 60 : accumulatedMinutes + ' min'}${accumulatedMinutes >= 60 ? ' hr' : ''})`
+                endLabel,
+                durationLabel,
+                label: `UNTIL ${endLabel} (${durationLabel})`
             });
         }
         return durations;
@@ -95,9 +98,9 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
 
     const handleBookNow = () => {
         if (!startTime || !duration) return;
-        
+
         // Ensure any previous draft is cleared when starting a brand new booking
-        const keysToRemove = ['room', 'step', 'title', 'description', 'attendees', 'guestName', 'guestEmail', 'phone'];
+        const keysToRemove = ['room', 'step', 'title', 'description', 'attendees', 'endDate', 'guestName', 'guestEmail', 'phone'];
         keysToRemove.forEach(k => sessionStorage.removeItem(`booking_draft_${k}`));
 
         // Pass info via React Router state (fallback, though useBookingForm will use sessionStorage too if we set it there)
@@ -111,7 +114,7 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
             {/* Header */}
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
                 {step === 2 && (
-                    <button 
+                    <button
                         onClick={() => { setStep(1); setStartTime(null); setDuration(null); }}
                         className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 transition"
                     >
@@ -143,8 +146,8 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
                                     disabled={isOccupied}
                                     className={`
                                         py-2.5 rounded-xl text-xs font-medium transition-all border
-                                        ${isOccupied 
-                                            ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed opacity-60' 
+                                        ${isOccupied
+                                            ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed opacity-60'
                                             : 'bg-white border-slate-200 text-slate-700 hover:border-mimos-500 hover:text-mimos-600 hover:shadow-sm cursor-pointer'
                                         }
                                     `}
@@ -157,21 +160,21 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
                 )}
 
                 {step === 2 && (
-                    <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
                         {possibleDurations.map((dur, i) => (
                             <button
                                 key={i}
                                 onClick={() => handleDurationSelect(dur)}
                                 className={`
-                                    flex items-center justify-between p-3.5 rounded-xl border transition-all text-sm font-medium
+                                    flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border transition-all
                                     ${duration?.minutes === dur.minutes
                                         ? 'bg-mimos-50 border-mimos-500 text-mimos-700 ring-1 ring-mimos-500 shadow-sm'
                                         : 'bg-white border-slate-200 text-slate-700 hover:border-mimos-400 hover:bg-slate-50 cursor-pointer'
                                     }
                                 `}
                             >
-                                <span>{dur.label}</span>
-                                <Clock className={`w-4 h-4 ${duration?.minutes === dur.minutes ? 'text-mimos-500' : 'text-slate-400'}`} />
+                                <span className="text-xs font-semibold">{dur.durationLabel}</span>
+                                <span className="text-[10px] opacity-70 mt-0.5">Until {dur.endLabel}</span>
                             </button>
                         ))}
                     </div>
