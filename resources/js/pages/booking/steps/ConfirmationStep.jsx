@@ -54,7 +54,7 @@ export default function ConfirmationStep({ form }) {
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</div>
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                            {bookingResult.status || 'Pending'}
+                            {primary?.status || 'Pending'}
                         </div>
                     </div>
                 </div>
