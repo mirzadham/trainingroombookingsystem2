@@ -44,7 +44,7 @@ export default function BookingWizard() {
                             const isCompleted = i < step;
                             
                             return (
-                                <React.Fragment key={label}>
+                                <div key={label}>
                                     <div className={`flex items-center gap-2 text-xs font-medium ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                                         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
                                             isCompleted ? 'bg-mimos-500 text-white shadow-sm' :
@@ -58,7 +58,7 @@ export default function BookingWizard() {
                                     {i < STEPS.length - 1 && (!isAuthenticated || i !== 1) && (
                                         <div className={`flex-1 h-px ${isCompleted ? 'bg-mimos-500/50' : 'bg-slate-200'}`} />
                                     )}
-                                </React.Fragment>
+                                </div>
                             );
                         })}
                     </div>

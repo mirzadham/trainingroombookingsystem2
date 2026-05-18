@@ -25,10 +25,15 @@ class BookingController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $bookings = Booking::where('user_id', $request->user()->id)
+        $query = Booking::where('user_id', $request->user()->id)
             ->with(['room.location', 'approver'])
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->orderByDesc('created_at');
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $bookings = $query->paginate(20);
 
         return response()->json($bookings);
     }
