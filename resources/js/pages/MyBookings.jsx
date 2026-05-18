@@ -121,19 +121,6 @@ export default function MyBookings() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-bookings', activeStatus] }),
     });
 
-    if (!isAuthenticated) {
-        return (
-            <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-mimos-500/10 to-pink-600/10 flex items-center justify-center">
-                    <CalendarCheck className="w-8 h-8 text-mimos-500" />
-                </div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-1">Sign in to view your bookings</h2>
-                <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">You need to be logged in to see your booking history.</p>
-                <button onClick={() => navigate('/')} className="px-6 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40 hover:-translate-y-0.5 transition-all cursor-pointer">Go to Home</button>
-            </div>
-        );
-    }
-
     const bookings = data?.data || [];
 
     const monthGroups = useMemo(() => {
@@ -147,6 +134,19 @@ export default function MyBookings() {
         });
         return map;
     }, [bookings]);
+
+    if (!isAuthenticated) {
+        return (
+            <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+                <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-mimos-500/10 to-pink-600/10 flex items-center justify-center">
+                    <CalendarCheck className="w-8 h-8 text-mimos-500" />
+                </div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-1">Sign in to view your bookings</h2>
+                <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">You need to be logged in to see your booking history.</p>
+                <button onClick={() => navigate('/')} className="px-6 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40 hover:-translate-y-0.5 transition-all cursor-pointer">Go to Home</button>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
