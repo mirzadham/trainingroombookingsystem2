@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Calendar, Users } from 'lucide-react';
+import { Search, MapPin, Users } from 'lucide-react';
 import * as api from '../services/api';
+import DatePicker from './ui/DatePicker';
+import LocationPicker from './ui/LocationPicker';
 
 export default function HeaderSearchPill({
     initialLocation = '',
@@ -37,20 +39,13 @@ export default function HeaderSearchPill({
         <form onSubmit={handleSubmit} className="flex items-center gap-1 sm:gap-2 pl-3 pr-2 py-2 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             {/* Location */}
             <div className="relative">
-                <select
+                <LocationPicker
+                    id="pill-location"
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    aria-label="Location"
-                    className="appearance-none bg-transparent border-0 focus:ring-0 text-slate-900 text-sm py-1.5 pr-6 cursor-pointer hover:text-mimos-600 transition-colors"
-                >
-                    <option value="" className="text-slate-500">All Locations</option>
-                    {(locations || []).map(loc => (
-                        <option key={loc.id} value={loc.id}>
-                            {loc.name} ({loc.code})
-                        </option>
-                    ))}
-                </select>
-                <MapPin className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                    onChange={setLocation}
+                    locations={locations}
+                    variant="pill"
+                />
             </div>
 
             {/* Vertical divider */}
@@ -58,15 +53,13 @@ export default function HeaderSearchPill({
 
             {/* Date */}
             <div className="relative">
-                <input
-                    type="date"
+                <DatePicker
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={setDate}
                     min={new Date().toISOString().split('T')[0]}
-                    aria-label="Date"
-                    className="appearance-none bg-transparent border-0 focus:ring-0 text-slate-900 text-sm py-1.5 w-28 sm:w-32 pr-8 [color-scheme:light] hover:text-mimos-600 transition-colors"
+                    variant="pill"
+                    placeholder="Date"
                 />
-                <Calendar className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
             </div>
 
             {/* Vertical divider */}

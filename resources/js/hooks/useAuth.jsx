@@ -1,87 +1,122 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as api from '../services/api';
 import { isAdminRole } from '../constants/roles';
+import {
+    USER_TOKEN_KEY, USER_DATA_KEY,
+    ADMIN_TOKEN_KEY, ADMIN_DATA_KEY,
+} from '../constants/authKeys';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [adminUser, setAdminUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Restore session on mount
+    // Restore both sessions on mount
     useEffect(() => {
-        const token = localStorage.getItem('auth_token');
-        const savedUser = localStorage.getItem('auth_user');
+        const userToken  = localStorage.getItem(USER_TOKEN_KEY);
+        const savedUser  = localStorage.getItem(USER_DATA_KEY);
+        const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+        const savedAdmin = localStorage.getItem(ADMIN_DATA_KEY);
 
-        if (token && savedUser) {
-            try {
-                setUser(JSON.parse(savedUser));
-                // Verify token is still valid
+        const promises = [];
+
+        if (userToken && savedUser) {
+            try { setUser(JSON.parse(savedUser)); } catch {}
+            promises.push(
                 api.getUser()
                     .then(data => {
                         setUser(data.user);
-                        localStorage.setItem('auth_user', JSON.stringify(data.user));
+                        localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
                     })
                     .catch(() => {
-                        // Token expired
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('auth_user');
+                        localStorage.removeItem(USER_TOKEN_KEY);
+                        localStorage.removeItem(USER_DATA_KEY);
                         setUser(null);
                     })
-                    .finally(() => setLoading(false));
-            } catch {
-                setLoading(false);
-            }
-        } else {
-            setLoading(false);
+            );
         }
+
+        if (adminToken && savedAdmin) {
+            try { setAdminUser(JSON.parse(savedAdmin)); } catch {}
+            // Reuse getUser with admin token — interceptor picks it up per-request
+            promises.push(
+                api.getAdminUser()
+                    .then(data => {
+                        setAdminUser(data.user);
+                        localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(data.user));
+                    })
+                    .catch(() => {
+                        localStorage.removeItem(ADMIN_TOKEN_KEY);
+                        localStorage.removeItem(ADMIN_DATA_KEY);
+                        setAdminUser(null);
+                    })
+            );
+        }
+
+        Promise.allSettled(promises).finally(() => setLoading(false));
     }, []);
 
+    // Regular user login — writes ONLY to user keys
     const login = useCallback(async (email, password) => {
         const data = await api.login({ email, password });
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
+        localStorage.setItem(USER_TOKEN_KEY, data.token);
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
         setUser(data.user);
         return data;
     }, []);
 
+    // Admin login — writes ONLY to admin keys
     const adminLogin = useCallback(async (email, password) => {
         const data = await api.adminLogin({ email, password });
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
-        setUser(data.user);
+        localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+        localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(data.user));
+        setAdminUser(data.user);
         return data;
     }, []);
 
     const register = useCallback(async (formData) => {
         const data = await api.register(formData);
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('auth_user', JSON.stringify(data.user));
+        localStorage.setItem(USER_TOKEN_KEY, data.token);
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
         setUser(data.user);
         return data;
     }, []);
 
+    // User logout — clears ONLY user keys
     const logout = useCallback(async () => {
-        try {
-            await api.logout();
-        } catch {
-            // Ignore errors on logout
-        }
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+        try { await api.logout(); } catch {}
+        localStorage.removeItem(USER_TOKEN_KEY);
+        localStorage.removeItem(USER_DATA_KEY);
         setUser(null);
     }, []);
 
+    // Admin logout — clears ONLY admin keys
+    const adminLogout = useCallback(async () => {
+        try { await api.adminLogout(); } catch {}
+        localStorage.removeItem(ADMIN_TOKEN_KEY);
+        localStorage.removeItem(ADMIN_DATA_KEY);
+        setAdminUser(null);
+    }, []);
+
     const value = {
+        // User session
         user,
-        loading,
         isAuthenticated: !!user,
         isAdmin: isAdminRole(user?.role),
-        isSuperAdmin: user?.role === 'super_admin',
+
+        // Admin session (separate)
+        adminUser,
+        isAdminAuthenticated: !!adminUser,
+        isSuperAdmin: adminUser?.role === 'super_admin',
+
+        loading,
         login,
         adminLogin,
         register,
         logout,
+        adminLogout,
     };
 
     return (

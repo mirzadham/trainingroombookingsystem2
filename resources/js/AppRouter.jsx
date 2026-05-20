@@ -20,7 +20,7 @@ import AdminRooms from './pages/admin/Rooms';
 import AdminReports from './pages/admin/Reports';
 
 function AdminRoute({ children }) {
-    const { isAuthenticated, isAdmin, loading } = useAuth();
+    const { isAdminAuthenticated, loading } = useAuth();
 
     if (loading) {
         return (
@@ -30,7 +30,7 @@ function AdminRoute({ children }) {
         );
     }
 
-    if (!isAuthenticated || !isAdmin) {
+    if (!isAdminAuthenticated) {
         return <Navigate to="/admin/login" replace />;
     }
 

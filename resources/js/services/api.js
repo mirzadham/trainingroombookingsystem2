@@ -9,7 +9,8 @@
  *   import { login } from '../services/authApi';
  */
 
-export { login, register, adminLogin, logout, getUser } from './authApi';
+export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser } from './authApi';
+
 export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, createRecurringBooking } from './bookingApi';
 export { getPublicRooms, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom } from './roomApi';
 export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport } from './adminApi';

@@ -35,7 +35,7 @@ export default function HeaderSearchModal({
                 if (e.target === e.currentTarget) onClose();
             }}
         >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
                     <h2 className="text-lg font-semibold text-slate-900">Find a Training Room</h2>

@@ -21,10 +21,10 @@ const navItems = [
 export default function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { logout, user } = useAuth();
+    const { adminLogout, adminUser } = useAuth();
 
     const handleLogout = async () => {
-        await logout();
+        await adminLogout();
         navigate('/admin/login');
     };
 

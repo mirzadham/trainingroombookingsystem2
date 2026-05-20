@@ -10,10 +10,10 @@ export default function AdminLogin() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    const { adminLogin, isAuthenticated, isAdmin } = useAuth();
+    const { adminLogin, isAdminAuthenticated } = useAuth();
 
     // Redirect if already authenticated as admin
-    if (isAuthenticated && isAdmin) {
+    if (isAdminAuthenticated) {
         navigate('/admin', { replace: true });
         return null;
     }

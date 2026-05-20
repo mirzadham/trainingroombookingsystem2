@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Calendar, Users, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Users, ArrowRight } from 'lucide-react';
 import * as api from '../services/api';
+import DatePicker from './ui/DatePicker';
+import LocationPicker from './ui/LocationPicker';
 
 export default function SearchBar({
     initialLocation = '',
@@ -53,40 +55,25 @@ export default function SearchBar({
                         <label htmlFor="search-location-min" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
                             Location
                         </label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                            <select
-                                id="search-location-min"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition appearance-none cursor-pointer"
-                            >
-                                <option value="">All Locations</option>
-                                {(locations || []).map(loc => (
-                                    <option key={loc.id} value={loc.id}>
-                                        {loc.name} ({loc.code})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <LocationPicker
+                            id="search-location-min"
+                            value={location}
+                            onChange={setLocation}
+                            locations={locations}
+                        />
                     </div>
 
                     {/* Date */}
-                    <div>
+                    <div className="relative">
                         <label htmlFor="search-date-min" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
                             Date
                         </label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                            <input
-                                id="search-date-min"
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                min={new Date().toISOString().split('T')[0]}
-                                className="w-full pl-10 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition [color-scheme:light]"
-                            />
-                        </div>
+                        <DatePicker
+                            id="search-date-min"
+                            value={date}
+                            onChange={setDate}
+                            min={new Date().toISOString().split('T')[0]}
+                        />
                     </div>
 
                     {/* Attendees */}
@@ -135,40 +122,27 @@ export default function SearchBar({
                         <label htmlFor="search-location" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
                             Location
                         </label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                            <select
-                                id="search-location"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition appearance-none cursor-pointer"
-                            >
-                                <option value="">All Locations</option>
-                                {(locations || []).map(loc => (
-                                    <option key={loc.id} value={loc.id}>
-                                        {loc.name} ({loc.code})
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <LocationPicker
+                            id="search-location"
+                            value={location}
+                            onChange={setLocation}
+                            locations={locations}
+                            className="py-3"
+                        />
                     </div>
 
                     {/* Date */}
-                    <div>
+                    <div className="relative">
                         <label htmlFor="search-date" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
                             Date
                         </label>
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
-                            <input
-                                id="search-date"
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                min={new Date().toISOString().split('T')[0]}
-                                className="w-full pl-10 pr-8 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition [color-scheme:light]"
-                            />
-                        </div>
+                        <DatePicker
+                            id="search-date"
+                            value={date}
+                            onChange={setDate}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="py-3"
+                        />
                     </div>
 
                     {/* Attendees */}
