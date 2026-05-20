@@ -20,3 +20,21 @@ export const getUtilizationReport = (params) =>
 
 export const getPeakHoursReport = (params) =>
     api.get('/admin/reports/peak-hours', { params }).then(r => r.data);
+
+export const batchApproveBookings = (ids) =>
+    api.post('/admin/bookings/batch-approve', { ids }).then(r => r.data);
+
+export const batchRejectBookings = (ids, reason) =>
+    api.post('/admin/bookings/batch-reject', { ids, reason }).then(r => r.data);
+
+export const getAuditLogs = (params) =>
+    api.get('/admin/audit-logs', { params }).then(r => r.data);
+
+export const getRoomBlackouts = (roomId) =>
+    api.get('/admin/blackouts', { params: { room_id: roomId } }).then(r => r.data);
+
+export const createRoomBlackout = (data) =>
+    api.post('/admin/blackouts', data).then(r => r.data);
+
+export const deleteRoomBlackout = (id) =>
+    api.delete(`/admin/blackouts/${id}`).then(r => r.data);

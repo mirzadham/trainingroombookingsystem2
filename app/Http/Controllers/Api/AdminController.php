@@ -141,4 +141,130 @@ class AdminController extends Controller
             'recent_bookings' => BookingResource::collection($recentBookings),
         ]);
     }
+
+    /**
+     * POST /api/admin/bookings/batch-approve
+     * Approve multiple bookings at once.
+     */
+    public function batchApprove(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:bookings,id',
+        ]);
+
+        $user = $request->user();
+        $results = [
+            'success' => [],
+            'failed' => [],
+        ];
+
+        foreach ($request->ids as $id) {
+            $booking = Booking::find($id);
+
+            try {
+                $this->authorize('approve', $booking);
+                $this->approvalService->approve($booking, $user);
+                $results['success'][] = [
+                    'id' => $id,
+                    'title' => $booking->title,
+                ];
+            } catch (\Exception $e) {
+                $results['failed'][] = [
+                    'id' => $id,
+                    'title' => $booking?->title ?? "Booking #{$id}",
+                    'reason' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'message' => 'Batch approval completed.',
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * POST /api/admin/bookings/batch-reject
+     * Reject multiple bookings at once with a shared reason.
+     */
+    public function batchReject(Request $request): JsonResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:bookings,id',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $user = $request->user();
+        $reason = $request->reason;
+        $results = [
+            'success' => [],
+            'failed' => [],
+        ];
+
+        foreach ($request->ids as $id) {
+            $booking = Booking::find($id);
+
+            try {
+                $this->authorize('reject', $booking);
+                $this->approvalService->reject($booking, $user, $reason);
+                $results['success'][] = [
+                    'id' => $id,
+                    'title' => $booking->title,
+                ];
+            } catch (\Exception $e) {
+                $results['failed'][] = [
+                    'id' => $id,
+                    'title' => $booking?->title ?? "Booking #{$id}",
+                    'reason' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'message' => 'Batch rejection completed.',
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * GET /api/admin/audit-logs
+     * Retrieve paginated system audit logs, scoped by location for location admins.
+     */
+    public function auditLogs(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $query = \App\Models\AuditLog::with(['user', 'booking.room.location']);
+
+        if ($user->isLocationAdmin()) {
+            $query->whereHas('booking.room', function ($q) use ($user) {
+                $q->where('location_id', $user->location_id);
+            });
+        }
+
+        // Filters
+        if ($request->action) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('ip_address', 'like', "%{$request->search}%")
+                  ->orWhereHas('user', function ($uq) use ($request) {
+                      $uq->where('name', 'like', "%{$request->search}%")
+                         ->orWhere('email', 'like', "%{$request->search}%");
+                  })
+                  ->orWhereHas('booking', function ($bq) use ($request) {
+                      $bq->where('title', 'like', "%{$request->search}%");
+                  });
+            });
+        }
+
+        $logs = $query->orderByDesc('created_at')->paginate(30);
+
+        return response()->json($logs);
+    }
 }
+

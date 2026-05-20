@@ -45,13 +45,19 @@ Route::middleware('auth:sanctum')->group(function () {
 // Admin endpoints
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/bookings', [App\Http\Controllers\Api\AdminController::class, 'bookings']);
+    Route::post('/bookings/batch-approve', [App\Http\Controllers\Api\AdminController::class, 'batchApprove']);
+    Route::post('/bookings/batch-reject', [App\Http\Controllers\Api\AdminController::class, 'batchReject']);
     Route::post('/bookings/{booking}/approve', [App\Http\Controllers\Api\AdminController::class, 'approve']);
     Route::post('/bookings/{booking}/reject', [App\Http\Controllers\Api\AdminController::class, 'reject']);
     Route::put('/bookings/{booking}', [App\Http\Controllers\Api\AdminController::class, 'updateBooking']);
     Route::get('/dashboard', [App\Http\Controllers\Api\AdminController::class, 'dashboard']);
+    Route::get('/audit-logs', [App\Http\Controllers\Api\AdminController::class, 'auditLogs']);
 
     // Room management
     Route::apiResource('rooms', App\Http\Controllers\Api\RoomController::class);
+
+    // Blackout scheduling
+    Route::apiResource('blackouts', App\Http\Controllers\Api\BlackoutController::class)->only(['index', 'store', 'destroy']);
 
     // Reports
     Route::get('/reports/utilization', [App\Http\Controllers\Api\ReportController::class, 'utilization']);
