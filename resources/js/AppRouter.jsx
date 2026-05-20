@@ -13,6 +13,7 @@ import CalendarPage from './pages/CalendarPage';
 import Login from './pages/Login';
 import RoomDetails from './pages/RoomDetails';
 import ProfilePage from './pages/ProfilePage';
+import ResetPassword from './pages/ResetPassword';
 
 // Admin pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -52,6 +53,7 @@ export default function AppRouter() {
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             {/* Admin Login (standalone, no layout) */}

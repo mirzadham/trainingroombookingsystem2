@@ -7,13 +7,15 @@ use App\Models\Booking;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationService;
 use Illuminate\Validation\ValidationException;
 
 class ApprovalService
 {
     public function __construct(
         private AvailabilityService $availabilityService,
-        private AuditService $auditService
+        private AuditService $auditService,
+        private NotificationService $notificationService
     ) {}
 
     /**
@@ -60,6 +62,7 @@ class ApprovalService
             ]);
 
             $this->auditService->log($admin, $booking, 'approved');
+            $this->notificationService->sendBookingNotification($booking, 'approved');
 
             return $booking->fresh(['room.location', 'user', 'approver']);
         });
@@ -93,6 +96,7 @@ class ApprovalService
         $this->auditService->log($admin, $booking, 'rejected', [
             'rejection_reason' => $reason,
         ]);
+        $this->notificationService->sendBookingNotification($booking, 'rejected');
 
         return $booking->fresh(['room.location', 'user']);
     }

@@ -10,13 +10,15 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Services\NotificationService;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
     public function __construct(
         private AvailabilityService $availabilityService,
-        private AuditService $auditService
+        private AuditService $auditService,
+        private NotificationService $notificationService
     ) {}
 
     /**
@@ -91,6 +93,8 @@ class BookingService
                     'multi_day_booking'   => true,
                 ]);
 
+                $this->notificationService->sendBookingNotification($booking, 'submitted');
+
                 $bookings->push($booking);
             }
 
@@ -154,6 +158,7 @@ class BookingService
         ]);
 
         $this->auditService->log($user, $booking, 'created');
+        $this->notificationService->sendBookingNotification($booking, 'submitted');
 
         return $booking->load(['room.location', 'user']);
     }
@@ -177,6 +182,7 @@ class BookingService
             'before' => ['status' => $oldStatus->value],
             'after' => ['status' => BookingStatus::Cancelled->value],
         ]);
+        $this->notificationService->sendBookingNotification($booking, 'cancelled');
 
         return $booking->fresh(['room.location', 'user']);
     }
@@ -269,6 +275,8 @@ class BookingService
                 'occurrence' => $i + 1,
                 'total_occurrences' => $weeks,
             ]);
+
+            $this->notificationService->sendBookingNotification($booking, 'submitted');
 
             $bookings->push($booking);
         }

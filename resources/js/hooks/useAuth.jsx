@@ -104,6 +104,14 @@ export function AuthProvider({ children }) {
         return data;
     }, []);
 
+    const forgotPassword = useCallback(async (email) => {
+        return await api.forgotPassword({ email });
+    }, []);
+
+    const resetPassword = useCallback(async (formData) => {
+        return await api.resetPassword(formData);
+    }, []);
+
     // Admin logout — clears ONLY admin keys
     const adminLogout = useCallback(async () => {
         try { await api.adminLogout(); } catch {}
@@ -131,6 +139,8 @@ export function AuthProvider({ children }) {
         adminLogout,
         updateProfile,
         updatePassword,
+        forgotPassword,
+        resetPassword,
     };
 
     return (

@@ -7,6 +7,12 @@ export const login = (data) =>
 export const register = (data) =>
     api.post('/auth/register', data).then(r => r.data);
 
+export const forgotPassword = (data) =>
+    api.post('/auth/forgot-password', data).then(r => r.data);
+
+export const resetPassword = (data) =>
+    api.post('/auth/reset-password', data).then(r => r.data);
+
 export const adminLogin = (data) =>
     api.post('/auth/admin/login', data).then(r => r.data);
 
