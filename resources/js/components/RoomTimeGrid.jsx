@@ -38,7 +38,16 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
     // For each slot in ALL_SLOTS, we check if it is 'available'.
     const getSlotStatus = (timeStr) => {
         if (!timelineSlots) return 'available';
-        const tSlot = timelineSlots.find(s => s.start === timeStr);
+        // Backend returns full datetime strings like "2026-05-20 07:00:00"
+        // We need to extract just the HH:mm portion to compare with our "07:00" format
+        const tSlot = timelineSlots.find(s => {
+            const slotTime = s.start.includes(' ') 
+                ? s.start.split(' ')[1].substring(0, 5)  // "2026-05-20 07:00:00" → "07:00"
+                : s.start.includes('T')
+                    ? s.start.split('T')[1].substring(0, 5)  // ISO format fallback
+                    : s.start;
+            return slotTime === timeStr;
+        });
         return tSlot ? tSlot.status : 'available';
     };
 
