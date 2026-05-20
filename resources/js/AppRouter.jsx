@@ -21,6 +21,7 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminBookings from './pages/admin/Bookings';
 import AdminRooms from './pages/admin/Rooms';
 import AdminReports from './pages/admin/Reports';
+import AdminAuditLogs from './pages/admin/AuditLogs';
 
 function AdminRoute({ children }) {
     const { isAdminAuthenticated, loading } = useAuth();
@@ -65,6 +66,7 @@ export default function AppRouter() {
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/rooms" element={<AdminRooms />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
+                <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
             </Route>
         </Routes>
     );
