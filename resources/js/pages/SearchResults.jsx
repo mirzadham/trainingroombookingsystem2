@@ -103,9 +103,9 @@ export default function SearchResults() {
                 </div>
             )}
 
-            {/* Room Grid */}
+            {/* Room Card Grid */}
             {data && data.rooms.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {data.rooms.map((entry) => (
                         <RoomCard
                             key={entry.room.id}
@@ -121,8 +121,7 @@ export default function SearchResults() {
 }
 
 /**
- * RoomCard — A visually striking card showing the room image and basic details.
- * Clicking opens the side-sheet drawer.
+ * RoomCard — A visually striking glass card showing the room image and basic details.
  */
 function RoomCard({ room, onClick, formatAmenity }) {
     const availabilityText = room.available_slots === room.total_slots
@@ -132,22 +131,22 @@ function RoomCard({ room, onClick, formatAmenity }) {
             : `${room.available_slots} of ${room.total_slots} slots available`;
 
     const availabilityColor = room.available_slots === room.total_slots
-        ? 'text-emerald-600 bg-emerald-50'
+        ? 'text-emerald-700 bg-emerald-50/90 border-emerald-200/60'
         : room.available_slots === 0
-            ? 'text-slate-400 bg-slate-50'
-            : 'text-amber-600 bg-amber-50';
+            ? 'text-slate-400 bg-slate-50/80 border-slate-200/40'
+            : 'text-amber-700 bg-amber-50/90 border-amber-200/60';
 
     return (
         <button
             onClick={onClick}
             disabled={room.available_slots === 0}
-            className={`group text-left w-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-300 cursor-pointer ${
+            className={`group text-left w-full bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/60 overflow-hidden shadow-lg shadow-slate-100/50 transition-all duration-300 cursor-pointer ${
                 room.available_slots > 0
-                    ? 'hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 hover:border-slate-300'
-                    : 'opacity-60 cursor-not-allowed'
+                    ? 'hover:scale-[1.02] hover:shadow-xl hover:shadow-mimos-500/5 hover:border-mimos-500/30'
+                    : 'opacity-50 cursor-not-allowed'
             }`}
         >
-            {/* Image */}
+            {/* Image container */}
             <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100">
                 <img
                     src={room.image_url || '/images/rooms/default.png'}
@@ -156,33 +155,40 @@ function RoomCard({ room, onClick, formatAmenity }) {
                     loading="lazy"
                 />
                 {/* Availability badge overlay */}
-                <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold backdrop-blur-md shadow-sm ${availabilityColor}`}>
+                <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-bold border backdrop-blur-md shadow-sm tracking-wide ${availabilityColor}`}>
                     {availabilityText}
                 </div>
             </div>
 
             {/* Details */}
-            <div className="p-4">
-                <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-mimos-600 transition-colors">
+            <div className="p-6">
+                <h3 className="text-lg font-bold text-slate-900 mb-1.5 group-hover:text-mimos-500 transition-colors">
                     {room.name}
                 </h3>
 
-                <div className="flex items-center gap-3 mb-2.5">
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin className="w-3 h-3" />
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                        <MapPin className="w-3.5 h-3.5 text-mimos-500" />
                         {room.location} ({room.location_code})
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <Users className="w-3 h-3" />
+                    <span className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                        <Users className="w-3.5 h-3.5 text-mimos-500" />
                         Up to {room.capacity} pax
                     </span>
                 </div>
 
-                {/* Amenities as plain text */}
+                {/* Amenities list as micro-badges */}
                 {room.amenities && room.amenities.length > 0 && (
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                        {room.amenities.map(formatAmenity).join(', ')}
-                    </p>
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100/80">
+                        {room.amenities.map(formatAmenity).map((amenity, idx) => (
+                            <span
+                                key={idx}
+                                className="px-2 py-1 rounded-md bg-mimos-500/5 text-[9px] text-mimos-500 font-bold uppercase tracking-wider"
+                            >
+                                {amenity}
+                            </span>
+                        ))}
+                    </div>
                 )}
             </div>
         </button>

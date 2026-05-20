@@ -52,7 +52,7 @@ export default function SearchBar({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                     {/* Location */}
                     <div className="relative">
-                        <label htmlFor="search-location-min" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-location-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             Location
                         </label>
                         <LocationPicker
@@ -65,7 +65,7 @@ export default function SearchBar({
 
                     {/* Date */}
                     <div className="relative">
-                        <label htmlFor="search-date-min" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-date-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             Date
                         </label>
                         <DatePicker
@@ -78,11 +78,11 @@ export default function SearchBar({
 
                     {/* Attendees */}
                     <div>
-                        <label htmlFor="search-attendees-min" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-attendees-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             People
                         </label>
                         <div className="relative">
-                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             <input
                                 id="search-attendees-min"
                                 type="number"
@@ -91,17 +91,17 @@ export default function SearchBar({
                                 placeholder="e.g. 10"
                                 min="1"
                                 max="200"
-                                className="w-full pl-10 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition"
+                                className="w-full pl-10 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 transition-all duration-300"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Search Button */}
-                <div className="mt-2 flex justify-end">
+                <div className="mt-3 flex justify-end">
                     <button
                         type="submit"
-                        className="group flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] text-white text-sm font-semibold rounded-xl shadow-md shadow-mimos-500/10 hover:shadow-mimos-500/20 transition-all duration-300 cursor-pointer"
                     >
                         <Search className="w-4 h-4" />
                         Search
@@ -115,11 +115,13 @@ export default function SearchBar({
     // Default variant (card-style, used on Home)
     return (
         <form onSubmit={handleSubmit} className={className}>
-            <div className="bg-white/80 backdrop-blur-2xl border border-slate-200 rounded-2xl p-6 shadow-xl shadow-slate-200/50">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white/85 backdrop-blur-3xl border border-white/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-mimos-500/5 hover:shadow-xl hover:shadow-mimos-500/10 transition-all duration-300 hover:border-mimos-500/25 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500" />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
                     {/* Location */}
                     <div className="relative">
-                        <label htmlFor="search-location" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-location" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             Location
                         </label>
                         <LocationPicker
@@ -127,13 +129,13 @@ export default function SearchBar({
                             value={location}
                             onChange={setLocation}
                             locations={locations}
-                            className="py-3"
+                            className="py-3.5 rounded-xl border-slate-200/80 focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-colors"
                         />
                     </div>
 
                     {/* Date */}
                     <div className="relative">
-                        <label htmlFor="search-date" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-date" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             Date
                         </label>
                         <DatePicker
@@ -141,17 +143,17 @@ export default function SearchBar({
                             value={date}
                             onChange={setDate}
                             min={new Date().toISOString().split('T')[0]}
-                            className="py-3"
+                            className="py-3.5 rounded-xl border-slate-200/80 focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-colors"
                         />
                     </div>
 
                     {/* Attendees */}
                     <div>
-                        <label htmlFor="search-attendees" className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+                        <label htmlFor="search-attendees" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             People
                         </label>
                         <div className="relative">
-                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                            <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 pointer-events-none" />
                             <input
                                 id="search-attendees"
                                 type="number"
@@ -160,21 +162,21 @@ export default function SearchBar({
                                 placeholder="e.g. 10"
                                 min="1"
                                 max="200"
-                                className="w-full pl-10 pr-8 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition"
+                                className="w-full pl-11 pr-8 py-3.5 bg-white border border-slate-200/80 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-all duration-300"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Search Button */}
-                <div className="mt-5 flex justify-center">
+                <div className="mt-8 flex justify-center relative z-10">
                     <button
                         type="submit"
-                        className="group flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"
                     >
-                        <Search className="w-4.5 h-4.5" />
-                        Search Available Rooms
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <Search className="w-5 h-5" />
+                        <span>Search Available Rooms</span>
+                        <ArrowRight className="w-4.5 h-4.5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>

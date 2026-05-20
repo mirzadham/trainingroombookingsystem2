@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,12 +7,44 @@
   --color-mimos-200: #f5cced;
   --color-mimos-300: #eea3e0;
   --color-mimos-400: #e36bcc;
-  --color-mimos-500: #d041b3;
-  --color-mimos-600: #a72190;
-  --color-mimos-700: #8b1a75;
-  --color-mimos-800: #721860;
-  --color-mimos-900: #5f1951;
-  --color-mimos-950: #3d0831;
+  --color-mimos-500: #a72190; /* User corrected brand color */
+  --color-mimos-600: #8e1a7a;
+  --color-mimos-700: #761265;
+  --color-mimos-800: #5f0e52;
+  --color-mimos-900: #4f0e44;
+  --color-mimos-950: #310328;
+
+  --font-display: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Base style overrides */
+body {
+  font-family: var(--font-sans);
+  background-color: #faf7fc;
+  color: #1e1b1e;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(167, 33, 144, 0.02);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(167, 33, 144, 0.15);
+  border-radius: 9999px;
+  transition: background 0.3s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 33, 144, 0.35);
 }
 
 /* Hide number input spinners */
@@ -28,3 +61,61 @@ input[type=number] {
 input[type="date"]::-webkit-calendar-picker-indicator {
     display: none;
 }
+
+/* Ambient gradient mesh drifting */
+@keyframes mesh-drift {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-mesh-drift-1 {
+  animation: mesh-drift 18s infinite alternate ease-in-out;
+}
+.animate-mesh-drift-2 {
+  animation: mesh-drift 24s infinite alternate-reverse ease-in-out;
+}
+.animate-mesh-drift-3 {
+  animation: mesh-drift 16s infinite alternate ease-in-out;
+}
+
+/* Success Checkmark Animation */
+@keyframes checkmark-circle {
+  0% {
+    stroke-dashoffset: 166;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes checkmark-check {
+  0% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: checkmark-circle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.animate-checkmark-check {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkmark-check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+

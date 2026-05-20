@@ -16,8 +16,11 @@ export default function ConfirmationStep({ form }) {
 
     return (
         <div className="text-center py-6">
-            <div className="inline-flex p-4 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30 mb-6">
-                <CalendarCheck className="w-10 h-10 text-white" />
+            <div className="inline-flex items-center justify-center p-3 rounded-full bg-emerald-50 mb-6 shadow-sm border border-emerald-100">
+                <svg className="w-16 h-16 text-emerald-500" viewBox="0 0 52 52" fill="none" stroke="currentColor">
+                    <circle className="animate-checkmark-circle" cx="26" cy="26" r="25" fill="none" strokeWidth="4" strokeLinecap="round" />
+                    <path className="animate-checkmark-check" d="M14 27l8 8 16-16" fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
             </div>
             
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Booking Submitted!</h2>

@@ -35,7 +35,7 @@ export default function BookingWizard() {
                 {/* Left Column: Wizard Steps */}
                 <div className="flex-1 w-full max-w-2xl">
                     {/* Step indicator */}
-                    <div className="flex items-center w-full mb-10">
+                    <div className="flex items-center w-full mb-12 bg-white/70 backdrop-blur-md p-4 sm:p-5 rounded-3xl border border-slate-200/50 shadow-md shadow-slate-100/50">
                         {STEPS.map((label, i) => {
                             // Don't show AuthGate as a real step if authenticated (it gets skipped)
                             if (isAuthenticated && i === 2) return null;
@@ -48,18 +48,18 @@ export default function BookingWizard() {
                             
                             return (
                                 <React.Fragment key={label}>
-                                    <div className={`flex items-center gap-2 text-xs font-medium shrink-0 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
-                                            isCompleted ? 'bg-mimos-500 text-white shadow-sm' :
-                                            isActive ? 'bg-mimos-50 text-mimos-600 ring-2 ring-mimos-500 shadow-sm' :
-                                            'bg-slate-50 border border-slate-200 text-slate-400'
+                                    <div className={`flex items-center gap-2.5 text-xs font-bold shrink-0 transition-colors duration-300 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold transition-all duration-300 ${
+                                            isCompleted ? 'bg-gradient-to-br from-mimos-500 to-pink-500 text-white shadow-md shadow-mimos-500/20' :
+                                            isActive ? 'bg-white border-2 border-mimos-500 text-mimos-500 shadow-md shadow-mimos-500/10' :
+                                            'bg-slate-50 border border-slate-200/80 text-slate-400'
                                         }`}>
-                                            {isCompleted ? <Check className="w-4 h-4" /> : displayNum}
+                                            {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : displayNum}
                                         </div>
-                                        <span className="hidden sm:inline">{label}</span>
+                                        <span className="hidden sm:inline tracking-wider uppercase text-[10px]">{label}</span>
                                     </div>
                                     {i < STEPS.length - 1 && (
-                                        <div className={`flex-1 h-px mx-2 sm:mx-4 ${isCompleted ? 'bg-mimos-500/50' : 'bg-slate-200'}`} />
+                                        <div className={`flex-1 h-[2px] mx-3 sm:mx-5 rounded-full ${isCompleted ? 'bg-gradient-to-r from-mimos-500 to-pink-500' : 'bg-slate-200'}`} />
                                     )}
                                 </React.Fragment>
                             );
@@ -68,14 +68,14 @@ export default function BookingWizard() {
 
                     {/* Error banner */}
                     {error && (
-                        <div className="mb-8 p-4 rounded-xl bg-red-50/50 border border-red-100 text-red-600 text-sm flex items-start gap-3">
+                        <div className="mb-8 p-4 rounded-2xl bg-red-50/50 border border-red-100/80 text-red-600 text-sm flex items-start gap-3 shadow-sm">
                             <div className="mt-0.5 text-lg">🚨</div>
-                            <div className="flex-1 font-medium">{error}</div>
+                            <div className="flex-1 font-semibold">{error}</div>
                         </div>
                     )}
 
                     {/* Step content */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl shadow-slate-100/80 border border-slate-200/50 p-6 sm:p-8">
                         {step === 0 && <DetailsStep form={form} />}
                         {step === 1 && <AccountStep form={form} />}
                         {step === 2 && !isAuthenticated && <AuthGateStep form={form} />}
@@ -86,18 +86,19 @@ export default function BookingWizard() {
                 {/* Right Column: Sticky Live Summary */}
                 {step < 3 && (
                     <div className="w-full lg:w-[380px] shrink-0 sticky top-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                        <div className="bg-white border border-slate-200 shadow-xl shadow-slate-200/40 rounded-2xl overflow-hidden">
-                            <div className="bg-slate-50 border-b border-slate-200 p-5">
-                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-1">Booking Summary</h3>
-                                <p className="text-xs text-slate-500">Verify your details before confirming</p>
+                        <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden relative">
+                            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500" />
+                            <div className="bg-slate-50/50 border-b border-slate-200/50 p-6">
+                                <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-1">Booking Summary</h3>
+                                <p className="text-[11px] text-slate-500 font-medium">Verify details before confirming</p>
                             </div>
                             
-                            <div className="p-5 space-y-5">
+                            <div className="p-6 space-y-6">
                                 {/* Room Details */}
                                 <div>
-                                    <h4 className="text-lg font-bold text-slate-900 mb-1">{roomInfo.roomName || 'Unknown Room'}</h4>
-                                    <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                                        <MapPin className="w-4 h-4 text-slate-400" />
+                                    <h4 className="text-xl font-bold text-slate-900 mb-1">{roomInfo.roomName || 'Unknown Room'}</h4>
+                                    <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                                        <MapPin className="w-4.5 h-4.5 text-mimos-500" />
                                         {roomInfo.location || 'Unknown Location'}
                                     </div>
                                 </div>
@@ -105,16 +106,16 @@ export default function BookingWizard() {
                                 <div className="h-px bg-slate-100" />
 
                                 {/* Date & Time */}
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-mimos-50 text-mimos-600 rounded-lg shrink-0">
+                                        <div className="p-2.5 bg-mimos-500/5 text-mimos-500 rounded-xl shrink-0 border border-mimos-500/10">
                                             <Calendar className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
                                                 {form.endDate && form.endDate !== roomInfo.date ? 'Dates' : 'Date'}
                                             </div>
-                                            <div className="text-sm font-medium text-slate-900">
+                                            <div className="text-sm font-semibold text-slate-800">
                                                 {form.endDate && form.endDate !== roomInfo.date
                                                     ? `${formatDate(roomInfo.date)} — ${formatDate(form.endDate)}`
                                                     : formatDate(roomInfo.date)
@@ -124,24 +125,24 @@ export default function BookingWizard() {
                                     </div>
                                     
                                     <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-mimos-50 text-mimos-600 rounded-lg shrink-0">
+                                        <div className="p-2.5 bg-mimos-500/5 text-mimos-500 rounded-xl shrink-0 border border-mimos-500/10">
                                             <Clock className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Time</div>
-                                            <div className="text-sm font-medium text-slate-900">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Time</div>
+                                            <div className="text-sm font-semibold text-slate-800">
                                                 {formatTime(roomInfo.startTime)} – {formatTime(roomInfo.endTime)}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-mimos-50 text-mimos-600 rounded-lg shrink-0">
+                                        <div className="p-2.5 bg-mimos-500/5 text-mimos-500 rounded-xl shrink-0 border border-mimos-500/10">
                                             <Users className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Capacity limit</div>
-                                            <div className="text-sm font-medium text-slate-900">Up to {roomInfo.capacity} pax</div>
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Capacity limit</div>
+                                            <div className="text-sm font-semibold text-slate-800">Up to {roomInfo.capacity} pax</div>
                                         </div>
                                     </div>
                                 </div>
@@ -150,17 +151,17 @@ export default function BookingWizard() {
                                 {(form.title || form.attendees) && (
                                     <>
                                         <div className="h-px bg-slate-100" />
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {form.title && (
                                                 <div>
-                                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Purpose</div>
-                                                    <div className="text-sm text-slate-700 line-clamp-2">{form.title}</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Purpose</div>
+                                                    <div className="text-sm text-slate-700 font-medium line-clamp-2 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">{form.title}</div>
                                                 </div>
                                             )}
                                             {form.attendees && (
                                                 <div>
-                                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendees</div>
-                                                    <div className="text-sm text-slate-700">{form.attendees} people</div>
+                                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Attendees</div>
+                                                    <div className="text-sm text-slate-700 font-semibold">{form.attendees} people</div>
                                                 </div>
                                             )}
                                         </div>
