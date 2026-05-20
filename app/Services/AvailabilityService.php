@@ -23,7 +23,17 @@ class AvailabilityService
             $query->where('id', '!=', $excludeBookingId);
         }
 
-        return !$query->exists();
+        if ($query->exists()) {
+            return false;
+        }
+
+        // Check for any overlapping room blackouts
+        $hasBlackout = \App\Models\RoomBlackout::where('room_id', $roomId)
+            ->where('start_time', '<', $end)
+            ->where('end_time', '>', $start)
+            ->exists();
+
+        return !$hasBlackout;
     }
 
     /**
