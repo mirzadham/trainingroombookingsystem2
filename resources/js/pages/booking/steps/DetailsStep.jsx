@@ -9,7 +9,7 @@ const SESSION_KEY = 'booking_draft';
 export default function DetailsStep({ form }) {
     const { title, setTitle, description, setDescription, attendees, setAttendees, endDate, setEndDate, roomInfo, canProceedToAccount, handleNext } = form;
     const titleRef = useRef(null);
-    const [showEndPanel, setShowEndPanel] = useState(!!endDate);
+    const [showEndPanel, setShowEndPanel] = useState(!!endDate && endDate !== roomInfo.date);
 
     useEffect(() => {
         if (titleRef.current) titleRef.current.focus();
@@ -21,12 +21,12 @@ export default function DetailsStep({ form }) {
 
     const handleToggleMultiDay = () => {
         if (showEndPanel) return;
-        setEndDate(null);
+        if (!endDate) setEndDate(roomInfo.date);
         setShowEndPanel(true);
     };
 
     const handleCloseEndPanel = () => {
-        if (!endDate) setEndDate('');
+        setEndDate('');
         setShowEndPanel(false);
     };
 
@@ -74,7 +74,7 @@ export default function DetailsStep({ form }) {
                 </div>
 
                 <div className='space-y-2'>
-                    {endDate !== roomInfo.date ? (
+                    {showEndPanel ? (
                         <div className='p-4 rounded-xl bg-mimos-50/50 border border-mimos-100'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <CalendarPlus className='w-4 h-4 text-mimos-600' />
@@ -87,7 +87,6 @@ export default function DetailsStep({ form }) {
                                         value={endDate || roomInfo.date || ''}
                                         onChange={(val) => {
                                             setEndDate(val || null);
-                                            if (val) setShowEndPanel(false);
                                         }}
                                         min={roomInfo.date || ''}
                                     />
