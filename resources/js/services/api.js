@@ -9,7 +9,7 @@
  *   import { login } from '../services/authApi';
  */
 
-export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser } from './authApi';
+export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser, updateProfile, updatePassword } from './authApi';
 
 export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, createRecurringBooking } from './bookingApi';
 export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom } from './roomApi';

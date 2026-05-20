@@ -12,6 +12,7 @@ import MyBookings from './pages/MyBookings';
 import CalendarPage from './pages/CalendarPage';
 import Login from './pages/Login';
 import RoomDetails from './pages/RoomDetails';
+import ProfilePage from './pages/ProfilePage';
 
 // Admin pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -49,6 +50,7 @@ export default function AppRouter() {
                 <Route path="/book" element={<BookingWizard />} />
                 <Route path="/my-bookings" element={<MyBookings />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/login" element={<Login />} />
             </Route>
 

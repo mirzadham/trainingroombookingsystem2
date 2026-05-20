@@ -92,6 +92,18 @@ export function AuthProvider({ children }) {
         setUser(null);
     }, []);
 
+    const updateProfile = useCallback(async (formData) => {
+        const data = await api.updateProfile(formData);
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+        setUser(data.user);
+        return data;
+    }, []);
+
+    const updatePassword = useCallback(async (formData) => {
+        const data = await api.updatePassword(formData);
+        return data;
+    }, []);
+
     // Admin logout — clears ONLY admin keys
     const adminLogout = useCallback(async () => {
         try { await api.adminLogout(); } catch {}
@@ -117,6 +129,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         adminLogout,
+        updateProfile,
+        updatePassword,
     };
 
     return (

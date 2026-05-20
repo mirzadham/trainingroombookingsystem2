@@ -28,6 +28,8 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout']);
         Route::get('/user', [App\Http\Controllers\Api\AuthController::class, 'user']);
+        Route::put('/user', [App\Http\Controllers\Api\AuthController::class, 'updateProfile']);
+        Route::put('/user/password', [App\Http\Controllers\Api\AuthController::class, 'updatePassword']);
     });
 });
 

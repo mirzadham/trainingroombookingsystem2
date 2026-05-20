@@ -26,6 +26,12 @@ export const adminLogout = () => {
 export const getUser = () =>
     api.get('/auth/user').then(r => r.data);
 
+export const updateProfile = (data) =>
+    api.put('/auth/user', data).then(r => r.data);
+
+export const updatePassword = (data) =>
+    api.put('/auth/user/password', data).then(r => r.data);
+
 // Fetch user info for admin session — sends admin_token explicitly
 export const getAdminUser = () => {
     const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);

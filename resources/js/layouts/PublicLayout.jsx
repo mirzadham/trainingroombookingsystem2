@@ -123,6 +123,14 @@ export default function PublicLayout() {
                                                     <div className="text-xs text-slate-500 truncate">{user?.email}</div>
                                                 </div>
                                                 <Link
+                                                    to="/profile"
+                                                    onClick={() => { setUserMenuOpen(false); setMobileNavOpen(false); }}
+                                                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition border-b border-slate-100"
+                                                >
+                                                    <User className="w-4 h-4" />
+                                                    My Profile
+                                                </Link>
+                                                <Link
                                                     to="/my-bookings"
                                                     onClick={() => { setUserMenuOpen(false); setMobileNavOpen(false); }}
                                                     className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition"
@@ -183,15 +191,25 @@ export default function PublicLayout() {
                                     Calendar
                                 </Link>
                                 {isAuthenticated && (
-                                    <Link
-                                        to="/my-bookings"
-                                        onClick={() => { setMobileNavOpen(false); }}
-                                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                                    >
-                                        <BookOpen className="w-4 h-4" />
-                                        My Bookings
-                                    </Link>
-                                )}
+                                     <>
+                                         <Link
+                                             to="/profile"
+                                             onClick={() => { setMobileNavOpen(false); }}
+                                             className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                                         >
+                                             <User className="w-4 h-4" />
+                                             My Profile
+                                         </Link>
+                                         <Link
+                                             to="/my-bookings"
+                                             onClick={() => { setMobileNavOpen(false); }}
+                                             className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                                         >
+                                             <BookOpen className="w-4 h-4" />
+                                             My Bookings
+                                         </Link>
+                                     </>
+                                 )}
                             </div>
                         </div>
                     )}

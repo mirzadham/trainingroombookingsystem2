@@ -10,7 +10,8 @@ export default function AccountStep({ form }) {
         phone, setPhone, 
         isAuthenticated, 
         canProceedToAuthOrSubmit, 
-        handleNext 
+        handleNext,
+        updateProfileOnSubmit, setUpdateProfileOnSubmit
     } = form;
 
     return (
@@ -19,17 +20,17 @@ export default function AccountStep({ form }) {
                 <h2 className="text-xl font-extrabold text-slate-900">Your Details</h2>
                 <p className="text-sm text-slate-500 mt-1">
                     {isAuthenticated 
-                        ? "We've pre-filled your information. You can proceed directly." 
+                        ? "Review or update your contact details for this booking below." 
                         : "Please provide your contact details for this booking."}
                 </p>
             </div>
 
             {isAuthenticated && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+                <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-4 flex items-start gap-3">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
                     <div>
                         <h4 className="text-sm font-bold text-emerald-900">Logged In</h4>
-                        <p className="text-xs text-emerald-700 mt-0.5">Your details are automatically pulled from your account.</p>
+                        <p className="text-xs text-emerald-700 mt-0.5">Your details are pre-filled from your profile. You can edit them if needed.</p>
                     </div>
                 </div>
             )}
@@ -41,8 +42,6 @@ export default function AccountStep({ form }) {
                     value={guestName}
                     onChange={e => setGuestName(e.target.value)}
                     placeholder="John Doe"
-                    disabled={isAuthenticated}
-                    className={isAuthenticated ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
                 />
 
                 <Input
@@ -51,8 +50,6 @@ export default function AccountStep({ form }) {
                     value={guestEmail}
                     onChange={e => setGuestEmail(e.target.value)}
                     placeholder="john@example.com"
-                    disabled={isAuthenticated}
-                    className={isAuthenticated ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}
                 />
 
                 <Input
@@ -62,6 +59,25 @@ export default function AccountStep({ form }) {
                     onChange={e => setPhone(e.target.value)}
                     placeholder="+60 12 345 6789"
                 />
+
+                {isAuthenticated && (
+                    <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/50 rounded-xl cursor-pointer select-none transition group">
+                        <input
+                            type="checkbox"
+                            checked={updateProfileOnSubmit}
+                            onChange={e => setUpdateProfileOnSubmit(e.target.checked)}
+                            className="w-4 h-4 rounded text-mimos-500 focus:ring-mimos-500 border-slate-300 transition cursor-pointer"
+                        />
+                        <div className="text-left">
+                            <span className="block text-xs font-bold text-slate-700 group-hover:text-slate-900 transition">
+                                Save these updates to my profile
+                            </span>
+                            <span className="block text-[10px] text-slate-400 mt-0.5">
+                                Keep your persistent account details synchronized with these updates.
+                            </span>
+                        </div>
+                    </label>
+                )}
             </div>
 
             <Button

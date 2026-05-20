@@ -12,7 +12,8 @@ const SESSION_KEY = 'booking_draft';
  */
 export default function useBookingForm() {
     const [searchParams] = useSearchParams();
-    const { user, isAuthenticated, login, register } = useAuth();
+    const { user, isAuthenticated, login, register, updateProfile } = useAuth();
+    const [updateProfileOnSubmit, setUpdateProfileOnSubmit] = useState(true);
 
     // 1. Room info (from URL, then persisted)
     // Try to read from URL first. If present, it's a fresh navigation, so we overwrite session storage.
@@ -82,8 +83,8 @@ export default function useBookingForm() {
     // Pre-fill user details if logged in
     useEffect(() => {
         if (isAuthenticated && user) {
-            setGuestName(user.name || '');
-            setGuestEmail(user.email || '');
+            if (!guestName) setGuestName(user.name || '');
+            if (!guestEmail) setGuestEmail(user.email || '');
             if (user.phone && !phone) setPhone(user.phone);
         }
     }, [isAuthenticated, user]);
@@ -98,6 +99,19 @@ export default function useBookingForm() {
         setError('');
 
         try {
+            if (isAuthenticated && updateProfileOnSubmit) {
+                try {
+                    await updateProfile({
+                        name: guestName,
+                        email: guestEmail,
+                        phone: phone || null,
+                        department: user?.department || null
+                    });
+                } catch (e) {
+                    console.error('Failed to update user profile from booking wizard:', e);
+                }
+            }
+
             const result = await api.createBooking({
                 room_id: parseInt(roomInfo.roomId),
                 title,
@@ -125,7 +139,7 @@ export default function useBookingForm() {
         } finally {
             setSubmitting(false);
         }
-    }, [roomInfo, title, description, attendees, endDate, phone]);
+    }, [roomInfo, title, description, attendees, endDate, phone, isAuthenticated, updateProfileOnSubmit, updateProfile, guestName, guestEmail, user]);
 
     const handleNext = useCallback(() => {
         if (step === 0 && canProceedToAccount) {
@@ -212,6 +226,7 @@ export default function useBookingForm() {
         bookingResult,
         canProceedToAccount,
         canProceedToAuthOrSubmit,
+        updateProfileOnSubmit, setUpdateProfileOnSubmit,
         // Auth
         isAuthenticated,
         authMode, setAuthMode,
