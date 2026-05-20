@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff } from 'lucide-react';
 import * as api from '../../services/api';
+import BlackoutsModal from '../../components/admin/BlackoutsModal';
 
 export default function AdminRooms() {
     const queryClient = useQueryClient();
     const [showForm, setShowForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
+    const [selectedRoomForBlackout, setSelectedRoomForBlackout] = useState(null);
 
     const { data: rooms, isLoading } = useQuery({
         queryKey: ['admin-rooms'],
@@ -107,12 +109,18 @@ export default function AdminRooms() {
                             </div>
                         )}
 
-                        <div className="flex gap-2 pt-2 border-t border-slate-200">
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
                             <button
                                 onClick={() => setEditingRoom(room)}
                                 className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition cursor-pointer"
                             >
                                 <Edit2 className="w-3 h-3" /> Edit
+                            </button>
+                            <button
+                                onClick={() => setSelectedRoomForBlackout(room)}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-pink-700 bg-pink-50 hover:bg-pink-100 border border-pink-200 rounded-lg transition cursor-pointer"
+                            >
+                                <CalendarOff className="w-3.5 h-3.5" /> Blackouts
                             </button>
                             <button
                                 onClick={() => deleteMutation.mutate(room.id)}
@@ -125,6 +133,15 @@ export default function AdminRooms() {
                     </div>
                 ))}
             </div>
+
+            {/* Blackout override modal */}
+            {selectedRoomForBlackout && (
+                <BlackoutsModal
+                    room={selectedRoomForBlackout}
+                    onClose={() => setSelectedRoomForBlackout(null)}
+                />
+            )}
+
         </div>
     );
 }
