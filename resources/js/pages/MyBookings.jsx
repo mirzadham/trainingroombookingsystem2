@@ -89,7 +89,7 @@ function BookingCard({ booking, cancelMutation }) {
                         </div>
                     )}
                 </div>
-                {booking.status === 'approved' && (
+                {(booking.status === 'approved' || booking.status === 'pending') && (
                     <button
                         onClick={() => cancelMutation.mutate(booking.id)}
                         disabled={cancelMutation.isPending}

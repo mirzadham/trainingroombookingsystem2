@@ -164,7 +164,7 @@ class BookingService
     }
 
     /**
-     * Cancel an approved booking.
+     * Cancel a pending or approved booking.
      * Only the booking owner or an admin can cancel.
      */
     public function cancel(Booking $booking, User $user): Booking

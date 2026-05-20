@@ -15,7 +15,7 @@ enum BookingStatus: string
     public function canTransitionTo(self $new): bool
     {
         return match ($this) {
-            self::Pending => in_array($new, [self::Approved, self::Rejected]),
+            self::Pending => in_array($new, [self::Approved, self::Rejected, self::Cancelled]),
             self::Approved => $new === self::Cancelled,
             default => false,
         };
