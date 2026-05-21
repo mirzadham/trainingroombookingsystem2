@@ -13,7 +13,7 @@ export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser
 
 export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, createRecurringBooking } from './bookingApi';
 export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom } from './roomApi';
-export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout } from './adminApi';
+export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, adminCancelBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout } from './adminApi';
 export { searchAvailability, getTimeline, getSuggestions, getLocations, getCalendarEvents } from './availabilityApi';
 
 // Re-export the shared client as default for any direct usage

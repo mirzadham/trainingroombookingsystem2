@@ -100,6 +100,30 @@ class AdminController extends Controller
     }
 
     /**
+     * POST /api/admin/bookings/{booking}/cancel
+     * Admin cancels an approved booking with mandatory remarks.
+     */
+    public function cancelBooking(Request $request, Booking $booking): JsonResponse
+    {
+        $this->authorize('cancel', $booking);
+
+        $request->validate([
+            'remarks' => 'required|string|max:1000',
+        ]);
+
+        $booking = $this->approvalService->adminCancel(
+            $booking,
+            $request->user(),
+            $request->remarks
+        );
+
+        return response()->json([
+            'message' => 'Booking cancelled successfully.',
+            'booking' => new BookingResource($booking),
+        ]);
+    }
+
+    /**
      * GET /api/admin/dashboard
      * Dashboard statistics.
      */

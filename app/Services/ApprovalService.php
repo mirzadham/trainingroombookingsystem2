@@ -145,6 +145,44 @@ class ApprovalService
     }
 
     /**
+     * Admin cancels an approved (or pending) booking.
+     * Admin MUST provide a cancellation reason/remarks.
+     */
+    public function adminCancel(Booking $booking, User $admin, string $reason): Booking
+    {
+        $this->validateAdminAccess($booking, $admin);
+
+        if (!$booking->canTransitionTo(BookingStatus::Cancelled)) {
+            throw ValidationException::withMessages([
+                'status' => "Cannot cancel a booking with status '{$booking->status->value}'.",
+            ]);
+        }
+
+        if (empty(trim($reason))) {
+            throw ValidationException::withMessages([
+                'remarks' => 'A cancellation reason is required.',
+            ]);
+        }
+
+        $oldStatus = $booking->status;
+
+        $booking->update([
+            'status' => BookingStatus::Cancelled,
+            'cancellation_reason' => $reason,
+            'cancelled_by' => $admin->id,
+        ]);
+
+        $this->auditService->log($admin, $booking, 'admin_cancelled', [
+            'before' => ['status' => $oldStatus->value],
+            'after' => ['status' => BookingStatus::Cancelled->value],
+            'cancellation_reason' => $reason,
+        ]);
+        $this->notificationService->sendBookingNotification($booking, 'admin_cancelled');
+
+        return $booking->fresh(['room.location', 'user', 'canceller']);
+    }
+
+    /**
      * Validate that the admin has access to this booking's location.
      */
     private function validateAdminAccess(Booking $booking, User $admin): void

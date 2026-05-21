@@ -49,6 +49,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/bookings/batch-reject', [App\Http\Controllers\Api\AdminController::class, 'batchReject']);
     Route::post('/bookings/{booking}/approve', [App\Http\Controllers\Api\AdminController::class, 'approve']);
     Route::post('/bookings/{booking}/reject', [App\Http\Controllers\Api\AdminController::class, 'reject']);
+    Route::post('/bookings/{booking}/cancel', [App\Http\Controllers\Api\AdminController::class, 'cancelBooking']);
     Route::put('/bookings/{booking}', [App\Http\Controllers\Api\AdminController::class, 'updateBooking']);
     Route::get('/dashboard', [App\Http\Controllers\Api\AdminController::class, 'dashboard']);
     Route::get('/audit-logs', [App\Http\Controllers\Api\AdminController::class, 'auditLogs']);

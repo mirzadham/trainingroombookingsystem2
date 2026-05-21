@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square } from 'lucide-react';
+import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban } from 'lucide-react';
 import * as api from '../../services/api';
 
 const STATUS_COLORS = {
@@ -14,6 +14,10 @@ export default function AdminBookings() {
     const [statusFilter, setStatusFilter] = useState('pending');
     const [rejectingId, setRejectingId] = useState(null);
     const [rejectReason, setRejectReason] = useState('');
+    
+    // Admin cancel state
+    const [cancellingId, setCancellingId] = useState(null);
+    const [cancelRemarks, setCancelRemarks] = useState('');
     
     // Batch operations state
     const [selectedIds, setSelectedIds] = useState([]);
@@ -42,6 +46,16 @@ export default function AdminBookings() {
             setRejectingId(null);
             setRejectReason('');
             setSelectedIds((prev) => prev.filter(x => x !== variables.id));
+        },
+    });
+
+    // Admin cancel mutation
+    const adminCancelMutation = useMutation({
+        mutationFn: ({ id, remarks }) => api.adminCancelBooking(id, remarks),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+            setCancellingId(null);
+            setCancelRemarks('');
         },
     });
 
@@ -188,6 +202,12 @@ export default function AdminBookings() {
                                         </div>
                                     )}
 
+                                    {booking.cancellation_reason && (
+                                        <div className="mt-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-200">
+                                            <strong>Cancellation reason:</strong> {booking.cancellation_reason}
+                                        </div>
+                                    )}
+
                                     {/* Inline Rejection Form */}
                                     {rejectingId === booking.id && (
                                         <div className="mt-3 flex gap-2">
@@ -214,6 +234,33 @@ export default function AdminBookings() {
                                             </button>
                                         </div>
                                     )}
+
+                                    {/* Inline Cancel Form (for approved bookings) */}
+                                    {cancellingId === booking.id && (
+                                        <div className="mt-3 flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={cancelRemarks}
+                                                onChange={e => setCancelRemarks(e.target.value)}
+                                                placeholder="Cancellation remarks (required)"
+                                                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={() => adminCancelMutation.mutate({ id: booking.id, remarks: cancelRemarks })}
+                                                disabled={!cancelRemarks.trim() || adminCancelMutation.isPending}
+                                                className="px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium hover:bg-amber-100 disabled:opacity-50 transition cursor-pointer"
+                                            >
+                                                Confirm
+                                            </button>
+                                            <button
+                                                onClick={() => { setCancellingId(null); setCancelRemarks(''); }}
+                                                className="px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition cursor-pointer"
+                                            >
+                                                Back
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Individual Action buttons */}
@@ -231,6 +278,18 @@ export default function AdminBookings() {
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition cursor-pointer"
                                         >
                                             <X className="w-3.5 h-3.5" /> Reject
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Cancel button for approved bookings */}
+                                {booking.status === 'approved' && cancellingId !== booking.id && (
+                                    <div className="flex gap-2 flex-shrink-0 self-center">
+                                        <button
+                                            onClick={() => setCancellingId(booking.id)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition cursor-pointer"
+                                        >
+                                            <Ban className="w-3.5 h-3.5" /> Cancel
                                         </button>
                                     </div>
                                 )}

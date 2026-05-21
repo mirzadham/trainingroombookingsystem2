@@ -22,6 +22,7 @@ class BookingResource extends JsonResource
             'phone' => $this->phone,
             'status' => $this->status,
             'rejection_reason' => $this->rejection_reason,
+            'cancellation_reason' => $this->cancellation_reason,
             'recurrence_group_id' => $this->recurrence_group_id,
             'group_id' => $this->group_id,
             'approved_at' => $this->approved_at?->toIso8601String(),
@@ -29,6 +30,7 @@ class BookingResource extends JsonResource
             'room' => new RoomResource($this->whenLoaded('room')),
             'user' => new UserResource($this->whenLoaded('user')),
             'approver' => new UserResource($this->whenLoaded('approver')),
+            'canceller' => new UserResource($this->whenLoaded('canceller')),
         ];
     }
 }

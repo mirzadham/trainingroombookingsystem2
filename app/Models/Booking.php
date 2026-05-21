@@ -22,6 +22,8 @@ class Booking extends Model
         'phone',
         'status',
         'rejection_reason',
+        'cancellation_reason',
+        'cancelled_by',
         'recurrence_group_id',
         'group_id',
         'approved_by',
@@ -49,6 +51,11 @@ class Booking extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     /**

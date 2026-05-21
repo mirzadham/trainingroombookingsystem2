@@ -12,6 +12,9 @@ export const rejectBooking = (id, reason) =>
 export const adminUpdateBooking = (id, data) =>
     api.put(`/admin/bookings/${id}`, data).then(r => r.data);
 
+export const adminCancelBooking = (id, remarks) =>
+    api.post(`/admin/bookings/${id}/cancel`, { remarks }).then(r => r.data);
+
 export const getAdminDashboard = () =>
     api.get('/admin/dashboard').then(r => r.data);
 
