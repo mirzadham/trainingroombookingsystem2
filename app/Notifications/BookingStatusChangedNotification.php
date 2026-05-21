@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Booking;
+use App\Services\CalendarExportService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -47,7 +48,24 @@ class BookingStatusChangedNotification extends Notification
                     ->line('Great news! Your booking request has been approved by the administrator.')
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
+                    ->line('📅 A calendar event is attached to this email — open it to add this booking directly to your calendar (Outlook, Google Calendar, Apple Calendar, etc.).')
                     ->action('View Booking Details', url('/my-bookings'));
+
+                // Attach .ics calendar file for approved bookings
+                try {
+                    $icsService = app(CalendarExportService::class);
+                    $icsContent = $icsService->generateIcs($this->booking);
+                    $mail->attachData(
+                        $icsContent,
+                        'mimos-booking-' . $this->booking->id . '.ics',
+                        ['mime' => 'text/calendar; charset=UTF-8; method=PUBLISH']
+                    );
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning('Failed to attach .ics file to booking notification', [
+                        'booking_id' => $this->booking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
                 break;
 
             case 'rejected':
