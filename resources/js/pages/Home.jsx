@@ -6,7 +6,7 @@ export default function Home() {
     return (
         <div className="relative font-sans min-h-[calc(100vh-80px)] flex flex-col justify-center">
             {/* Hero Section */}
-            <section className="relative overflow-hidden py-16 lg:py-24">
+            <section className="relative py-16 lg:py-24">
                 {/* Ambient background effects */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-mimos-500/15 rounded-full blur-3xl animate-mesh-drift-1" />
@@ -41,12 +41,12 @@ export default function Home() {
                     </div>
 
                     {/* Smart Search Bar */}
-                    <div className="max-w-4xl mx-auto transition-transform duration-300 hover:scale-[1.01]">
+                    <div className="max-w-4xl mx-auto transition-transform duration-300 hover:scale-[1.01] relative z-20">
                         <SearchBar />
                     </div>
 
                     {/* Stats */}
-                    <div className="max-w-3xl mx-auto mt-20 p-6 bg-white/40 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl shadow-slate-100/50 grid grid-cols-3 gap-4 sm:gap-8 text-center">
+                    <div className="max-w-3xl mx-auto mt-20 p-6 bg-white/40 backdrop-blur-xl border border-white/50 rounded-2xl shadow-xl shadow-slate-100/50 grid grid-cols-3 gap-4 sm:gap-8 text-center relative z-10">
                         <div className="group">
                             <div className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-mimos-500 to-pink-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 inline-block">2</div>
                             <div className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 uppercase tracking-wider">Locations</div>

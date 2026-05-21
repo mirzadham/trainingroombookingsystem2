@@ -49,9 +49,9 @@ export default function SearchBar({
     if (variant === 'minimal') {
         return (
             <form onSubmit={handleSubmit} className={className}>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 relative z-20">
                     {/* Location */}
-                    <div className="relative">
+                    <div className="relative z-30">
                         <label htmlFor="search-location-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             Location
                         </label>
@@ -64,7 +64,7 @@ export default function SearchBar({
                     </div>
 
                     {/* Date */}
-                    <div className="relative">
+                    <div className="relative z-20">
                         <label htmlFor="search-date-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             Date
                         </label>
@@ -77,7 +77,7 @@ export default function SearchBar({
                     </div>
 
                     {/* Attendees */}
-                    <div>
+                    <div className="relative z-10">
                         <label htmlFor="search-attendees-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                             People
                         </label>
@@ -115,12 +115,11 @@ export default function SearchBar({
     // Default variant (card-style, used on Home)
     return (
         <form onSubmit={handleSubmit} className={className}>
-            <div className="bg-white/85 backdrop-blur-3xl border border-white/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-mimos-500/5 hover:shadow-xl hover:shadow-mimos-500/10 transition-all duration-300 hover:border-mimos-500/25 relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500" />
+            <div className="bg-white/85 backdrop-blur-3xl border border-white/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-mimos-500/5 hover:shadow-xl hover:shadow-mimos-500/10 transition-all duration-300 hover:border-mimos-500/25 relative">
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
                     {/* Location */}
-                    <div className="relative">
+                    <div className="relative z-30">
                         <label htmlFor="search-location" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             Location
                         </label>
@@ -134,7 +133,7 @@ export default function SearchBar({
                     </div>
 
                     {/* Date */}
-                    <div className="relative">
+                    <div className="relative z-20">
                         <label htmlFor="search-date" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             Date
                         </label>
@@ -148,7 +147,7 @@ export default function SearchBar({
                     </div>
 
                     {/* Attendees */}
-                    <div>
+                    <div className="relative z-10">
                         <label htmlFor="search-attendees" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
                             People
                         </label>
@@ -169,7 +168,7 @@ export default function SearchBar({
                 </div>
 
                 {/* Search Button */}
-                <div className="mt-8 flex justify-center relative z-10">
+                <div className="mt-8 flex justify-center">
                     <button
                         type="submit"
                         className="group flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"

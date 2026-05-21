@@ -38,7 +38,7 @@ export default function HeaderSearchPill({
     return (
         <form onSubmit={handleSubmit} className="flex items-center gap-1 sm:gap-2 pl-3 pr-2 py-2 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             {/* Location */}
-            <div className="relative">
+            <div className="relative z-30">
                 <LocationPicker
                     id="pill-location"
                     value={location}
@@ -52,7 +52,7 @@ export default function HeaderSearchPill({
             <div className="w-px h-5 bg-slate-200" />
 
             {/* Date */}
-            <div className="relative">
+            <div className="relative z-20">
                 <DatePicker
                     value={date}
                     onChange={setDate}
@@ -66,7 +66,7 @@ export default function HeaderSearchPill({
             <div className="w-px h-5 bg-slate-200" />
 
             {/* Attendees */}
-            <div className="relative">
+            <div className="relative z-10">
                 <input
                     type="number"
                     value={attendees}
