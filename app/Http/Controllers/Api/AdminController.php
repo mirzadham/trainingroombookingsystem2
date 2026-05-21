@@ -43,8 +43,28 @@ class AdminController extends Controller
                 $q->where('location_id', $request->location_id);
             });
         }
+        if ($request->room_id) {
+            $query->where('room_id', $request->room_id);
+        }
         if ($request->date) {
             $query->whereDate('start_time', $request->date);
+        }
+        if ($request->date_from) {
+            $query->whereDate('start_time', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->whereDate('start_time', '<=', $request->date_to);
+        }
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
         }
 
         $bookings = $query->orderByDesc('created_at')->paginate(20);

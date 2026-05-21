@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban } from 'lucide-react';
+import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban, Search, ChevronDown, ChevronUp, CalendarDays, Building2, DoorOpen, RotateCcw } from 'lucide-react';
 import * as api from '../../services/api';
 
 const STATUS_COLORS = {
@@ -23,13 +23,71 @@ export default function AdminBookings() {
     const [selectedIds, setSelectedIds] = useState([]);
     const [batchReason, setBatchReason] = useState('');
     const [showBatchReject, setShowBatchReject] = useState(false);
-    
+
+    // Advanced filter state
+    const [showFilters, setShowFilters] = useState(false);
+    const [searchText, setSearchText] = useState('');
+    const [locationFilter, setLocationFilter] = useState('');
+    const [roomFilter, setRoomFilter] = useState('');
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+
+    // Debounced search
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const searchTimerRef = React.useRef(null);
+
+    const handleSearchChange = (value) => {
+        setSearchText(value);
+        clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            setDebouncedSearch(value);
+        }, 400);
+    };
+
     const queryClient = useQueryClient();
 
+    // Build query params from all filters
+    const queryParams = useMemo(() => {
+        const params = {};
+        if (statusFilter) params.status = statusFilter;
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (locationFilter) params.location_id = locationFilter;
+        if (roomFilter) params.room_id = roomFilter;
+        if (dateFrom) params.date_from = dateFrom;
+        if (dateTo) params.date_to = dateTo;
+        return params;
+    }, [statusFilter, debouncedSearch, locationFilter, roomFilter, dateFrom, dateTo]);
+
+    // Count active advanced filters (excluding status which is always visible)
+    const activeFilterCount = [debouncedSearch, locationFilter, roomFilter, dateFrom, dateTo].filter(Boolean).length;
+
     const { data, isLoading } = useQuery({
-        queryKey: ['admin-bookings', statusFilter],
-        queryFn: () => api.getAdminBookings({ status: statusFilter || undefined }),
+        queryKey: ['admin-bookings', queryParams],
+        queryFn: () => api.getAdminBookings(queryParams),
     });
+
+    // Fetch locations for filter dropdown
+    const { data: locationsData } = useQuery({
+        queryKey: ['locations'],
+        queryFn: () => api.getLocations(),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    // Fetch rooms for filter dropdown (all admin rooms)
+    const { data: roomsData } = useQuery({
+        queryKey: ['admin-rooms'],
+        queryFn: () => api.getAdminRooms(),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const locations = locationsData || [];
+    const allRooms = roomsData?.data || roomsData || [];
+
+    // Filter rooms by selected location
+    const filteredRooms = useMemo(() => {
+        if (!locationFilter) return allRooms;
+        return allRooms.filter(r => String(r.location_id) === String(locationFilter));
+    }, [allRooms, locationFilter]);
 
     const approveMutation = useMutation({
         mutationFn: (id) => api.approveBooking(id),
@@ -99,6 +157,15 @@ export default function AdminBookings() {
         }
     };
 
+    const clearAdvancedFilters = () => {
+        setSearchText('');
+        setDebouncedSearch('');
+        setLocationFilter('');
+        setRoomFilter('');
+        setDateFrom('');
+        setDateTo('');
+    };
+
     return (
         <div className="pb-24">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
@@ -118,7 +185,7 @@ export default function AdminBookings() {
             </div>
 
             {/* Status filter tabs */}
-            <div className="flex gap-2 mb-6 flex-wrap">
+            <div className="flex gap-2 mb-4 flex-wrap">
                 {['pending', 'approved', 'rejected', 'cancelled', ''].map(status => (
                     <button
                         key={status}
@@ -136,6 +203,172 @@ export default function AdminBookings() {
                         {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'All'}
                     </button>
                 ))}
+            </div>
+
+            {/* Advanced Filters Toggle */}
+            <div className="mb-6">
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition cursor-pointer border ${
+                        showFilters || activeFilterCount > 0
+                            ? 'bg-mimos-50 text-mimos-700 border-mimos-200'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                >
+                    <Filter className="w-4 h-4" />
+                    Advanced Filters
+                    {activeFilterCount > 0 && (
+                        <span className="bg-gradient-to-r from-mimos-500 to-mimos-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            {activeFilterCount}
+                        </span>
+                    )}
+                    {showFilters ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
+                </button>
+
+                {/* Advanced Filters Panel */}
+                <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showFilters ? 'max-h-[500px] opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                            {/* Search */}
+                            <div className="sm:col-span-2 lg:col-span-1 xl:col-span-2">
+                                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    <Search className="w-3 h-3" />
+                                    Search
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        id="filter-search"
+                                        type="text"
+                                        value={searchText}
+                                        onChange={e => handleSearchChange(e.target.value)}
+                                        placeholder="Title, user name, email, or ID..."
+                                        className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition"
+                                    />
+                                    {searchText && (
+                                        <button
+                                            onClick={() => handleSearchChange('')}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Location */}
+                            <div>
+                                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    <Building2 className="w-3 h-3" />
+                                    Location
+                                </label>
+                                <select
+                                    id="filter-location"
+                                    value={locationFilter}
+                                    onChange={e => {
+                                        setLocationFilter(e.target.value);
+                                        setRoomFilter(''); // Reset room when location changes
+                                    }}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer appearance-none"
+                                >
+                                    <option value="">All Locations</option>
+                                    {locations.map(loc => (
+                                        <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Room */}
+                            <div>
+                                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    <DoorOpen className="w-3 h-3" />
+                                    Room
+                                </label>
+                                <select
+                                    id="filter-room"
+                                    value={roomFilter}
+                                    onChange={e => setRoomFilter(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer appearance-none"
+                                >
+                                    <option value="">All Rooms</option>
+                                    {filteredRooms.map(room => (
+                                        <option key={room.id} value={room.id}>{room.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Date Range */}
+                            <div className="sm:col-span-2 lg:col-span-1">
+                                <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                                    <CalendarDays className="w-3 h-3" />
+                                    Date Range
+                                </label>
+                                <div className="flex gap-2 items-center">
+                                    <input
+                                        id="filter-date-from"
+                                        type="date"
+                                        value={dateFrom}
+                                        onChange={e => setDateFrom(e.target.value)}
+                                        className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer"
+                                    />
+                                    <span className="text-xs text-slate-400 font-medium flex-shrink-0">to</span>
+                                    <input
+                                        id="filter-date-to"
+                                        type="date"
+                                        value={dateTo}
+                                        onChange={e => setDateTo(e.target.value)}
+                                        className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Active filters summary + clear */}
+                        {activeFilterCount > 0 && (
+                            <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs text-slate-500 font-medium">Active:</span>
+                                    {debouncedSearch && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-mimos-50 text-mimos-700 text-[11px] font-semibold rounded-lg border border-mimos-200">
+                                            Search: "{debouncedSearch}"
+                                            <button onClick={() => handleSearchChange('')} className="hover:text-mimos-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                                        </span>
+                                    )}
+                                    {locationFilter && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-semibold rounded-lg border border-blue-200">
+                                            Location: {locations.find(l => String(l.id) === String(locationFilter))?.code || locationFilter}
+                                            <button onClick={() => { setLocationFilter(''); setRoomFilter(''); }} className="hover:text-blue-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                                        </span>
+                                    )}
+                                    {roomFilter && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-700 text-[11px] font-semibold rounded-lg border border-violet-200">
+                                            Room: {allRooms.find(r => String(r.id) === String(roomFilter))?.name || roomFilter}
+                                            <button onClick={() => setRoomFilter('')} className="hover:text-violet-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                                        </span>
+                                    )}
+                                    {dateFrom && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold rounded-lg border border-emerald-200">
+                                            From: {dateFrom}
+                                            <button onClick={() => setDateFrom('')} className="hover:text-emerald-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                                        </span>
+                                    )}
+                                    {dateTo && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold rounded-lg border border-emerald-200">
+                                            To: {dateTo}
+                                            <button onClick={() => setDateTo('')} className="hover:text-emerald-900 cursor-pointer"><X className="w-3 h-3" /></button>
+                                        </span>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={clearAdvancedFilters}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Clear All
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {isLoading && (
