@@ -20,3 +20,6 @@ export const updateRoom = (id, data) =>
 
 export const deleteRoom = (id) =>
     api.delete(`/admin/rooms/${id}`).then(r => r.data);
+
+export const toggleRoomActive = (id) =>
+    api.post(`/admin/rooms/${id}/toggle-active`).then(r => r.data);

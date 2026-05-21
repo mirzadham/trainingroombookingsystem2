@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, Power } from 'lucide-react';
 import * as api from '../../services/api';
 import BlackoutsModal from '../../components/admin/BlackoutsModal';
 
@@ -30,8 +30,8 @@ export default function AdminRooms() {
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-rooms'] }); setEditingRoom(null); },
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: api.deleteRoom,
+    const toggleActiveMutation = useMutation({
+        mutationFn: api.toggleRoomActive,
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-rooms'] }),
     });
 
@@ -123,11 +123,20 @@ export default function AdminRooms() {
                                 <CalendarOff className="w-3.5 h-3.5" /> Blackouts
                             </button>
                             <button
-                                onClick={() => deleteMutation.mutate(room.id)}
-                                disabled={deleteMutation.isPending}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition cursor-pointer"
+                                onClick={() => {
+                                    const action = room.is_active ? 'deactivate' : 'activate';
+                                    if (confirm(`Are you sure you want to ${action} "${room.name}"?${!room.is_active ? '' : ' Users will not be able to book this room while it is inactive.'}`)) {
+                                        toggleActiveMutation.mutate(room.id);
+                                    }
+                                }}
+                                disabled={toggleActiveMutation.isPending}
+                                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer ${
+                                    room.is_active
+                                        ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200'
+                                        : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                                }`}
                             >
-                                <Trash2 className="w-3 h-3" /> Deactivate
+                                <Power className="w-3 h-3" /> {room.is_active ? 'Deactivate' : 'Activate'}
                             </button>
                         </div>
                     </div>

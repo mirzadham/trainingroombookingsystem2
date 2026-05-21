@@ -56,6 +56,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // Room management
     Route::apiResource('rooms', App\Http\Controllers\Api\RoomController::class);
+    Route::post('/rooms/{room}/toggle-active', [App\Http\Controllers\Api\RoomController::class, 'toggleActive']);
 
     // Blackout scheduling
     Route::apiResource('blackouts', App\Http\Controllers\Api\BlackoutController::class)->only(['index', 'store', 'destroy']);

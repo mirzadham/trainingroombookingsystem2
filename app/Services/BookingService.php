@@ -139,11 +139,13 @@ class BookingService
      * Create a new booking.
      * At booking stage, overlaps with other bookings are ALLOWED.
      * Conflicts are only enforced at approval stage.
+     * However, blackout periods always block bookings immediately.
      */
     public function create(array $data, User $user): Booking
     {
         $this->validateBookingRules($data);
         $this->preventDuplicate($data, $user);
+        $this->preventBlackoutOverlap($data);
 
         $booking = Booking::create([
             'user_id' => $user->id,
@@ -250,6 +252,9 @@ class BookingService
 
             // Check for duplicate for each occurrence
             $this->preventDuplicate($weekData, $user);
+
+            // Check for blackout period overlap
+            $this->preventBlackoutOverlap($weekData);
         }
 
         // All validations passed — create all bookings
@@ -377,6 +382,29 @@ class BookingService
         if ($exists) {
             throw ValidationException::withMessages([
                 'duplicate' => 'You already have a booking for this room at the same time.',
+            ]);
+        }
+    }
+
+    /**
+     * Prevent bookings that overlap with admin-scheduled blackout periods.
+     */
+    private function preventBlackoutOverlap(array $data): void
+    {
+        $start = Carbon::parse($data['start_time']);
+        $end = Carbon::parse($data['end_time']);
+
+        $blackout = \App\Models\RoomBlackout::where('room_id', $data['room_id'])
+            ->where('start_time', '<', $end)
+            ->where('end_time', '>', $start)
+            ->first();
+
+        if ($blackout) {
+            $blackoutStart = Carbon::parse($blackout->start_time)->format('M j, Y g:i A');
+            $blackoutEnd = Carbon::parse($blackout->end_time)->format('M j, Y g:i A');
+
+            throw ValidationException::withMessages([
+                'blackout' => "This room is unavailable during a scheduled blackout period ({$blackout->title}: {$blackoutStart} – {$blackoutEnd}). Please choose a different time or room.",
             ]);
         }
     }

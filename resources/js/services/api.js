@@ -12,7 +12,7 @@
 export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser, updateProfile, updatePassword, forgotPassword, resetPassword } from './authApi';
 
 export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, createRecurringBooking } from './bookingApi';
-export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom } from './roomApi';
+export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom, toggleRoomActive } from './roomApi';
 export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, adminCancelBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout } from './adminApi';
 export { searchAvailability, getTimeline, getSuggestions, getLocations, getCalendarEvents } from './availabilityApi';
 

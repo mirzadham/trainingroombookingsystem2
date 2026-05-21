@@ -102,4 +102,22 @@ class RoomController extends Controller
 
         return response()->json(['message' => 'Room deactivated.']);
     }
+
+    /**
+     * POST /api/admin/rooms/{room}/toggle-active
+     * Toggle a room's active status (activate/deactivate).
+     */
+    public function toggleActive(Request $request, Room $room): JsonResponse
+    {
+        $this->authorize('update', $room);
+
+        $room->update(['is_active' => !$room->is_active]);
+
+        $status = $room->is_active ? 'activated' : 'deactivated';
+
+        return response()->json([
+            'message' => "Room {$status} successfully.",
+            'room' => new RoomResource($room->load('location')),
+        ]);
+    }
 }
