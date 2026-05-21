@@ -201,7 +201,15 @@ class BookingService
             ]);
         }
 
-        $this->validateBookingRules($data);
+        // Merge existing booking details with new data to validate complete rules
+        $validationData = array_merge([
+            'room_id' => $booking->room_id,
+            'start_time' => $booking->start_time->toDateTimeString(),
+            'end_time' => $booking->end_time->toDateTimeString(),
+            'attendees' => $booking->attendees,
+        ], $data);
+
+        $this->validateBookingRules($validationData);
 
         $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
