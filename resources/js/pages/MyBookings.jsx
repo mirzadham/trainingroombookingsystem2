@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, Clock, MapPin, Users, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { CalendarCheck, Clock, MapPin, Users, XCircle, Pencil, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 import Badge from '../components/ui/Badge';
+import EditBookingModal from '../components/EditBookingModal';
 import * as api from '../services/api';
 
 const FILTER_TAB_ORDER = [
@@ -31,7 +32,7 @@ const FILTER_DOT_COLOR = {
     [BOOKING_STATUS.CANCELLED]: 'bg-slate-400',
 };
 
-function BookingCard({ booking, cancelMutation }) {
+function BookingCard({ booking, cancelMutation, onEdit }) {
     const statusBorderAccent =
         booking.status === 'approved'  ? 'bg-emerald-400' :
         booking.status === 'pending'   ? 'bg-amber-400'  :
@@ -89,15 +90,25 @@ function BookingCard({ booking, cancelMutation }) {
                         </div>
                     )}
                 </div>
-                {(booking.status === 'approved' || booking.status === 'pending') && (
-                    <button
-                        onClick={() => cancelMutation.mutate(booking.id)}
-                        disabled={cancelMutation.isPending}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg transition-all cursor-pointer flex-shrink-0 mt-1"
-                    >
-                        <XCircle className="w-3.5 h-3.5" /> Cancel
-                    </button>
-                )}
+                <div className="flex flex-col gap-2 flex-shrink-0 mt-1">
+                    {booking.status === 'pending' && (
+                        <button
+                            onClick={() => onEdit(booking)}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-medium text-mimos-600 bg-mimos-50 hover:bg-mimos-100 border border-mimos-100 rounded-lg transition-all cursor-pointer"
+                        >
+                            <Pencil className="w-3.5 h-3.5" /> Edit
+                        </button>
+                    )}
+                    {(booking.status === 'approved' || booking.status === 'pending') && (
+                        <button
+                            onClick={() => cancelMutation.mutate(booking.id)}
+                            disabled={cancelMutation.isPending}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg transition-all cursor-pointer"
+                        >
+                            <XCircle className="w-3.5 h-3.5" /> Cancel
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -109,6 +120,7 @@ export default function MyBookings() {
     const queryClient = useQueryClient();
 
     const [activeStatus, setActiveStatus] = useState('');
+    const [editingBooking, setEditingBooking] = useState(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ['my-bookings', activeStatus],
@@ -118,8 +130,25 @@ export default function MyBookings() {
 
     const cancelMutation = useMutation({
         mutationFn: (id) => api.cancelBooking(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-bookings', activeStatus] }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-bookings'] }),
     });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }) => api.updateBooking(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+            setEditingBooking(null);
+        },
+    });
+
+    const handleEditSave = (id, data, callbacks) => {
+        updateMutation.mutate(
+            { id, data },
+            {
+                onError: callbacks?.onError,
+            }
+        );
+    };
 
     const bookings = data?.data || [];
 
@@ -220,12 +249,22 @@ export default function MyBookings() {
                             </div>
                             <div className="space-y-4">
                                 {groupBookings.map(b => (
-                                    <BookingCard key={b.id} booking={b} cancelMutation={cancelMutation} />
+                                    <BookingCard key={b.id} booking={b} cancelMutation={cancelMutation} onEdit={setEditingBooking} />
                                 ))}
                             </div>
                         </div>
                     ))}
                 </div>
+            )}
+
+            {/* Edit Booking Modal */}
+            {editingBooking && (
+                <EditBookingModal
+                    booking={editingBooking}
+                    onClose={() => { setEditingBooking(null); updateMutation.reset(); }}
+                    onSave={handleEditSave}
+                    isSaving={updateMutation.isPending}
+                />
             )}
         </div>
     );
