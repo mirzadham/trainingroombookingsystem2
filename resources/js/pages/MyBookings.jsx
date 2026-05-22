@@ -39,12 +39,13 @@ export default function MyBookings() {
     const queryClient = useQueryClient();
 
     const [activeStatus, setActiveStatus] = useState('');
+    const [page, setPage] = useState(1);
     const [editingBooking, setEditingBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
 
     const { data, isLoading } = useQuery({
-        queryKey: ['my-bookings', activeStatus],
-        queryFn: () => api.getBookings({ status: activeStatus || undefined }),
+        queryKey: ['my-bookings', activeStatus, page],
+        queryFn: () => api.getBookings({ status: activeStatus || undefined, page }),
         enabled: isAuthenticated,
     });
 
@@ -71,6 +72,39 @@ export default function MyBookings() {
     };
 
     const bookings = data?.data || [];
+    const totalBookings = data?.total || 0;
+    const fromIndex = data?.from || 0;
+    const toIndex = data?.to || 0;
+    const totalPages = data?.last_page || 1;
+
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const getPaginationRange = (currentPage, totalPages) => {
+        const delta = 2;
+        const range = [];
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+                range.push(i);
+            }
+        }
+        const withEllipsis = [];
+        let l;
+        for (const i of range) {
+            if (l) {
+                if (i - l === 2) {
+                    withEllipsis.push(l + 1);
+                } else if (i - l > 2) {
+                    withEllipsis.push('...');
+                }
+            }
+            withEllipsis.push(i);
+            l = i;
+        }
+        return withEllipsis;
+    };
 
     const monthGroups = useMemo(() => {
         const map = new Map();
@@ -110,7 +144,7 @@ export default function MyBookings() {
                     return (
                         <button
                             key={status}
-                            onClick={() => setActiveStatus(status)}
+                            onClick={() => { setActiveStatus(status); setPage(1); }}
                             className={`inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-xl border transition-all duration-200 cursor-pointer ${
                                 isActive
                                     ? 'bg-mimos-50 text-mimos-700 border-mimos-200 shadow-sm'
@@ -181,6 +215,84 @@ export default function MyBookings() {
                             </div>
                         </div>
                     ))}
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between border border-slate-200/80 bg-white/70 backdrop-blur-md px-5 py-4 rounded-2xl shadow-sm mt-8">
+                            {/* Mobile style */}
+                            <div className="flex flex-1 justify-between sm:hidden">
+                                <button
+                                    onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                                    disabled={page === 1}
+                                    className="relative inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none transition"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
+                                    disabled={page === totalPages}
+                                    className="relative ml-3 inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none transition"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            
+                            {/* Desktop style */}
+                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-xs text-slate-500">
+                                        Showing <span className="font-semibold text-slate-850">{fromIndex}</span> to <span className="font-semibold text-slate-855">{toIndex}</span> of{' '}
+                                        <span className="font-semibold text-slate-855">{totalBookings}</span> entries
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav className="isolate inline-flex -space-x-px rounded-xl shadow-sm border border-slate-200 bg-white overflow-hidden" aria-label="Pagination">
+                                        <button
+                                            onClick={() => handlePageChange(Math.max(page - 1, 1))}
+                                            disabled={page === 1}
+                                            className="relative inline-flex items-center px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 focus:z-20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition select-none border-r border-slate-200"
+                                        >
+                                            Previous
+                                        </button>
+                                        
+                                        {getPaginationRange(page, totalPages).map((pNum, idx) => {
+                                            if (pNum === '...') {
+                                                return (
+                                                    <span
+                                                        key={`ellipsis-${idx}`}
+                                                        className="relative inline-flex items-center px-4 py-2 text-xs font-medium text-slate-400 select-none border-r border-slate-200 bg-slate-50/50"
+                                                    >
+                                                        ...
+                                                    </span>
+                                                );
+                                            }
+                                            return (
+                                                <button
+                                                    key={pNum}
+                                                    onClick={() => handlePageChange(pNum)}
+                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-bold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
+                                                        pNum === page
+                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-extrabold'
+                                                            : 'bg-white text-slate-550 hover:bg-slate-50 hover:text-slate-800'
+                                                    }`}
+                                                >
+                                                    {pNum}
+                                                </button>
+                                            );
+                                        })}
+
+                                        <button
+                                            onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
+                                            disabled={page === totalPages}
+                                            className="relative inline-flex items-center px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 focus:z-20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition select-none"
+                                        >
+                                            Next
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

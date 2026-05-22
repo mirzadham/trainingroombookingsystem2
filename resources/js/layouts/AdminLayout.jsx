@@ -81,7 +81,7 @@ export default function AdminLayout() {
                 {/* Logo */}
                 <div className="p-6 border-b border-slate-200/55 flex flex-col gap-2">
                     <Link to="/admin" className="flex items-center gap-3">
-                        <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-10 w-auto bg-white border border-slate-100 p-1 rounded-xl shadow-xs" />
+                        <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-10 w-auto" />
                         <div>
                             <span className="text-xs text-slate-400 font-semibold tracking-wider uppercase">Admin Panel</span>
                         </div>
