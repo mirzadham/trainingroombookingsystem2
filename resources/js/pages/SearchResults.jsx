@@ -34,6 +34,7 @@ export default function SearchResults() {
         const params = new URLSearchParams();
         params.set('date', date);
         if (endDate) params.set('end_date', endDate);
+        if (attendees) params.set('attendees', attendees);
         navigate(`/rooms/${entry.room.id}?${params.toString()}`);
     };
 

@@ -20,6 +20,7 @@ export default function useBookingForm() {
     // Otherwise, we read from session storage (e.g. after a page refresh).
     const urlRoomId = searchParams.get('room_id');
     const urlEndDate = searchParams.get('end_date') || '';
+    const urlAttendees = searchParams.get('attendees') || '';
     const roomInfo = useMemo(() => {
         let info = null;
         if (urlRoomId) {
@@ -51,7 +52,13 @@ export default function useBookingForm() {
     // Details step
     const [title, setTitle] = useState(() => getStoredState('title', ''));
     const [description, setDescription] = useState(() => getStoredState('description', ''));
-    const [attendees, setAttendees] = useState(() => getStoredState('attendees', ''));
+    const [attendees, setAttendees] = useState(() => {
+        if (urlRoomId && urlAttendees) {
+            sessionStorage.setItem(`${SESSION_KEY}_attendees`, urlAttendees);
+            return urlAttendees;
+        }
+        return getStoredState('attendees', '');
+    });
     const [endDate, setEndDate] = useState(() => {
         if (urlRoomId && urlEndDate) {
             sessionStorage.setItem(`${SESSION_KEY}_endDate`, urlEndDate);

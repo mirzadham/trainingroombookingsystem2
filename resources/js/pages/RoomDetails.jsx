@@ -27,6 +27,7 @@ export default function RoomDetails() {
     const defaultDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
     const date = searchParams.get('date') || defaultDate;
     const endDate = searchParams.get('end_date') || '';
+    const attendees = searchParams.get('attendees') || '';
 
     // Fetch basic room details
     const { data: roomData, isLoading: isRoomLoading, error: roomError } = useQuery({
@@ -163,6 +164,7 @@ export default function RoomDetails() {
                                 room={room} 
                                 date={date} 
                                 endDate={endDate}
+                                attendees={attendees}
                                 timelineSlots={slots} 
                             />
                         </div>

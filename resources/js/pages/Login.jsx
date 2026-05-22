@@ -67,22 +67,12 @@ export default function Login() {
                     <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
                 </div>
 
-                <div className="relative z-10 h-full flex flex-col justify-between">
-                    <div>
-                        <Link to="/" className="inline-block mb-12">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/20" />
-                        </Link>
-                    </div>
-                    
-                    <div className="my-auto">
+                <div className="relative z-10 h-full flex flex-col justify-center">
+                    <div className="text-center md:text-left">
                         <h1 className="text-5xl lg:text-7xl font-bold text-white leading-none tracking-tight">
                             JOIN THE<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-mimos-400 to-pink-400">INNOVATION</span>
                         </h1>
-                    </div>
-                    
-                    <div className="text-sm text-slate-400">
-                        &copy; {new Date().getFullYear()} MIMOS Academy.
                     </div>
                 </div>
             </div>

@@ -23,7 +23,7 @@ const generateAllSlots = () => {
 
 const ALL_SLOTS = generateAllSlots();
 
-export default function RoomTimeGrid({ room, date, endDate, timelineSlots }) {
+export default function RoomTimeGrid({ room, date, endDate, attendees, timelineSlots }) {
     const navigate = useNavigate();
 
     // Step 1 or Step 2
@@ -117,6 +117,9 @@ export default function RoomTimeGrid({ room, date, endDate, timelineSlots }) {
         let url = `/book?room_id=${room.id}&room_name=${encodeURIComponent(room.name)}&location=${encodeURIComponent(locationName || '')}&capacity=${room.capacity}&date=${date}&start_time=${startTime}&end_time=${duration.endTimeStr}`;
         if (endDate) {
             url += `&end_date=${endDate}`;
+        }
+        if (attendees) {
+            url += `&attendees=${encodeURIComponent(attendees)}`;
         }
         navigate(url);
     };
