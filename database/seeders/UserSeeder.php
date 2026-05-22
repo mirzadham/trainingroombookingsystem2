@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Location;
 use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,7 +20,7 @@ class UserSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'superadmin@mimos.my',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_SUPER_ADMIN,
+            'role' => UserRole::SuperAdmin,
             'user_type' => 'internal',
             'department' => 'IT Administration',
         ]);
@@ -29,7 +30,7 @@ class UserSeeder extends Seeder
             'name' => 'TPM Admin',
             'email' => 'tpm.admin@mimos.my',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_LOCATION_ADMIN,
+            'role' => UserRole::LocationAdmin,
             'user_type' => 'internal',
             'location_id' => $tpm->id,
             'department' => 'Facility Management',
@@ -40,7 +41,7 @@ class UserSeeder extends Seeder
             'name' => 'KHTP Admin',
             'email' => 'khtp.admin@mimos.my',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_LOCATION_ADMIN,
+            'role' => UserRole::LocationAdmin,
             'user_type' => 'internal',
             'location_id' => $khtp->id,
             'department' => 'Facility Management',
@@ -51,7 +52,7 @@ class UserSeeder extends Seeder
             'name' => 'Ahmad Razak',
             'email' => 'ahmad.razak@mimos.my',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_USER,
+            'role' => UserRole::User,
             'user_type' => 'internal',
             'department' => 'Research & Development',
             'phone' => '+60123456789',
@@ -62,7 +63,7 @@ class UserSeeder extends Seeder
             'name' => 'Siti Nurhaliza',
             'email' => 'siti.nurhaliza@mimos.my',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_USER,
+            'role' => UserRole::User,
             'user_type' => 'internal',
             'department' => 'Academy',
             'phone' => '+60198765432',
@@ -73,7 +74,7 @@ class UserSeeder extends Seeder
             'name' => 'John Doe',
             'email' => 'john.doe@external.com',
             'password' => Hash::make('password'),
-            'role' => User::ROLE_USER,
+            'role' => UserRole::User,
             'user_type' => 'external',
             'phone' => '+60112233445',
         ]);

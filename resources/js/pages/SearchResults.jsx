@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, MapPin, Users } from 'lucide-react';
+import { ArrowLeft, Loader2, MapPin, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as api from '../services/api';
 
 export default function SearchResults() {
@@ -127,9 +127,50 @@ export default function SearchResults() {
 }
 
 /**
+ * Helper to deterministically generate 5 room photo URLs using existing assets.
+ */
+function getRoomImages(room) {
+    const mainImg = room.image_url || '/images/rooms/default.png';
+    const allImages = [
+        '/images/rooms/seminar-room-a.png',
+        '/images/rooms/training-lab-1.png',
+        '/images/rooms/meeting-room-b1.png',
+        '/images/rooms/boardroom.png',
+        '/images/rooms/collaboration-space.png',
+        '/images/rooms/innovation-lab.png',
+        '/images/rooms/meeting-room-k1.png',
+        '/images/rooms/training-hall.png'
+    ];
+    
+    // Filter out primary image to prevent duplicate picks
+    const otherImages = allImages.filter(img => img !== mainImg);
+    
+    const roomId = room.id || 0;
+    const img2 = otherImages[roomId % otherImages.length];
+    const img3 = otherImages[(roomId + 1) % otherImages.length];
+    const img4 = otherImages[(roomId + 2) % otherImages.length];
+    const img5 = otherImages[(roomId + 3) % otherImages.length];
+    
+    return [mainImg, img2, img3, img4, img5];
+}
+
+/**
  * RoomCard — A visually striking glass card showing the room image and basic details.
  */
 function RoomCard({ room, onClick, formatAmenity }) {
+    const images = getRoomImages(room);
+    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+
+    const handlePrev = (e) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    };
+
+    const handleNext = (e) => {
+        e.stopPropagation();
+        setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    };
+
     const availabilityText = room.available_slots === room.total_slots
         ? 'Fully Available'
         : room.available_slots === 0
@@ -146,20 +187,55 @@ function RoomCard({ room, onClick, formatAmenity }) {
         <button
             onClick={onClick}
             disabled={room.available_slots === 0}
-            className={`group text-left w-full bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/60 overflow-hidden shadow-lg shadow-slate-100/50 transition-all duration-300 cursor-pointer ${
+            className={`group/card text-left w-full bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/60 overflow-hidden shadow-lg shadow-slate-100/50 transition-all duration-300 cursor-pointer ${
                 room.available_slots > 0
                     ? 'hover:scale-[1.02] hover:shadow-xl hover:shadow-mimos-500/5 hover:border-mimos-500/30'
                     : 'opacity-50 cursor-not-allowed'
             }`}
         >
             {/* Image container */}
-            <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100">
+            <div className="relative w-full aspect-[16/10] overflow-hidden bg-slate-100 group/image">
                 <img
-                    src={room.image_url || '/images/rooms/default.png'}
-                    alt={room.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    src={images[currentImageIndex]}
+                    alt={`${room.name} ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
                     loading="lazy"
                 />
+
+                {/* Left/Right controls (only visible when hovering card and slots are available) */}
+                {room.available_slots > 0 && (
+                    <>
+                        <button
+                            onClick={handlePrev}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/80 backdrop-blur-md text-slate-800 rounded-full border border-white/30 hover:bg-white hover:scale-110 shadow-md active:scale-95 transition-all duration-200 opacity-0 group-hover/image:opacity-100 z-10 pointer-events-auto cursor-pointer"
+                            aria-label="Previous image"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/80 backdrop-blur-md text-slate-800 rounded-full border border-white/30 hover:bg-white hover:scale-110 shadow-md active:scale-95 transition-all duration-200 opacity-0 group-hover/image:opacity-100 z-10 pointer-events-auto cursor-pointer"
+                            aria-label="Next image"
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </>
+                )}
+
+                {/* Active indicator dots */}
+                {room.available_slots > 0 && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                        {images.map((_, idx) => (
+                            <div
+                                key={idx}
+                                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                                    idx === currentImageIndex ? 'bg-white w-3.5 shadow-sm' : 'bg-white/50'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                )}
+
                 {/* Availability badge overlay */}
                 <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-bold border backdrop-blur-md shadow-sm tracking-wide ${availabilityColor}`}>
                     {availabilityText}
@@ -168,7 +244,7 @@ function RoomCard({ room, onClick, formatAmenity }) {
 
             {/* Details */}
             <div className="p-6">
-                <h3 className="text-lg font-bold text-slate-900 mb-1.5 group-hover:text-mimos-500 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-1.5 group-hover/card:text-mimos-500 transition-colors">
                     {room.name}
                 </h3>
 

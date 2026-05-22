@@ -1,9 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, Users, Loader2, Monitor, Wifi, Coffee, Maximize } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Loader2, Monitor, Wifi, Coffee, Maximize, ChevronLeft, ChevronRight, LayoutGrid, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import * as api from '../services/api';
 import RoomTimeGrid from '../components/RoomTimeGrid';
+
+/**
+ * Helper to deterministically generate 5 room photo URLs using existing assets.
+ */
+function getRoomImages(room) {
+    if (!room) return [];
+    const mainImg = room.image_url || '/images/rooms/default.png';
+    const allImages = [
+        '/images/rooms/seminar-room-a.png',
+        '/images/rooms/training-lab-1.png',
+        '/images/rooms/meeting-room-b1.png',
+        '/images/rooms/boardroom.png',
+        '/images/rooms/collaboration-space.png',
+        '/images/rooms/innovation-lab.png',
+        '/images/rooms/meeting-room-k1.png',
+        '/images/rooms/training-hall.png'
+    ];
+    
+    // Filter out primary image to prevent duplicate picks
+    const otherImages = allImages.filter(img => img !== mainImg);
+    
+    const roomId = room.id || 0;
+    const img2 = otherImages[roomId % otherImages.length];
+    const img3 = otherImages[(roomId + 1) % otherImages.length];
+    const img4 = otherImages[(roomId + 2) % otherImages.length];
+    const img5 = otherImages[(roomId + 3) % otherImages.length];
+    
+    return [mainImg, img2, img3, img4, img5];
+}
 
 // Fallback icon mapping for amenities
 const getAmenityIcon = (amenity) => {
@@ -22,6 +52,10 @@ export default function RoomDetails() {
     const { id } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    // Lightbox modal states
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     // Default to today if no date provided
     const defaultDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
@@ -49,6 +83,11 @@ export default function RoomDetails() {
     // Extract slots for the current room
     const timelineEntry = timelineData?.rooms?.find(r => r.room.id === parseInt(id));
     const slots = timelineEntry?.slots || null;
+
+    // Scroll to top when loaded
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [id]);
 
     if (isLoading) {
         return (
@@ -79,6 +118,8 @@ export default function RoomDetails() {
         );
     }
 
+    const photos = getRoomImages(room);
+
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Top Navigation */}
@@ -92,26 +133,76 @@ export default function RoomDetails() {
                 </button>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-                    
-                    {/* Left Column: Presentation */}
-                    <div className="flex-1 space-y-8">
-                        {/* Premium Image */}
-                        <div className="w-full aspect-[16/10] md:aspect-[21/9] lg:aspect-[16/10] rounded-3xl overflow-hidden bg-slate-200 shadow-md relative">
+            {/* Airbnb-style photo grid at the top */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+                <div className="relative w-full">
+                    <div 
+                        className="grid grid-cols-1 lg:grid-cols-4 gap-3 rounded-3xl overflow-hidden shadow-md h-[300px] lg:h-[450px]"
+                        style={{ gridTemplateRows: 'repeat(2, 1fr)' }}
+                    >
+                        {/* On desktop: flat 4-col × 2-row grid; primary spans left half, 4 thumbs fill right half */}
+                        {/* On mobile: only the primary image is shown */}
+
+                        {/* Primary Large Image */}
+                        <div 
+                            className="lg:col-span-2 lg:row-span-2 relative overflow-hidden bg-slate-200 cursor-pointer group/primary"
+                            onClick={() => {
+                                setLightboxIndex(0);
+                                setIsLightboxOpen(true);
+                            }}
+                        >
                             <img 
-                                src={room.image_url || '/images/rooms/default.png'} 
-                                alt={room.name}
-                                className="w-full h-full object-cover"
+                                src={photos[0]} 
+                                alt={`${room.name} Primary`}
+                                className="w-full h-full object-cover group-hover/primary:scale-[1.02] transition-transform duration-500"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                            <div className="absolute bottom-6 left-6 text-white">
-                                <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-medium border border-white/30">
-                                {room.location?.code}
+                            {/* Glass Location Badge on desktop */}
+                            <div className="absolute bottom-6 left-6 text-white z-10">
+                                <span className="px-3 py-1 bg-black/30 backdrop-blur-md rounded-full text-xs font-semibold border border-white/20">
+                                    {room.location?.code}
                                 </span>
                             </div>
                         </div>
 
+                        {/* 4 smaller images — each occupies exactly one grid cell */}
+                        {photos.slice(1, 5).map((photo, idx) => (
+                            <div 
+                                key={idx} 
+                                className="hidden lg:block relative overflow-hidden bg-slate-200 cursor-pointer group/thumb"
+                                onClick={() => {
+                                    setLightboxIndex(idx + 1);
+                                    setIsLightboxOpen(true);
+                                }}
+                            >
+                                <img 
+                                    src={photo} 
+                                    alt={`${room.name} View ${idx + 1}`}
+                                    className="w-full h-full object-cover group-hover/thumb:scale-[1.03] transition-transform duration-500"
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Show All Photos Button (bottom right corner) */}
+                    <button
+                        onClick={() => {
+                            setLightboxIndex(0);
+                            setIsLightboxOpen(true);
+                        }}
+                        className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/95 text-slate-800 text-xs font-bold rounded-xl border border-slate-200 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer z-20"
+                    >
+                        <LayoutGrid className="w-4 h-4 text-slate-600" />
+                        Show all photos
+                    </button>
+                </div>
+            </div>
+
+            {/* Bottom details and booking layout */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+                    
+                    {/* Left Column: Presentation */}
+                    <div className="lg:col-span-2 space-y-8">
                         {/* Title & Core Details */}
                         <div>
                             <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
@@ -158,7 +249,7 @@ export default function RoomDetails() {
                     </div>
 
                     {/* Right Column: Interaction */}
-                    <div className="w-full lg:w-[420px] shrink-0">
+                    <div className="lg:col-span-1">
                         <div className="sticky top-8">
                             <RoomTimeGrid 
                                 room={room} 
@@ -171,6 +262,78 @@ export default function RoomDetails() {
                     </div>
                 </div>
             </div>
+
+            {/* Fullscreen Lightbox Modal */}
+            {isLightboxOpen && createPortal(
+                <div 
+                    className="fixed inset-0 bg-black/95 flex flex-col justify-between p-6 pb-10 select-none animate-fade-in"
+                    style={{ zIndex: 999999 }}
+                >
+                    {/* Top bar */}
+                    <div className="flex items-center justify-between w-full text-white pb-4 border-b border-white/10">
+                        <span className="text-sm font-semibold text-slate-300">
+                            {lightboxIndex + 1} / {photos.length}
+                        </span>
+                        <button 
+                            onClick={() => setIsLightboxOpen(false)}
+                            className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-full transition cursor-pointer"
+                            aria-label="Close gallery"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    {/* Main large image with arrows */}
+                    <div className="relative flex items-center justify-center flex-1 py-4 min-h-0">
+                        <button 
+                            onClick={() => setLightboxIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
+                            className="absolute left-2 md:left-6 p-3 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 border border-white/10 rounded-full transition shadow-lg active:scale-95 cursor-pointer z-10"
+                            aria-label="Previous photo"
+                        >
+                            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+                        </button>
+
+                        <img 
+                            src={photos[lightboxIndex]} 
+                            alt={`${room.name} Large Gallery View`}
+                            className="max-w-full max-h-[60vh] object-contain rounded-2xl shadow-2xl transition-all duration-300"
+                        />
+
+                        <button 
+                            onClick={() => setLightboxIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
+                            className="absolute right-2 md:right-6 p-3 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 border border-white/10 rounded-full transition shadow-lg active:scale-95 cursor-pointer z-10"
+                            aria-label="Next photo"
+                        >
+                            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+                        </button>
+                    </div>
+
+                    {/* Bottom thumbnail selector strip */}
+                    <div className="flex flex-col items-center justify-center gap-4 border-t border-white/10 pt-4">
+                        <div className="flex items-center gap-2 md:gap-3 overflow-x-auto max-w-full py-2 px-4 no-scrollbar">
+                            {photos.map((photo, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setLightboxIndex(idx)}
+                                    className={`relative w-16 h-10 md:w-20 md:h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
+                                        idx === lightboxIndex ? 'border-mimos-500 scale-105 shadow-md shadow-mimos-500/20' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-102'
+                                    }`}
+                                >
+                                    <img 
+                                        src={photo} 
+                                        alt={`Thumbnail ${idx + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider select-none pb-2">
+                            {room.name}
+                        </p>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
