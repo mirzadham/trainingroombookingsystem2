@@ -8,6 +8,7 @@ import EditBookingModal from '../components/EditBookingModal';
 import BookingCard from '../components/BookingCard';
 import BookingDetailsModal from '../components/BookingDetailsModal';
 import * as api from '../services/api';
+import { groupBookingsList } from '../utils/bookingGrouping';
 
 const FILTER_TAB_ORDER = [
     '',
@@ -108,7 +109,8 @@ export default function MyBookings() {
 
     const monthGroups = useMemo(() => {
         const map = new Map();
-        bookings.forEach(b => {
+        const grouped = groupBookingsList(bookings);
+        grouped.forEach(b => {
             const dt = new Date(b.start_time);
             const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
             const label = dt.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' });

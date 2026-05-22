@@ -4,6 +4,7 @@ import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, B
 import * as api from '../../services/api';
 import BookingCard from '../../components/BookingCard';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
+import { groupBookingsList } from '../../utils/bookingGrouping';
 
 const STATUS_COLORS = {
     pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -191,7 +192,8 @@ export default function AdminBookings() {
 
     const monthGroups = useMemo(() => {
         const map = new Map();
-        bookings.forEach(b => {
+        const grouped = groupBookingsList(bookings);
+        grouped.forEach(b => {
             const dt = new Date(b.start_time);
             const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
             const label = dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -216,6 +218,20 @@ export default function AdminBookings() {
             setSelectedIds(selectedIds.filter(x => x !== id));
         } else {
             setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const handleSelectGroup = (groupBooking) => {
+        const occIds = groupBooking.occurrences.map(o => o.id);
+        const allSelected = occIds.every(id => selectedIds.includes(id));
+        if (allSelected) {
+            setSelectedIds(selectedIds.filter(id => !occIds.includes(id)));
+        } else {
+            const newSelected = [...selectedIds];
+            occIds.forEach(id => {
+                if (!newSelected.includes(id)) newSelected.push(id);
+            });
+            setSelectedIds(newSelected);
         }
     };
 
@@ -461,8 +477,19 @@ export default function AdminBookings() {
                                             booking={booking}
                                             isAdmin={true}
                                             showCheckbox={isPendingTab}
-                                            isSelected={selectedIds.includes(booking.id)}
-                                            onSelect={() => handleSelectOne(booking.id)}
+                                            isSelected={booking.isGroup ? booking.occurrences.every(occ => selectedIds.includes(occ.id)) : selectedIds.includes(booking.id)}
+                                            selectedIds={selectedIds}
+                                            onSelect={(occurrenceId) => {
+                                                if (occurrenceId && typeof occurrenceId !== 'object') {
+                                                    handleSelectOne(occurrenceId);
+                                                } else {
+                                                    if (booking.isGroup) {
+                                                        handleSelectGroup(booking);
+                                                    } else {
+                                                        handleSelectOne(booking.id);
+                                                    }
+                                                }
+                                            }}
                                             onViewDetails={setSelectedBookingDetails}
                                             onApprove={(id) => approveMutation.mutate(id)}
                                             onReject={(id) => {
@@ -480,56 +507,70 @@ export default function AdminBookings() {
                                         />
 
                                         {/* Inline Rejection Form */}
-                                        {rejectingId === booking.id && (
-                                            <div className="bg-slate-50 border border-red-200/60 rounded-3xl p-5 flex gap-3 animate-in slide-in-from-top-2 duration-200">
-                                                <input
-                                                    type="text"
-                                                    value={rejectReason}
-                                                    onChange={e => setRejectReason(e.target.value)}
-                                                    placeholder="Enter rejection reason (required)"
-                                                    className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30"
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => rejectMutation.mutate({ id: booking.id, reason: rejectReason })}
-                                                    disabled={!rejectReason.trim() || rejectMutation.isPending}
-                                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white border-0 rounded-xl text-sm font-semibold disabled:opacity-50 transition cursor-pointer"
-                                                >
-                                                    Confirm
-                                                </button>
-                                                <button
-                                                    onClick={() => { setRejectingId(null); setRejectReason(''); }}
-                                                    className="px-4 py-2.5 bg-slate-100 text-slate-650 rounded-xl text-sm font-semibold hover:bg-slate-200 transition cursor-pointer border-0"
-                                                >
-                                                    Cancel
-                                                </button>
+                                        {(rejectingId === booking.id || (booking.isGroup && booking.occurrences.some(o => o.id === rejectingId))) && (
+                                            <div className="bg-slate-50 border border-red-200/60 rounded-3xl p-5 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
+                                                {booking.isGroup && (
+                                                    <div className="text-xs font-bold text-slate-500 mb-1">
+                                                        Rejecting booking occurrence for: {new Date(booking.occurrences.find(o => o.id === rejectingId)?.start_time).toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-3 w-full">
+                                                    <input
+                                                        type="text"
+                                                        value={rejectReason}
+                                                        onChange={e => setRejectReason(e.target.value)}
+                                                        placeholder="Enter rejection reason (required)"
+                                                        className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={() => rejectMutation.mutate({ id: rejectingId, reason: rejectReason })}
+                                                        disabled={!rejectReason.trim() || rejectMutation.isPending}
+                                                        className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white border-0 rounded-xl text-sm font-semibold disabled:opacity-50 transition cursor-pointer"
+                                                    >
+                                                        Confirm
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setRejectingId(null); setRejectReason(''); }}
+                                                        className="px-4 py-2.5 bg-slate-100 text-slate-650 rounded-xl text-sm font-semibold hover:bg-slate-200 transition cursor-pointer border-0"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
 
                                         {/* Inline Cancel Form (for approved bookings) */}
-                                        {cancellingId === booking.id && (
-                                            <div className="bg-slate-50 border border-amber-250/60 rounded-3xl p-5 flex gap-3 animate-in slide-in-from-top-2 duration-200">
-                                                <input
-                                                    type="text"
-                                                    value={cancelRemarks}
-                                                    onChange={e => setCancelRemarks(e.target.value)}
-                                                    placeholder="Enter cancellation remarks (required)"
-                                                    className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => adminCancelMutation.mutate({ id: booking.id, remarks: cancelRemarks })}
-                                                    disabled={!cancelRemarks.trim() || adminCancelMutation.isPending}
-                                                    className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white border-0 rounded-xl text-sm font-semibold disabled:opacity-50 transition cursor-pointer"
-                                                >
-                                                    Confirm
-                                                </button>
-                                                <button
-                                                    onClick={() => { setCancellingId(null); setCancelRemarks(''); }}
-                                                    className="px-4 py-2.5 bg-slate-100 text-slate-650 rounded-xl text-sm font-semibold hover:bg-slate-200 transition cursor-pointer border-0"
-                                                >
-                                                    Back
-                                                </button>
+                                        {(cancellingId === booking.id || (booking.isGroup && booking.occurrences.some(o => o.id === cancellingId))) && (
+                                            <div className="bg-slate-50 border border-amber-250/60 rounded-3xl p-5 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
+                                                {booking.isGroup && (
+                                                    <div className="text-xs font-bold text-slate-500 mb-1">
+                                                        Cancelling booking occurrence for: {new Date(booking.occurrences.find(o => o.id === cancellingId)?.start_time).toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </div>
+                                                )}
+                                                <div className="flex gap-3 w-full">
+                                                    <input
+                                                        type="text"
+                                                        value={cancelRemarks}
+                                                        onChange={e => setCancelRemarks(e.target.value)}
+                                                        placeholder="Enter cancellation remarks (required)"
+                                                        className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={() => adminCancelMutation.mutate({ id: cancellingId, remarks: cancelRemarks })}
+                                                        disabled={!cancelRemarks.trim() || adminCancelMutation.isPending}
+                                                        className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white border-0 rounded-xl text-sm font-semibold disabled:opacity-50 transition cursor-pointer"
+                                                    >
+                                                        Confirm
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setCancellingId(null); setCancelRemarks(''); }}
+                                                        className="px-4 py-2.5 bg-slate-100 text-slate-650 rounded-xl text-sm font-semibold hover:bg-slate-200 transition cursor-pointer border-0"
+                                                    >
+                                                        Back
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
