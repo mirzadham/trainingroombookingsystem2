@@ -127,17 +127,20 @@ class AvailabilityController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:date',
             'location_id' => 'nullable|exists:locations,id',
             'attendees' => 'nullable|integer|min:1',
         ]);
 
         $date = Carbon::parse($request->date);
+        $endDate = $request->end_date ? Carbon::parse($request->end_date) : null;
 
         // Get the full timeline grid (rooms + slots)
         // Note: getTimelineGrid now includes image_url and description in room data
         $grid = $this->availabilityService->getTimelineGrid(
             $request->location_id,
-            $date
+            $date,
+            $endDate
         );
 
         // Filter by capacity if attendees specified
@@ -162,6 +165,7 @@ class AvailabilityController extends Controller
 
         return response()->json([
             'date' => $grid['date'],
+            'end_date' => $grid['end_date'] ?? null,
             'time_slots' => $grid['time_slots'],
             'rooms' => $enrichedRooms,
             'meta' => [

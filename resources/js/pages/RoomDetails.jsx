@@ -26,6 +26,7 @@ export default function RoomDetails() {
     // Default to today if no date provided
     const defaultDate = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
     const date = searchParams.get('date') || defaultDate;
+    const endDate = searchParams.get('end_date') || '';
 
     // Fetch basic room details
     const { data: roomData, isLoading: isRoomLoading, error: roomError } = useQuery({
@@ -36,8 +37,8 @@ export default function RoomDetails() {
 
     // Fetch timeline availability for all rooms to extract slots for THIS room
     const { data: timelineData, isLoading: isTimelineLoading } = useQuery({
-        queryKey: ['roomsWithTimeline', date],
-        queryFn: () => api.getRoomsWithTimeline({ date }),
+        queryKey: ['roomsWithTimeline', date, endDate],
+        queryFn: () => api.getRoomsWithTimeline({ date, end_date: endDate || undefined }),
         enabled: !!date,
     });
 
@@ -161,6 +162,7 @@ export default function RoomDetails() {
                             <RoomTimeGrid 
                                 room={room} 
                                 date={date} 
+                                endDate={endDate}
                                 timelineSlots={slots} 
                             />
                         </div>

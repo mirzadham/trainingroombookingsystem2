@@ -9,6 +9,7 @@ import LocationPicker from './ui/LocationPicker';
 export default function SearchBar({
     initialLocation = '',
     initialDate = '',
+    initialEndDate = '',
     initialAttendees = '',
     onSearch,
     className = '',
@@ -17,6 +18,7 @@ export default function SearchBar({
     const navigate = useNavigate();
     const [location, setLocation] = useState(initialLocation);
     const [date, setDate] = useState(initialDate);
+    const [endDate, setEndDate] = useState(initialEndDate);
     const [attendees, setAttendees] = useState(initialAttendees);
 
     const { data: locations } = useQuery({
@@ -31,6 +33,7 @@ export default function SearchBar({
         const filters = {
             location_id: location || undefined,
             date,
+            end_date: endDate || undefined,
             attendees: attendees || undefined,
         };
 
@@ -40,6 +43,7 @@ export default function SearchBar({
             const params = new URLSearchParams();
             if (filters.location_id) params.set('location_id', filters.location_id);
             params.set('date', filters.date);
+            if (filters.end_date) params.set('end_date', filters.end_date);
             if (filters.attendees) params.set('attendees', filters.attendees);
             navigate(`/search?${params.toString()}`);
         }
@@ -71,7 +75,13 @@ export default function SearchBar({
                         <DatePicker
                             id="search-date-min"
                             value={date}
-                            onChange={setDate}
+                            endDate={endDate}
+                            onChange={(startDate, endDateVal) => {
+                                setDate(startDate);
+                                setEndDate(endDateVal);
+                            }}
+                            mode="range"
+                            showModeToggle={true}
                             min={new Date().toISOString().split('T')[0]}
                         />
                     </div>
@@ -140,7 +150,13 @@ export default function SearchBar({
                         <DatePicker
                             id="search-date"
                             value={date}
-                            onChange={setDate}
+                            endDate={endDate}
+                            onChange={(startDate, endDateVal) => {
+                                setDate(startDate);
+                                setEndDate(endDateVal);
+                            }}
+                            mode="range"
+                            showModeToggle={true}
                             min={new Date().toISOString().split('T')[0]}
                             className="py-3.5 rounded-xl border-slate-200/80 focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-colors"
                         />

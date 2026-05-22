@@ -7,6 +7,7 @@ export default function HeaderSearchModal({
     onClose,
     initialLocation = '',
     initialDate = '',
+    initialEndDate = '',
     initialAttendees = '',
     onSearch,
 }) {
@@ -54,6 +55,7 @@ export default function HeaderSearchModal({
                         variant="default"
                         initialLocation={initialLocation}
                         initialDate={initialDate}
+                        initialEndDate={initialEndDate}
                         initialAttendees={initialAttendees}
                         onSearch={handleSearch}
                     />

@@ -20,6 +20,7 @@ export default function PublicLayout() {
     // Get search params for header
     const headerLocationId = searchParams.get('location_id') || '';
     const headerDate = searchParams.get('date') || '';
+    const headerEndDate = searchParams.get('end_date') || '';
     const headerAttendees = searchParams.get('attendees') || '';
 
     const handleLogout = async () => {
@@ -33,6 +34,7 @@ export default function PublicLayout() {
         const params = new URLSearchParams();
         if (filters.location_id) params.set('location_id', filters.location_id);
         params.set('date', filters.date);
+        if (filters.end_date) params.set('end_date', filters.end_date);
         if (filters.attendees) params.set('attendees', filters.attendees);
         navigate(`/search?${params.toString()}`);
         window.scrollTo(0, 0);
@@ -53,9 +55,10 @@ export default function PublicLayout() {
                         <div className="hidden md:flex flex-1 max-w-xl mx-6">
                             {isSearchPage && (
                                 <HeaderSearchPill
-                                    key={`${headerLocationId}-${headerDate}-${headerAttendees}`}
+                                    key={`${headerLocationId}-${headerDate}-${headerEndDate}-${headerAttendees}`}
                                     initialLocation={headerLocationId}
                                     initialDate={headerDate}
+                                    initialEndDate={headerEndDate}
                                     initialAttendees={headerAttendees}
                                     onSearch={handleSearch}
                                 />
@@ -238,6 +241,7 @@ export default function PublicLayout() {
                 onClose={() => setMobileSearchOpen(false)}
                 initialLocation={headerLocationId}
                 initialDate={headerDate}
+                initialEndDate={headerEndDate}
                 initialAttendees={headerAttendees}
                 onSearch={handleSearch}
             />

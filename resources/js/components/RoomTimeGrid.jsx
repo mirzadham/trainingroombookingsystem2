@@ -23,7 +23,7 @@ const generateAllSlots = () => {
 
 const ALL_SLOTS = generateAllSlots();
 
-export default function RoomTimeGrid({ room, date, timelineSlots }) {
+export default function RoomTimeGrid({ room, date, endDate, timelineSlots }) {
     const navigate = useNavigate();
 
     // Step 1 or Step 2
@@ -114,7 +114,10 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
 
         // Pass info via React Router state (fallback, though useBookingForm will use sessionStorage too if we set it there)
         const locationName = typeof room.location === 'object' ? room.location?.name : room.location;
-        const url = `/book?room_id=${room.id}&room_name=${encodeURIComponent(room.name)}&location=${encodeURIComponent(locationName || '')}&capacity=${room.capacity}&date=${date}&start_time=${startTime}&end_time=${duration.endTimeStr}`;
+        let url = `/book?room_id=${room.id}&room_name=${encodeURIComponent(room.name)}&location=${encodeURIComponent(locationName || '')}&capacity=${room.capacity}&date=${date}&start_time=${startTime}&end_time=${duration.endTimeStr}`;
+        if (endDate) {
+            url += `&end_date=${endDate}`;
+        }
         navigate(url);
     };
 
@@ -130,13 +133,18 @@ export default function RoomTimeGrid({ room, date, timelineSlots }) {
                         <ArrowLeft className="w-4 h-4" />
                     </button>
                 )}
-                <div>
+                <div className="flex-1">
                     <h3 className="text-sm font-semibold text-slate-900">
                         {step === 1 ? '1. Select Start Time' : '2. Select Duration'}
                     </h3>
                     <p className="text-xs text-slate-500">
                         {step === 1 ? 'Choose when your meeting begins' : `Starting at ${ALL_SLOTS.find(s => s.time === startTime)?.label}`}
                     </p>
+                    {endDate && (
+                        <p className="text-[10px] text-mimos-600 font-bold mt-0.5 animate-pulse">
+                            📅 Booking range: {date} to {endDate}
+                        </p>
+                    )}
                 </div>
             </div>
 

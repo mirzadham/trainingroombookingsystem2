@@ -10,6 +10,7 @@ export default function SearchResults() {
 
     const locationId = searchParams.get('location_id') || '';
     const date = searchParams.get('date') || '';
+    const endDate = searchParams.get('end_date') || '';
     const attendees = searchParams.get('attendees') || '';
 
     // Scroll to top when search params change
@@ -19,9 +20,10 @@ export default function SearchResults() {
 
     // Fetch rooms with timeline data
     const { data, isLoading, error } = useQuery({
-        queryKey: ['roomsWithTimeline', locationId, date, attendees],
+        queryKey: ['roomsWithTimeline', locationId, date, endDate, attendees],
         queryFn: () => api.getRoomsWithTimeline({
             date,
+            end_date: endDate || undefined,
             location_id: locationId || undefined,
             attendees: attendees || undefined,
         }),
@@ -29,7 +31,10 @@ export default function SearchResults() {
     });
 
     const handleCardClick = (entry) => {
-        navigate(`/rooms/${entry.room.id}?date=${date}`);
+        const params = new URLSearchParams();
+        params.set('date', date);
+        if (endDate) params.set('end_date', endDate);
+        navigate(`/rooms/${entry.room.id}?${params.toString()}`);
     };
 
     const formatAmenity = (amenity) => {

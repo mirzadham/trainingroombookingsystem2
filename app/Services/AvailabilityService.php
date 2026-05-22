@@ -82,7 +82,7 @@ class AvailabilityService
      * Generate timeline grid data for a location on a specific date.
      * Returns rooms as rows with time slot availability.
      */
-    public function getTimelineGrid(?int $locationId, Carbon $date): array
+    public function getTimelineGrid(?int $locationId, Carbon $date, ?Carbon $endDate = null): array
     {
         $query = Room::active()->with('location');
 
@@ -98,9 +98,9 @@ class AvailabilityService
         $openHour = config('booking.operating_hours.open');
         $closeHour = config('booking.operating_hours.close');
 
-        // Get all approved bookings for these rooms on this date
+        // Get all approved bookings for these rooms on this date range
         $dayStart = $date->copy()->setTime($openHour, 0);
-        $dayEnd = $date->copy()->setTime($closeHour, 0);
+        $dayEnd = ($endDate ?? $date)->copy()->setTime($closeHour, 0);
 
         $bookings = Booking::approved()
             ->whereIn('room_id', $rooms->pluck('id'))
@@ -117,16 +117,50 @@ class AvailabilityService
                 $slotStart = Carbon::parse($slot['start']);
                 $slotEnd = Carbon::parse($slot['end']);
 
-                // Check if any booking overlaps this slot
-                $overlappingBooking = $roomBookings->first(function ($booking) use ($slotStart, $slotEnd) {
-                    return $booking->start_time < $slotEnd && $booking->end_time > $slotStart;
-                });
+                $timeStartStr = $slotStart->format('H:i:s');
+                $timeEndStr = $slotEnd->format('H:i:s');
+
+                // Check if any booking overlaps this slot on any day of the range
+                $isOccupied = false;
+                $overlappingBooking = null;
+
+                if ($endDate && $endDate->greaterThan($date)) {
+                    for ($current = $date->copy(); $current->lte($endDate); $current->addDay()) {
+                        // Current day slot in MYT timezone (app timezone)
+                        $currentStart = Carbon::createFromTimeString($timeStartStr, 'Asia/Kuala_Lumpur')
+                            ->setDate($current->year, $current->month, $current->day);
+                        $currentEnd = Carbon::createFromTimeString($timeEndStr, 'Asia/Kuala_Lumpur')
+                            ->setDate($current->year, $current->month, $current->day);
+
+                        // Convert to UTC for matching since $booking->start_time and end_time are in UTC
+                        $currentStartUtc = $currentStart->copy()->setTimezone('UTC');
+                        $currentEndUtc = $currentEnd->copy()->setTimezone('UTC');
+
+                        $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStartUtc, $currentEndUtc) {
+                            return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
+                        });
+
+                        if ($overlappingBooking) {
+                            $isOccupied = true;
+                            break;
+                        }
+                    }
+                } else {
+                    // Single day check
+                    $currentStartUtc = $slotStart->copy()->setTimezone('Asia/Kuala_Lumpur')->setTimezone('UTC');
+                    $currentEndUtc = $slotEnd->copy()->setTimezone('Asia/Kuala_Lumpur')->setTimezone('UTC');
+
+                    $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStartUtc, $currentEndUtc) {
+                        return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
+                    });
+                    $isOccupied = (bool)$overlappingBooking;
+                }
 
                 $roomSlots[] = [
                     'start' => $slot['start'],
                     'end' => $slot['end'],
                     'label' => $slot['label'],
-                    'status' => $overlappingBooking ? 'occupied' : 'available',
+                    'status' => $isOccupied ? 'occupied' : 'available',
                     'booking_id' => $overlappingBooking?->id,
                     'booking_title' => $overlappingBooking?->title,
                 ];
@@ -149,6 +183,7 @@ class AvailabilityService
 
         return [
             'date' => $date->toDateString(),
+            'end_date' => $endDate ? $endDate->toDateString() : null,
             'time_slots' => array_map(fn($s) => $s['label'], $slots),
             'grid' => $grid,
         ];

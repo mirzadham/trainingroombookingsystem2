@@ -8,11 +8,13 @@ import LocationPicker from './ui/LocationPicker';
 export default function HeaderSearchPill({
     initialLocation = '',
     initialDate = '',
+    initialEndDate = '',
     initialAttendees = '',
     onSearch,
 }) {
     const [location, setLocation] = useState(initialLocation);
     const [date, setDate] = useState(initialDate);
+    const [endDate, setEndDate] = useState(initialEndDate);
     const [attendees, setAttendees] = useState(initialAttendees);
 
     const { data: locations } = useQuery({
@@ -27,6 +29,7 @@ export default function HeaderSearchPill({
         const filters = {
             location_id: location || undefined,
             date,
+            end_date: endDate || undefined,
             attendees: attendees || undefined,
         };
 
@@ -55,7 +58,13 @@ export default function HeaderSearchPill({
             <div className="relative z-20">
                 <DatePicker
                     value={date}
-                    onChange={setDate}
+                    endDate={endDate}
+                    onChange={(startDate, endDateVal) => {
+                        setDate(startDate);
+                        setEndDate(endDateVal);
+                    }}
+                    mode="range"
+                    showModeToggle={true}
                     min={new Date().toISOString().split('T')[0]}
                     variant="pill"
                     placeholder="Date"
