@@ -6,6 +6,7 @@ const statusConfig = {
     approved: { text: 'CONFIRMED', className: 'bg-emerald-50 text-emerald-700 border-emerald-500/30' },
     rejected: { text: 'REJECTED', className: 'bg-red-50 text-red-700 border-red-500/30' },
     cancelled: { text: 'CANCELLED', className: 'bg-slate-50 text-slate-600 border-slate-400/30' },
+    mixed: { text: 'MIXED STATUS', className: 'bg-indigo-50 text-indigo-700 border-indigo-500/30' },
 };
 
 export default function BookingDetailsModal({
@@ -123,9 +124,15 @@ export default function BookingDetailsModal({
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">Booking Details</h2>
+                            <h2 className="text-lg font-bold text-slate-900">
+                                {booking.isGroup ? 'Series Details' : 'Booking Details'}
+                            </h2>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Reference Reservation #{booking.id}
+                                {booking.isGroup ? (
+                                    booking.isRecurring ? 'Weekly Series Booking' : 'Consecutive Multi-Day Booking'
+                                ) : (
+                                    `Reference Reservation #${booking.id}`
+                                )}
                             </p>
                         </div>
                     </div>
@@ -171,10 +178,21 @@ export default function BookingDetailsModal({
                                 <div className="flex items-start gap-3">
                                     <Calendar className="w-4.5 h-4.5 text-blue-600 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</div>
-                                        <div className="text-sm font-semibold text-slate-800 mt-0.5">
-                                            {formatDateLong(booking.start_time)}
+                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                            {booking.isGroup ? 'Date Range' : 'Date'}
                                         </div>
+                                        <div className="text-sm font-semibold text-slate-800 mt-0.5">
+                                            {booking.isGroup ? (
+                                                `${formatDateLong(booking.group_start_date)} – ${formatDateLong(booking.group_end_date)}`
+                                            ) : (
+                                                formatDateLong(booking.start_time)
+                                            )}
+                                        </div>
+                                        {booking.isGroup && (
+                                            <div className="text-xs font-semibold text-blue-600 mt-1">
+                                                Spans {booking.occurrences.length} scheduled days
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -246,10 +264,65 @@ export default function BookingDetailsModal({
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                     <AlignLeft className="w-3.5 h-3.5" /> Purpose Description
                                 </div>
-                                <div className="text-sm text-slate-650 leading-relaxed font-medium">
+                                <div className="text-sm text-slate-655 leading-relaxed font-medium">
                                     {booking.description || 'No description was provided for this reservation.'}
                                 </div>
                             </div>
+
+                            {/* Series Schedule Breakdown */}
+                            {booking.isGroup && (
+                                <div className="border border-slate-100 rounded-2xl p-4 space-y-3">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5 select-none">
+                                        <Calendar className="w-3.5 h-3.5 text-slate-500" /> Series Schedule Details
+                                    </div>
+                                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                        {booking.occurrences.map((occ) => {
+                                            const occDt = new Date(occ.start_time);
+                                            const formattedDate = occDt.toLocaleDateString('en-MY', {
+                                                weekday: 'short',
+                                                day: 'numeric',
+                                                month: 'short',
+                                                year: 'numeric'
+                                            });
+                                            
+                                            const occTimeRange = `${formatTime12(occ.start_time)} - ${formatTime12(occ.end_time)}`;
+                                            const occStatusInfo = statusConfig[occ.status] || {
+                                                text: occ.status?.toUpperCase(),
+                                                className: 'bg-slate-50 text-slate-600 border-slate-300'
+                                            };
+
+                                            return (
+                                                <div 
+                                                    key={occ.id} 
+                                                    className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl flex flex-col gap-1.5 hover:bg-slate-50 transition"
+                                                >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="text-xs font-bold text-slate-800">
+                                                            {formattedDate}
+                                                        </div>
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-black tracking-wider border ${occStatusInfo.className} select-none`}>
+                                                            {occStatusInfo.text}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[11px] text-slate-500 font-medium">
+                                                        {occTimeRange}
+                                                    </div>
+                                                    {occ.rejection_reason && (
+                                                        <div className="text-[10px] text-red-650 font-medium border-t border-red-100/50 pt-1 mt-1">
+                                                            <span className="font-semibold">Rejection reason:</span> {occ.rejection_reason}
+                                                        </div>
+                                                    )}
+                                                    {occ.cancellation_reason && (
+                                                        <div className="text-[10px] text-amber-650 font-medium border-t border-amber-100/50 pt-1 mt-1">
+                                                            <span className="font-semibold">Cancellation reason:</span> {occ.cancellation_reason}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Rejection / Cancellation details */}
                             {booking.rejection_reason && (
@@ -346,57 +419,59 @@ export default function BookingDetailsModal({
                 {/* Footer Controls (when form is not open) */}
                 {actionState === 'none' && (
                     <div className="flex flex-wrap gap-2.5 p-6 border-t border-slate-100 bg-slate-50/50">
-                        {/* Admin Action Buttons */}
-                        {isAdmin ? (
-                            <>
-                                {isPending && onApprove && onReject && (
-                                    <div className="flex gap-2.5 w-full">
+                        {/* Single-occurrence action buttons */}
+                        {!booking.isGroup && (
+                            isAdmin ? (
+                                <>
+                                    {isPending && onApprove && onReject && (
+                                        <div className="flex gap-2.5 w-full">
+                                            <button
+                                                onClick={() => onApprove(booking.id)}
+                                                disabled={isActionPending}
+                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250/70 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                            >
+                                                <Check className="w-4 h-4" /> Approve
+                                            </button>
+                                            <button
+                                                onClick={() => setActionState('rejecting')}
+                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
+                                            >
+                                                <X className="w-4 h-4" /> Reject
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {isApproved && onCancel && (
                                         <button
-                                            onClick={() => onApprove(booking.id)}
-                                            disabled={isActionPending}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250/70 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                            onClick={() => setActionState('cancelling')}
+                                            className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-250/70 rounded-xl cursor-pointer transition select-none"
                                         >
-                                            <Check className="w-4 h-4" /> Approve
+                                            <Ban className="w-4 h-4" /> Cancel Booking (Admin)
                                         </button>
+                                    )}
+                                </>
+                            ) : (
+                                /* User Action Buttons */
+                                <>
+                                    {isPending && onEdit && (
                                         <button
-                                            onClick={() => setActionState('rejecting')}
+                                            onClick={() => { onEdit(booking); onClose(); }}
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-250/70 rounded-xl cursor-pointer transition select-none"
+                                        >
+                                            <Pencil className="w-4 h-4" /> Edit Details
+                                        </button>
+                                    )}
+
+                                    {(isPending || isApproved) && onCancel && (
+                                        <button
+                                            onClick={() => setActionState('cancelling_user')}
                                             className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
                                         >
-                                            <X className="w-4 h-4" /> Reject
+                                            <Trash2 className="w-4 h-4" /> Cancel Booking
                                         </button>
-                                    </div>
-                                )}
-
-                                {isApproved && onCancel && (
-                                    <button
-                                        onClick={() => setActionState('cancelling')}
-                                        className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-250/70 rounded-xl cursor-pointer transition select-none"
-                                    >
-                                        <Ban className="w-4 h-4" /> Cancel Booking (Admin)
-                                    </button>
-                                )}
-                            </>
-                        ) : (
-                            /* User Action Buttons */
-                            <>
-                                {isPending && onEdit && (
-                                    <button
-                                        onClick={() => { onEdit(booking); onClose(); }}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-250/70 rounded-xl cursor-pointer transition select-none"
-                                    >
-                                        <Pencil className="w-4 h-4" /> Edit Details
-                                    </button>
-                                )}
-
-                                {(isPending || isApproved) && onCancel && (
-                                    <button
-                                        onClick={() => setActionState('cancelling_user')}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
-                                    >
-                                        <Trash2 className="w-4 h-4" /> Cancel Booking
-                                    </button>
-                                )}
-                            </>
+                                    )}
+                                </>
+                            )
                         )}
 
                         {/* Standard Close button */}

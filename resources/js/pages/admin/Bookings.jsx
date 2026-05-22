@@ -4,6 +4,7 @@ import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, B
 import * as api from '../../services/api';
 import BookingCard from '../../components/BookingCard';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import { groupBookingsList } from '../../utils/bookingGrouping';
 
 const STATUS_COLORS = {
@@ -27,6 +28,10 @@ export default function AdminBookings() {
     const [selectedIds, setSelectedIds] = useState([]);
     const [batchReason, setBatchReason] = useState('');
     const [showBatchReject, setShowBatchReject] = useState(false);
+
+    // Admin confirmation modal states
+    const [approvingBookingId, setApprovingBookingId] = useState(null);
+    const [showBatchApproveConfirm, setShowBatchApproveConfirm] = useState(false);
 
     // Advanced filter state
     const [showFilters, setShowFilters] = useState(false);
@@ -491,7 +496,7 @@ export default function AdminBookings() {
                                                 }
                                             }}
                                             onViewDetails={setSelectedBookingDetails}
-                                            onApprove={(id) => approveMutation.mutate(id)}
+                                            onApprove={setApprovingBookingId}
                                             onReject={(id) => {
                                                 setRejectingId(id);
                                                 setRejectReason('');
@@ -695,14 +700,14 @@ export default function AdminBookings() {
                         </div>
                     ) : (
                         <div className="flex gap-2">
-                            <button
-                                onClick={() => batchApproveMutation.mutate(selectedIds)}
-                                disabled={batchApproveMutation.isPending}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                            >
-                                {batchApproveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                                Approve Selected
-                            </button>
+                                <button
+                                    onClick={() => setShowBatchApproveConfirm(true)}
+                                    disabled={batchApproveMutation.isPending}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                >
+                                    {batchApproveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                    Approve Selected
+                                </button>
                             <button
                                 onClick={() => setShowBatchReject(true)}
                                 className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
@@ -727,15 +732,49 @@ export default function AdminBookings() {
                     booking={selectedBookingDetails}
                     onClose={() => setSelectedBookingDetails(null)}
                     isAdmin={true}
-                    onApprove={async (id) => {
-                        await approveMutation.mutateAsync(id);
-                        setSelectedBookingDetails(null);
-                    }}
+                    onApprove={(id) => setApprovingBookingId(id)}
                     onReject={(id, reason) => rejectMutation.mutateAsync({ id, reason })}
                     onCancel={(id, remarks) => adminCancelMutation.mutateAsync({ id, remarks })}
                     isActionPending={approveMutation.isPending || rejectMutation.isPending || adminCancelMutation.isPending}
                 />
             )}
+
+            {/* Admin Single Booking Approval Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!approvingBookingId}
+                title="Approve Reservation?"
+                message="Are you sure you want to approve this training room reservation request? The room will be booked and a confirmation notification will be sent to the requester."
+                confirmText="Yes, Approve"
+                cancelText="Cancel"
+                variant="success"
+                isLoading={approveMutation.isPending}
+                onConfirm={() => {
+                    approveMutation.mutate(approvingBookingId, {
+                        onSuccess: () => {
+                            setApprovingBookingId(null);
+                            setSelectedBookingDetails(null);
+                        },
+                    });
+                }}
+                onClose={() => setApprovingBookingId(null)}
+            />
+
+            {/* Admin Batch Booking Approval Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showBatchApproveConfirm}
+                title="Approve Selected Bookings?"
+                message={`Are you sure you want to approve all ${selectedIds.length} selected reservation requests at once? This will confirm all these bookings in the system.`}
+                confirmText="Yes, Approve All"
+                cancelText="Cancel"
+                variant="success"
+                isLoading={batchApproveMutation.isPending}
+                onConfirm={() => {
+                    batchApproveMutation.mutate(selectedIds, {
+                        onSuccess: () => setShowBatchApproveConfirm(false),
+                    });
+                }}
+                onClose={() => setShowBatchApproveConfirm(false)}
+            />
         </div>
     );
 }

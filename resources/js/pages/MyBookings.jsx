@@ -7,6 +7,7 @@ import { BOOKING_STATUS } from '../constants/bookingStatus';
 import EditBookingModal from '../components/EditBookingModal';
 import BookingCard from '../components/BookingCard';
 import BookingDetailsModal from '../components/BookingDetailsModal';
+import ConfirmationModal from '../components/ui/ConfirmationModal';
 import * as api from '../services/api';
 import { groupBookingsList } from '../utils/bookingGrouping';
 
@@ -43,6 +44,7 @@ export default function MyBookings() {
     const [page, setPage] = useState(1);
     const [editingBooking, setEditingBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
+    const [cancellingBookingId, setCancellingBookingId] = useState(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ['my-bookings', activeStatus, page],
@@ -208,7 +210,7 @@ export default function MyBookings() {
                                         key={b.id}
                                         booking={b}
                                         onViewDetails={setSelectedBookingDetails}
-                                        onCancel={(id) => cancelMutation.mutate(id)}
+                                        onCancel={setCancellingBookingId}
                                         onEdit={setEditingBooking}
                                         isActionPending={cancelMutation.isPending}
                                         actioningId={cancelMutation.variables}
@@ -318,6 +320,23 @@ export default function MyBookings() {
                     isActionPending={cancelMutation.isPending}
                 />
             )}
+
+            {/* Booking Cancellation Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!cancellingBookingId}
+                title="Cancel Reservation?"
+                message="Are you sure you want to cancel this room reservation? This action is permanent and cannot be undone."
+                confirmText="Yes, Cancel Booking"
+                cancelText="No, Keep Booking"
+                variant="danger"
+                isLoading={cancelMutation.isPending}
+                onConfirm={() => {
+                    cancelMutation.mutate(cancellingBookingId, {
+                        onSuccess: () => setCancellingBookingId(null),
+                    });
+                }}
+                onClose={() => setCancellingBookingId(null)}
+            />
         </div>
     );
 }

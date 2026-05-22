@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil, Trash2, Check, X, Ban, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Pencil, Trash2, Check, X, Ban, Loader2, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 
 const statusConfig = {
     pending: { text: 'PENDING', className: 'bg-amber-50 text-amber-700 border-amber-500/30' },
@@ -163,15 +163,28 @@ export default function BookingCard({
                             </div>
 
                             {/* View details or Expand Series details */}
-                            <div className="pt-1.5">
+                            <div className="pt-1.5 flex items-center gap-2 flex-wrap">
                                 {booking.isGroup ? (
-                                    <button
-                                        onClick={() => setIsExpanded(!isExpanded)}
-                                        className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none select-none"
-                                    >
-                                        {isExpanded ? 'Hide schedule' : `View schedule (${booking.occurrences.length} days)`}
-                                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
-                                    </button>
+                                    <>
+                                        <button
+                                            onClick={() => setIsExpanded(!isExpanded)}
+                                            className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none select-none"
+                                        >
+                                            {isExpanded ? 'Hide schedule' : `View schedule (${booking.occurrences.length} days)`}
+                                            {isExpanded ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
+                                        </button>
+                                        {onViewDetails && (
+                                            <>
+                                                <span className="text-slate-350 text-xs select-none">|</span>
+                                                <button
+                                                    onClick={() => onViewDetails(booking)}
+                                                    className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none"
+                                                >
+                                                    View details <span className="text-xs">→</span>
+                                                </button>
+                                            </>
+                                        )}
+                                    </>
                                 ) : (
                                     onViewDetails && (
                                         <button
@@ -335,6 +348,15 @@ export default function BookingCard({
                                          
                                         {/* Actions for this specific occurrence */}
                                         <div className="flex items-center gap-1">
+                                            {onViewDetails && (
+                                                <button
+                                                    onClick={() => onViewDetails(occ)}
+                                                    title="View Details"
+                                                    className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/50 rounded-lg transition cursor-pointer flex items-center justify-center"
+                                                >
+                                                    <Eye className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
                                             {isAdmin ? (
                                                 <>
                                                     {isOccPending && onApprove && onReject && (
