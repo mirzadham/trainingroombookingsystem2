@@ -58,6 +58,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->isSuspended()) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been suspended. Please contact a Super Admin.',
+            ]);
+        }
+
         if ($user->isAdmin()) {
             throw ValidationException::withMessages([
                 'email' => 'Please use the admin login portal.',
@@ -84,6 +90,12 @@ class AuthController extends Controller
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'The provided credentials are incorrect.',
+            ]);
+        }
+
+        if ($user->isSuspended()) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been suspended. Please contact a Super Admin.',
             ]);
         }
 

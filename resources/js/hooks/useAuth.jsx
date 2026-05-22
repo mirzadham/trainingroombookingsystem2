@@ -120,6 +120,15 @@ export function AuthProvider({ children }) {
         setAdminUser(null);
     }, []);
 
+    // Claim invitation — registers details and logs admin in directly
+    const claimAdminInvite = useCallback(async (formData) => {
+        const data = await api.claimInvite(formData);
+        localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+        localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(data.user));
+        setAdminUser(data.user);
+        return data;
+    }, []);
+
     const value = {
         // User session
         user,
@@ -137,6 +146,7 @@ export function AuthProvider({ children }) {
         register,
         logout,
         adminLogout,
+        claimAdminInvite,
         updateProfile,
         updatePassword,
         forgotPassword,

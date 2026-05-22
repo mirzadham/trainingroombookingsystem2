@@ -22,6 +22,8 @@ import AdminBookings from './pages/admin/Bookings';
 import AdminRooms from './pages/admin/Rooms';
 import AdminReports from './pages/admin/Reports';
 import AdminAuditLogs from './pages/admin/AuditLogs';
+import AdminUsers from './pages/admin/Users';
+import ClaimInvite from './pages/admin/ClaimInvite';
 
 function AdminRoute({ children }) {
     const { isAdminAuthenticated, loading } = useAuth();
@@ -57,8 +59,9 @@ export default function AppRouter() {
                 <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
-            {/* Admin Login (standalone, no layout) */}
+            {/* Admin Login & Setup (standalone, no layout) */}
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/setup-account" element={<ClaimInvite />} />
 
             {/* Protected Admin Routes */}
             <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -67,6 +70,7 @@ export default function AppRouter() {
                 <Route path="/admin/rooms" element={<AdminRooms />} />
                 <Route path="/admin/reports" element={<AdminReports />} />
                 <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
         </Routes>
     );

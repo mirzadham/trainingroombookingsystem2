@@ -26,6 +26,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/admin/login', [App\Http\Controllers\Api\AuthController::class, 'adminLogin']);
     Route::post('/forgot-password', [App\Http\Controllers\Api\AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [App\Http\Controllers\Api\AuthController::class, 'resetPassword']);
+    
+    // Invitation validation and claiming
+    Route::post('/invitations/validate', [App\Http\Controllers\Api\AdminInvitationController::class, 'validateToken']);
+    Route::post('/invitations/claim', [App\Http\Controllers\Api\AdminInvitationController::class, 'claimInvite']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [App\Http\Controllers\Api\AuthController::class, 'logout']);
@@ -53,6 +57,17 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::put('/bookings/{booking}', [App\Http\Controllers\Api\AdminController::class, 'updateBooking']);
     Route::get('/dashboard', [App\Http\Controllers\Api\AdminController::class, 'dashboard']);
     Route::get('/audit-logs', [App\Http\Controllers\Api\AdminController::class, 'auditLogs']);
+
+    // Super Admin specific endpoints
+    Route::middleware(['super-admin'])->group(function () {
+        Route::get('/users', [App\Http\Controllers\Api\UserManagementController::class, 'index']);
+        Route::put('/users/{user}', [App\Http\Controllers\Api\UserManagementController::class, 'update']);
+        Route::post('/users/{user}/toggle-status', [App\Http\Controllers\Api\UserManagementController::class, 'toggleStatus']);
+        Route::get('/users/invitations', [App\Http\Controllers\Api\UserManagementController::class, 'invitations']);
+        Route::post('/users/invite', [App\Http\Controllers\Api\UserManagementController::class, 'inviteAdmin']);
+        Route::post('/users/invitations/{invitation}/resend', [App\Http\Controllers\Api\UserManagementController::class, 'resendInvite']);
+        Route::delete('/users/invitations/{invitation}', [App\Http\Controllers\Api\UserManagementController::class, 'revokeInvite']);
+    });
 
     // Room management
     Route::apiResource('rooms', App\Http\Controllers\Api\RoomController::class);

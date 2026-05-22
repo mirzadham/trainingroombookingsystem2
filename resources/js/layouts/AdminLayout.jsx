@@ -14,10 +14,11 @@ import {
     History,
     Bell,
     X,
-    ArrowRight
+    ArrowRight,
+    Users
 } from 'lucide-react';
 
-const navItems = [
+const baseNavItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/bookings', icon: CalendarCheck, label: 'Bookings' },
     { path: '/admin/rooms', icon: DoorOpen, label: 'Rooms' },
@@ -29,6 +30,12 @@ export default function AdminLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { adminLogout, adminUser } = useAuth();
+
+    const isSuperAdmin = adminUser?.role === 'super_admin';
+    const menuItems = [
+        ...baseNavItems,
+        ...(isSuperAdmin ? [{ path: '/admin/users', icon: Users, label: 'Users' }] : [])
+    ];
 
     // Live alert notification state
     const [showToast, setShowToast] = useState(false);
@@ -90,7 +97,7 @@ export default function AdminLayout() {
 
                 {/* Navigation */}
                 <nav className="flex-1 p-4 space-y-1.5">
-                    {navItems.map(item => {
+                    {menuItems.map(item => {
                         const isActive = location.pathname === item.path;
                         return (
                             <Link

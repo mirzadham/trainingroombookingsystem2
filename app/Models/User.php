@@ -25,6 +25,7 @@ class User extends Authenticatable
         'location_id',
         'phone',
         'department',
+        'status',
     ];
 
     protected $hidden = [
@@ -39,6 +40,11 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
     }
 
     public function location(): BelongsTo

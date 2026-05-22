@@ -15,6 +15,7 @@ export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, c
 export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom, toggleRoomActive } from './roomApi';
 export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, adminCancelBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout } from './adminApi';
 export { searchAvailability, getTimeline, getSuggestions, getLocations, getCalendarEvents } from './availabilityApi';
+export { getUsers, updateUser, toggleUserStatus, getAdminInvitations, inviteAdmin, resendInvite, revokeInvite, validateInviteToken, claimInvite } from './userApi';
 
 // Re-export the shared client as default for any direct usage
 export { default } from './apiClient';
