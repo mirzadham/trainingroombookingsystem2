@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import AuthPromptModal from './AuthPromptModal';
 
 /**
  * Generates an array of all half-hour slots from 07:00 to 19:00 (7 AM - 7 PM).
@@ -25,6 +27,9 @@ const ALL_SLOTS = generateAllSlots();
 
 export default function RoomTimeGrid({ room, date, endDate, attendees, timelineSlots }) {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [pendingRedirectUrl, setPendingRedirectUrl] = useState('');
 
     // Step 1 or Step 2
     const [step, setStep] = useState(1);
@@ -121,6 +126,13 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
         if (attendees) {
             url += `&attendees=${encodeURIComponent(attendees)}`;
         }
+
+        if (!isAuthenticated) {
+            setPendingRedirectUrl(url);
+            setShowAuthModal(true);
+            return;
+        }
+
         navigate(url);
     };
 
@@ -217,6 +229,13 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
                     Book Now
                 </button>
             </div>
+
+            {/* Auth Gate Modal Popup */}
+            <AuthPromptModal 
+                isOpen={showAuthModal} 
+                onClose={() => setShowAuthModal(false)} 
+                redirectUrl={pendingRedirectUrl} 
+            />
         </div>
     );
 }

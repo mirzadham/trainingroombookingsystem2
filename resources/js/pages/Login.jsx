@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Building2, Lock, Mail, Eye, EyeOff, ArrowRight, UserPlus, Phone } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-    const [mode, setMode] = useState('login'); // login, register, forgot
+    const [searchParams] = useSearchParams();
+    const redirectUrl = searchParams.get('redirect') || '/';
+    const initialMode = searchParams.get('mode') || 'login';
+
+    const [mode, setMode] = useState(initialMode); // login, register, forgot
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -19,7 +23,7 @@ export default function Login() {
     const { login, register, isAuthenticated, forgotPassword } = useAuth();
 
     if (isAuthenticated) {
-        navigate('/', { replace: true });
+        navigate(redirectUrl, { replace: true });
         return null;
     }
 
@@ -32,7 +36,7 @@ export default function Login() {
         try {
             if (mode === 'login') {
                 await login(email, password);
-                navigate('/');
+                navigate(redirectUrl);
             } else if (mode === 'register') {
                 await register({
                     name,
@@ -41,7 +45,7 @@ export default function Login() {
                     password_confirmation: passwordConfirm,
                     phone,
                 });
-                navigate('/');
+                navigate(redirectUrl);
             } else if (mode === 'forgot') {
                 const res = await forgotPassword(email);
                 setForgotSuccess(res.message || 'We have emailed your password reset link.');
