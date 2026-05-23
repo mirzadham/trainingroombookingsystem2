@@ -138,7 +138,7 @@ export default function useBookingForm() {
                 phone,
             });
             setBookingResult(result);
-            setStep(3); // Move to confirmation
+            setStep(2); // Move to confirmation
             
             // Clear session storage on success using explicit keys for cross-browser reliability
             const keysToRemove = ['room', 'step', 'title', 'description', 'attendees', 'endDate', 'guestName', 'guestEmail', 'phone'];
@@ -159,15 +159,9 @@ export default function useBookingForm() {
         if (step === 0 && canProceedToAccount) {
             setStep(1);
         } else if (step === 1 && canProceedToAuthOrSubmit) {
-            if (isAuthenticated) {
-                handleSubmit();
-            } else {
-                setStep(2);
-            }
-        } else if (step === 2 && isAuthenticated) {
-             handleSubmit();
+            handleSubmit();
         }
-    }, [step, canProceedToAccount, canProceedToAuthOrSubmit, isAuthenticated, handleSubmit]);
+    }, [step, canProceedToAccount, canProceedToAuthOrSubmit, handleSubmit]);
 
     const handleAuth = useCallback(async (e) => {
         e.preventDefault();
