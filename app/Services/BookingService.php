@@ -253,6 +253,23 @@ class BookingService
         $startTime = Carbon::parse($data['start_time']);
         $endTime = Carbon::parse($data['end_time']);
 
+        $seriesStart = $startTime;
+        $seriesEnd = $endTime->copy()->addWeeks($weeks - 1);
+
+        // Batch fetch existing bookings for this user and room within the outer boundaries
+        $existingBookings = Booking::where('user_id', $user->id)
+            ->where('room_id', $data['room_id'])
+            ->whereNotIn('status', [BookingStatus::Rejected, BookingStatus::Cancelled])
+            ->where('start_time', '<', $seriesEnd)
+            ->where('end_time', '>', $seriesStart)
+            ->get();
+
+        // Batch fetch blackouts for this room within the outer boundaries
+        $blackouts = \App\Models\RoomBlackout::where('room_id', $data['room_id'])
+            ->where('start_time', '<', $seriesEnd)
+            ->where('end_time', '>', $seriesStart)
+            ->get();
+
         // Pre-validate all occurrences
         for ($i = 0; $i < $weeks; $i++) {
             $weekStart = $startTime->copy()->addWeeks($i);
@@ -265,11 +282,30 @@ class BookingService
 
             $this->validateBookingRules($weekData);
 
-            // Check for duplicate for each occurrence
-            $this->preventDuplicate($weekData, $user);
+            // In-memory duplicate check
+            $duplicate = $existingBookings->first(function ($b) use ($weekStart, $weekEnd) {
+                return $b->start_time < $weekEnd && $b->end_time > $weekStart;
+            });
 
-            // Check for blackout period overlap
-            $this->preventBlackoutOverlap($weekData);
+            if ($duplicate) {
+                throw ValidationException::withMessages([
+                    'duplicate' => 'You already have a booking for this room at the same time.',
+                ]);
+            }
+
+            // In-memory blackout overlap check
+            $blackout = $blackouts->first(function ($bo) use ($weekStart, $weekEnd) {
+                return $bo->start_time < $weekEnd && $bo->end_time > $weekStart;
+            });
+
+            if ($blackout) {
+                $blackoutStart = Carbon::parse($blackout->start_time)->format('M j, Y g:i A');
+                $blackoutEnd = Carbon::parse($blackout->end_time)->format('M j, Y g:i A');
+
+                throw ValidationException::withMessages([
+                    'blackout' => "This room is unavailable during a scheduled blackout period ({$blackout->title}: {$blackoutStart} – {$blackoutEnd}). Please choose a different time or room.",
+                ]);
+            }
         }
 
         // All validations passed — create all bookings

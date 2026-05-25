@@ -71,9 +71,27 @@ class AvailabilityService
         $start = $date->copy()->setTime($startTime->hour, $startTime->minute);
         $end = $date->copy()->setTime($endTime->hour, $endTime->minute);
 
+        $roomIds = $rooms->pluck('id')->toArray();
+
+        // Batch fetch overlapping approved bookings for all candidate rooms
+        $overlappingBookings = Booking::approved()
+            ->whereIn('room_id', $roomIds)
+            ->overlapping($start, $end)
+            ->pluck('room_id')
+            ->toArray();
+
+        // Batch fetch overlapping blackouts for all candidate rooms
+        $overlappingBlackouts = \App\Models\RoomBlackout::whereIn('room_id', $roomIds)
+            ->where('start_time', '<', $end)
+            ->where('end_time', '>', $start)
+            ->pluck('room_id')
+            ->toArray();
+
+        $occupiedRoomIds = array_unique(array_merge($overlappingBookings, $overlappingBlackouts));
+
         // Filter rooms that are available for the requested time
-        return $rooms->map(function ($room) use ($start, $end) {
-            $room->is_available = $this->isAvailable($room->id, $start, $end);
+        return $rooms->map(function ($room) use ($occupiedRoomIds) {
+            $room->is_available = !in_array($room->id, $occupiedRoomIds);
             return $room;
         });
     }
@@ -107,10 +125,17 @@ class AvailabilityService
             ->overlapping($dayStart, $dayEnd)
             ->get();
 
+        // Get all overlapping blackouts for these rooms in the range
+        $blackouts = \App\Models\RoomBlackout::whereIn('room_id', $rooms->pluck('id'))
+            ->where('start_time', '<', $dayEnd)
+            ->where('end_time', '>', $dayStart)
+            ->get();
+
         // Build grid data
         $grid = [];
         foreach ($rooms as $room) {
             $roomBookings = $bookings->where('room_id', $room->id);
+            $roomBlackouts = $blackouts->where('room_id', $room->id);
             $roomSlots = [];
 
             foreach ($slots as $slot) {
@@ -120,9 +145,10 @@ class AvailabilityService
                 $timeStartStr = $slotStart->format('H:i:s');
                 $timeEndStr = $slotEnd->format('H:i:s');
 
-                // Check if any booking overlaps this slot on any day of the range
+                // Check if any booking or blackout overlaps this slot on any day of the range
                 $isOccupied = false;
                 $overlappingBooking = null;
+                $overlappingBlackout = null;
 
                 if ($endDate && $endDate->greaterThan($date)) {
                     for ($current = $date->copy(); $current->lte($endDate); $current->addDay()) {
@@ -140,7 +166,11 @@ class AvailabilityService
                             return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
                         });
 
-                        if ($overlappingBooking) {
+                        $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStartUtc, $currentEndUtc) {
+                            return Carbon::parse($bo->start_time) < $currentEndUtc && Carbon::parse($bo->end_time) > $currentStartUtc;
+                        });
+
+                        if ($overlappingBooking || $overlappingBlackout) {
                             $isOccupied = true;
                             break;
                         }
@@ -153,16 +183,34 @@ class AvailabilityService
                     $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStartUtc, $currentEndUtc) {
                         return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
                     });
-                    $isOccupied = (bool)$overlappingBooking;
+
+                    $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStartUtc, $currentEndUtc) {
+                        return Carbon::parse($bo->start_time) < $currentEndUtc && Carbon::parse($bo->end_time) > $currentStartUtc;
+                    });
+
+                    $isOccupied = (bool)($overlappingBooking || $overlappingBlackout);
+                }
+
+                $status = 'available';
+                $bookingId = null;
+                $bookingTitle = null;
+
+                if ($overlappingBlackout) {
+                    $status = 'occupied';
+                    $bookingTitle = 'Maintenance / Blackout: ' . $overlappingBlackout->title;
+                } elseif ($overlappingBooking) {
+                    $status = 'occupied';
+                    $bookingId = $overlappingBooking->id;
+                    $bookingTitle = $overlappingBooking->title;
                 }
 
                 $roomSlots[] = [
                     'start' => $slot['start'],
                     'end' => $slot['end'],
                     'label' => $slot['label'],
-                    'status' => $isOccupied ? 'occupied' : 'available',
-                    'booking_id' => $overlappingBooking?->id,
-                    'booking_title' => $overlappingBooking?->title,
+                    'status' => $status,
+                    'booking_id' => $bookingId,
+                    'booking_title' => $bookingTitle,
                 ];
             }
 

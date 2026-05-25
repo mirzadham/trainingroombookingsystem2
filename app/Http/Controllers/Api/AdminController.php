@@ -203,8 +203,13 @@ class AdminController extends Controller
             'failed' => [],
         ];
 
+        $bookings = Booking::with(['room.location', 'user', 'approver'])
+            ->whereIn('id', $request->ids)
+            ->get()
+            ->keyBy('id');
+
         foreach ($request->ids as $id) {
-            $booking = Booking::find($id);
+            $booking = $bookings->get($id);
 
             try {
                 $this->authorize('approve', $booking);
@@ -247,8 +252,13 @@ class AdminController extends Controller
             'failed' => [],
         ];
 
+        $bookings = Booking::with(['room.location', 'user', 'approver'])
+            ->whereIn('id', $request->ids)
+            ->get()
+            ->keyBy('id');
+
         foreach ($request->ids as $id) {
-            $booking = Booking::find($id);
+            $booking = $bookings->get($id);
 
             try {
                 $this->authorize('reject', $booking);

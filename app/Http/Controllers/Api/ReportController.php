@@ -42,15 +42,20 @@ class ReportController extends Controller
         }
 
         $rooms = $query->get();
+        $roomIds = $rooms->pluck('id')->toArray();
+
+        $bookings = Booking::approved()
+            ->whereIn('room_id', $roomIds)
+            ->where('start_time', '>=', $start)
+            ->where('end_time', '<=', $end->copy()->endOfDay())
+            ->get();
+
+        $bookingsByRoom = $bookings->groupBy('room_id');
         $utilization = [];
 
         foreach ($rooms as $room) {
-            $bookedHours = Booking::approved()
-                ->where('room_id', $room->id)
-                ->where('start_time', '>=', $start)
-                ->where('end_time', '<=', $end->copy()->endOfDay())
-                ->get()
-                ->sum(fn($b) => $b->start_time->diffInMinutes($b->end_time) / 60);
+            $roomBookings = $bookingsByRoom->get($room->id, collect());
+            $bookedHours = $roomBookings->sum(fn($b) => $b->start_time->diffInMinutes($b->end_time) / 60);
 
             $utilization[] = [
                 'room' => $room->name,
