@@ -128,14 +128,14 @@ export default function ProfilePage() {
             {/* Success & Error Global Alerts */}
             {successMessage && (
                 <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-start gap-3 shadow-sm animate-fadeIn">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>{successMessage}</div>
                 </div>
             )}
 
             {errorMessage && (
                 <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm font-semibold flex items-start gap-3 shadow-sm animate-fadeIn">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>{errorMessage}</div>
                 </div>
             )}
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                         <form onSubmit={handleProfileSubmit} className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-950 flex items-center gap-2">
-                                    <User className="w-5 h-5 text-mimos-500" />
+                                    <User className="w-5 h-5 text-slate-400" />
                                     Personal Information
                                 </h3>
                                 <p className="text-xs text-slate-400 mt-1">Keep your reservation contact details up to date.</p>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
                         <form onSubmit={handlePasswordSubmit} className="space-y-6">
                             <div>
                                 <h3 className="text-lg font-bold text-slate-950 flex items-center gap-2">
-                                    <ShieldCheck className="w-5 h-5 text-mimos-500" />
+                                    <ShieldCheck className="w-5 h-5 text-slate-400" />
                                     Change Password
                                 </h3>
                                 <p className="text-xs text-slate-400 mt-1">Ensure your account remains safe and secure.</p>

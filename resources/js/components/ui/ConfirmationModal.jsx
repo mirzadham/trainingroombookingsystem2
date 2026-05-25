@@ -5,26 +5,26 @@ import Button from './Button';
 const variantConfig = {
     danger: {
         icon: AlertTriangle,
-        iconClass: 'text-red-650',
-        badgeBg: 'bg-red-50 border-red-100',
+        iconClass: 'text-slate-500',
+        badgeBg: 'bg-red-50 border-red-100 text-slate-500',
         btnVariant: 'danger',
     },
     success: {
         icon: CheckCircle,
-        iconClass: 'text-emerald-650',
-        badgeBg: 'bg-emerald-50 border-emerald-100',
+        iconClass: 'text-slate-500',
+        badgeBg: 'bg-emerald-50 border-emerald-100 text-slate-500',
         btnVariant: 'primary', // Will use standard primary emerald/pink gradient or can override
     },
     warning: {
         icon: AlertCircle,
-        iconClass: 'text-amber-650',
-        badgeBg: 'bg-amber-50 border-amber-100',
+        iconClass: 'text-slate-500',
+        badgeBg: 'bg-amber-50 border-amber-100 text-slate-500',
         btnVariant: 'primary',
     },
     info: {
         icon: Info,
-        iconClass: 'text-blue-650',
-        badgeBg: 'bg-blue-50 border-blue-100',
+        iconClass: 'text-slate-500',
+        badgeBg: 'bg-blue-50 border-blue-100 text-slate-500',
         btnVariant: 'primary',
     },
 };

@@ -352,7 +352,7 @@ class BookingService
         }
 
         // Same-day booking must be at least N minutes before start
-        if ($start->isSameDay($now) && $start->diffInMinutes($now, false) > -$advanceMinutes) {
+        if ($advanceMinutes > 0 && $start->isSameDay($now) && $start->diffInMinutes($now, false) > -$advanceMinutes) {
             throw ValidationException::withMessages([
                 'start_time' => "Same-day bookings must be made at least {$advanceMinutes} minutes before the start time.",
             ]);

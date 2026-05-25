@@ -176,7 +176,7 @@ export default function BookingDetailsModal({
                             {/* Schedule & Location Card */}
                             <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4.5 space-y-3.5">
                                 <div className="flex items-start gap-3">
-                                    <Calendar className="w-4.5 h-4.5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                    <Calendar className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
                                         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                                             {booking.isGroup ? 'Date Range' : 'Date'}
@@ -197,7 +197,7 @@ export default function BookingDetailsModal({
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                    <Clock className="w-4.5 h-4.5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                    <Clock className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
                                         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Time Duration</div>
                                         <div className="text-sm font-semibold text-slate-800 mt-0.5">
@@ -207,7 +207,7 @@ export default function BookingDetailsModal({
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                    <MapPin className="w-4.5 h-4.5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                    <MapPin className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
                                         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Room & Location Details</div>
                                         <div className="text-sm font-semibold text-slate-800 mt-0.5">
@@ -328,7 +328,7 @@ export default function BookingDetailsModal({
                             {booking.rejection_reason && (
                                 <div className="p-4 rounded-2xl bg-red-50/50 border border-red-100 text-xs">
                                     <div className="font-bold text-red-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                                        <AlertTriangle className="w-3.5 h-3.5 text-red-500" /> Rejection Remarks
+                                        <AlertTriangle className="w-3.5 h-3.5 text-slate-400" /> Rejection Remarks
                                     </div>
                                     <div className="text-slate-650 font-medium leading-relaxed">
                                         {booking.rejection_reason}
@@ -339,7 +339,7 @@ export default function BookingDetailsModal({
                             {booking.cancellation_reason && (
                                 <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-250/60 text-xs">
                                     <div className="font-bold text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                                        <Ban className="w-3.5 h-3.5 text-amber-500" /> Cancellation Remarks
+                                        <Ban className="w-3.5 h-3.5 text-slate-400" /> Cancellation Remarks
                                     </div>
                                     <div className="text-slate-650 font-medium leading-relaxed">
                                         {booking.cancellation_reason}

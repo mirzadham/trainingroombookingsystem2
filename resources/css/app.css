@@ -113,9 +113,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   animation: checkmark-circle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
 
+
 .animate-checkmark-check {
   stroke-dasharray: 48;
   stroke-dashoffset: 48;
   animation: checkmark-check 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
 }
+
+/* Monochromatic Premium Icons Override */
+svg.lucide:not(.animate-spin) {
+  color: inherit !important;
+}
+
 

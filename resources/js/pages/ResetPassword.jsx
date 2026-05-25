@@ -94,7 +94,7 @@ export default function ResetPassword() {
                     {success ? (
                         <div className="text-center space-y-6">
                             <div className="flex justify-center">
-                                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-100 animate-bounce">
+                                <div className="w-16 h-16 bg-slate-50 text-slate-500 rounded-full flex items-center justify-center border border-slate-100 animate-bounce">
                                     <CheckCircle className="w-8 h-8" />
                                 </div>
                             </div>

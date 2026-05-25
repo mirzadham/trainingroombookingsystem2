@@ -92,7 +92,7 @@ export default function RoomDetails() {
     if (isLoading) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-                <Loader2 className="w-10 h-10 text-mimos-500 animate-spin mb-4" />
+                <Loader2 className="w-10 h-10 text-slate-400 animate-spin mb-4" />
                 <p className="text-slate-500 text-sm font-medium">Loading room details...</p>
             </div>
         );
@@ -210,11 +210,11 @@ export default function RoomDetails() {
                             </h1>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-                                    <MapPin className="w-4 h-4 text-mimos-500" />
+                                    <MapPin className="w-4 h-4 text-slate-400" />
                                     {room.location?.name}
                                 </div>
                                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
-                                    <Users className="w-4 h-4 text-mimos-500" />
+                                    <Users className="w-4 h-4 text-slate-400" />
                                     Up to {room.capacity} pax
                                 </div>
                             </div>

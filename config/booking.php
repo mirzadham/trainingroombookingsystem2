@@ -41,7 +41,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'same_day_advance_minutes' => 60,  // Must book at least 1 hour ahead for same-day
+    'same_day_advance_minutes' => 0,  // Must book at least 0 minutes ahead for same-day
 
     /*
     |--------------------------------------------------------------------------
