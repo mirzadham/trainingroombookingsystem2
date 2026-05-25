@@ -7,8 +7,9 @@ use App\Services\CalendarExportService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class BookingStatusChangedNotification extends Notification
+class BookingStatusChangedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

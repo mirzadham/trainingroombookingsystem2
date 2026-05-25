@@ -12,6 +12,8 @@ use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -44,23 +46,36 @@ class BookingController extends Controller
      */
     public function store(StoreBookingRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        $lockKey = 'booking_lock_' . $request->user()->id;
+        $lock = Cache::lock($lockKey, 10);
 
-        // Multi-day booking: end_date present and differs from start_date
-        if (!empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date']) {
-            $bookings = $this->bookingService->createMultiDayBookings($validated, $request->user());
-
-            return (BookingResource::collection($bookings))
-                ->response()
-                ->setStatusCode(201);
+        if (!$lock->get()) {
+            throw ValidationException::withMessages([
+                'duplicate' => 'Your booking is already being processed. Please wait.',
+            ]);
         }
 
-        // Single-day booking (existing path)
-        $booking = $this->bookingService->create($validated, $request->user());
+        try {
+            $validated = $request->validated();
 
-        return (new BookingResource($booking))
-            ->response()
-            ->setStatusCode(201);
+            // Multi-day booking: end_date present and differs from start_date
+            if (!empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date']) {
+                $bookings = $this->bookingService->createMultiDayBookings($validated, $request->user());
+
+                return (BookingResource::collection($bookings))
+                    ->response()
+                    ->setStatusCode(201);
+            }
+
+            // Single-day booking (existing path)
+            $booking = $this->bookingService->create($validated, $request->user());
+
+            return (new BookingResource($booking))
+                ->response()
+                ->setStatusCode(201);
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
@@ -106,18 +121,31 @@ class BookingController extends Controller
      */
     public function storeRecurring(StoreRecurringBookingRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        $lockKey = 'booking_lock_' . $request->user()->id;
+        $lock = Cache::lock($lockKey, 10);
 
-        $bookings = $this->bookingService->createRecurringSeries(
-            $validated,
-            $request->user(),
-            $validated['weeks']
-        );
+        if (!$lock->get()) {
+            throw ValidationException::withMessages([
+                'duplicate' => 'Your booking is already being processed. Please wait.',
+            ]);
+        }
 
-        return response()->json(
-            BookingResource::collection($bookings),
-            201
-        );
+        try {
+            $validated = $request->validated();
+
+            $bookings = $this->bookingService->createRecurringSeries(
+                $validated,
+                $request->user(),
+                $validated['weeks']
+            );
+
+            return response()->json(
+                BookingResource::collection($bookings),
+                201
+            );
+        } finally {
+            $lock->release();
+        }
     }
 
     /**

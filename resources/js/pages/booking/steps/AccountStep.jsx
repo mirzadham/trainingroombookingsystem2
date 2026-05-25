@@ -34,6 +34,7 @@ export default function AccountStep({ form }) {
         isAuthenticated, 
         canProceedToAuthOrSubmit, 
         handleNext,
+        submitting,
         updateProfileOnSubmit, setUpdateProfileOnSubmit,
         title, description, attendees, endDate,
         roomInfo, formatTime, formatDate, setStep
@@ -109,7 +110,8 @@ export default function AccountStep({ form }) {
 
                     <Button
                         onClick={handleNext}
-                        disabled={!canProceedToAuthOrSubmit}
+                        disabled={!canProceedToAuthOrSubmit || submitting}
+                        loading={submitting}
                         size="lg"
                         className="flex-1 max-w-xl group py-3 text-base"
                     >
@@ -313,7 +315,8 @@ export default function AccountStep({ form }) {
 
                 <Button
                     onClick={handleNext}
-                    disabled={!canProceedToAuthOrSubmit}
+                    disabled={!canProceedToAuthOrSubmit || submitting}
+                    loading={submitting}
                     size="lg"
                     className="flex-1 max-w-xl group py-3.5 text-base bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500 hover:shadow-xl hover:-translate-y-0.5 hover:scale-[1.005] duration-200 transition-all cursor-pointer shadow-lg shadow-mimos-500/20"
                 >

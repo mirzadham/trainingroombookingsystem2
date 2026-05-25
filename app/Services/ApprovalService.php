@@ -32,7 +32,7 @@ class ApprovalService
             ]);
         }
 
-        return DB::transaction(function () use ($booking, $admin) {
+        DB::transaction(function () use ($booking, $admin) {
             // Lock the booking row for update
             $booking = Booking::lockForUpdate()->findOrFail($booking->id);
 
@@ -62,10 +62,12 @@ class ApprovalService
             ]);
 
             $this->auditService->log($admin, $booking, 'approved');
-            $this->notificationService->sendBookingNotification($booking, 'approved');
-
-            return $booking->fresh(['room.location', 'user', 'approver']);
         });
+
+        // Send booking status notification outside the transaction block to prevent holding database locks
+        $this->notificationService->sendBookingNotification($booking, 'approved');
+
+        return $booking->fresh(['room.location', 'user', 'approver']);
     }
 
     /**

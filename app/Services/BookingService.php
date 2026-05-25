@@ -15,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
+    private array $roomCache = [];
+
     public function __construct(
         private AvailabilityService $availabilityService,
         private AuditService $auditService,
@@ -93,8 +95,6 @@ class BookingService
                     'multi_day_booking'   => true,
                 ]);
 
-                $this->notificationService->sendBookingNotification($booking, 'submitted');
-
                 $bookings->push($booking);
             }
 
@@ -117,6 +117,13 @@ class BookingService
 
             return $bookings;
         });
+
+        // Send a single notification for the entire multi-day series after the transaction commits successfully
+        if ($bookings->isNotEmpty()) {
+            $this->notificationService->sendBookingNotification($bookings->first(), 'submitted');
+        }
+
+        return $bookings;
     }
 
     /**
@@ -266,32 +273,37 @@ class BookingService
         }
 
         // All validations passed — create all bookings
-        for ($i = 0; $i < $weeks; $i++) {
-            $weekStart = $startTime->copy()->addWeeks($i);
-            $weekEnd = $endTime->copy()->addWeeks($i);
+        DB::transaction(function () use ($data, $user, $weeks, $groupId, $bookings, $startTime, $endTime) {
+            for ($i = 0; $i < $weeks; $i++) {
+                $weekStart = $startTime->copy()->addWeeks($i);
+                $weekEnd = $endTime->copy()->addWeeks($i);
 
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'room_id' => $data['room_id'],
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'start_time' => $weekStart,
-                'end_time' => $weekEnd,
-                'attendees' => $data['attendees'],
-                'phone' => $data['phone'],
-                'status' => BookingStatus::Pending,
-                'recurrence_group_id' => $groupId,
-            ]);
+                $booking = Booking::create([
+                    'user_id' => $user->id,
+                    'room_id' => $data['room_id'],
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'start_time' => $weekStart,
+                    'end_time' => $weekEnd,
+                    'attendees' => $data['attendees'],
+                    'phone' => $data['phone'],
+                    'status' => BookingStatus::Pending,
+                    'recurrence_group_id' => $groupId,
+                ]);
 
-            $this->auditService->log($user, $booking, 'created', [
-                'recurrence_group_id' => $groupId,
-                'occurrence' => $i + 1,
-                'total_occurrences' => $weeks,
-            ]);
+                $this->auditService->log($user, $booking, 'created', [
+                    'recurrence_group_id' => $groupId,
+                    'occurrence' => $i + 1,
+                    'total_occurrences' => $weeks,
+                ]);
 
-            $this->notificationService->sendBookingNotification($booking, 'submitted');
+                $bookings->push($booking);
+            }
+        });
 
-            $bookings->push($booking);
+        // Send a single notification for the entire recurring series after the transaction commits successfully
+        if ($bookings->isNotEmpty()) {
+            $this->notificationService->sendBookingNotification($bookings->first(), 'submitted');
         }
 
         return $bookings->load(['room.location', 'user']);
@@ -367,7 +379,11 @@ class BookingService
 
         // Attendees must not exceed room capacity
         if (isset($data['room_id']) && isset($data['attendees'])) {
-            $room = Room::find($data['room_id']);
+            $roomId = (int)$data['room_id'];
+            if (!isset($this->roomCache[$roomId])) {
+                $this->roomCache[$roomId] = Room::find($roomId);
+            }
+            $room = $this->roomCache[$roomId];
             if ($room && $data['attendees'] > $room->capacity) {
                 throw ValidationException::withMessages([
                     'attendees' => "Number of attendees ({$data['attendees']}) exceeds room capacity ({$room->capacity}).",
