@@ -35,6 +35,14 @@ class BookingController extends Controller
             $query->where('status', $status);
         }
 
+        if ($timeFilter = $request->query('time_filter')) {
+            if ($timeFilter === 'past') {
+                $query->where('end_time', '<', now());
+            } elseif ($timeFilter === 'upcoming') {
+                $query->where('end_time', '>=', now());
+            }
+        }
+
         $bookings = $query->paginate(20);
 
         return response()->json($bookings);

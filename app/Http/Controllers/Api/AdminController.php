@@ -55,6 +55,13 @@ class AdminController extends Controller
         if ($request->date_to) {
             $query->whereDate('start_time', '<=', $request->date_to);
         }
+        if ($request->time_filter) {
+            if ($request->time_filter === 'past') {
+                $query->where('end_time', '<', now());
+            } elseif ($request->time_filter === 'upcoming') {
+                $query->where('end_time', '>=', now());
+            }
+        }
         if ($request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

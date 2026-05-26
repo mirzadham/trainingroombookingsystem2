@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, AlertCircle } from 'lucide-react';
+import { CalendarCheck, AlertCircle, History } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 import EditBookingModal from '../components/EditBookingModal';
@@ -41,14 +41,15 @@ export default function MyBookings() {
     const queryClient = useQueryClient();
 
     const [activeStatus, setActiveStatus] = useState('');
+    const [timeFilter, setTimeFilter] = useState('upcoming');
     const [page, setPage] = useState(1);
     const [editingBooking, setEditingBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
     const [cancellingBookingId, setCancellingBookingId] = useState(null);
 
     const { data, isLoading } = useQuery({
-        queryKey: ['my-bookings', activeStatus, page],
-        queryFn: () => api.getBookings({ status: activeStatus || undefined, page }),
+        queryKey: ['my-bookings', activeStatus, timeFilter, page],
+        queryFn: () => api.getBookings({ status: activeStatus || undefined, time_filter: timeFilter, page }),
         enabled: isAuthenticated,
     });
 
@@ -142,24 +143,53 @@ export default function MyBookings() {
                 <p className="text-sm text-slate-500 mt-1">Track and manage all your room reservations</p>
             </div>
 
-            <div className="flex gap-2 mb-8 flex-wrap">
-                {FILTER_TAB_ORDER.map(status => {
-                    const isActive = activeStatus === status;
-                    return (
-                        <button
-                            key={status}
-                            onClick={() => { setActiveStatus(status); setPage(1); }}
-                            className={`inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-xl border transition-all duration-200 cursor-pointer ${
-                                isActive
-                                    ? 'bg-mimos-50 text-mimos-700 border-mimos-200 shadow-sm'
-                                    : 'bg-white/70 text-slate-600 border-slate-200/80 hover:bg-white hover:border-slate-300'
-                            }`}
-                        >
-                            {isActive && <span className={`inline-block w-2 h-2 rounded-full ${FILTER_DOT_COLOR[status]}`} />}
-                            {FILTER_LABELS[status]}
-                        </button>
-                    );
-                })}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                {/* Time filter segmented control */}
+                <div className="inline-flex p-1 bg-slate-100/80 rounded-2xl border border-slate-200/50 self-start">
+                    <button
+                        onClick={() => { setTimeFilter('upcoming'); setPage(1); }}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer select-none ${
+                            timeFilter === 'upcoming'
+                                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/10'
+                                : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                    >
+                        <CalendarCheck className="w-3.5 h-3.5" />
+                        Upcoming
+                    </button>
+                    <button
+                        onClick={() => { setTimeFilter('past'); setPage(1); }}
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer select-none ${
+                            timeFilter === 'past'
+                                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/10'
+                                : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                    >
+                        <History className="w-3.5 h-3.5" />
+                        Past Bookings
+                    </button>
+                </div>
+
+                {/* Status filters */}
+                <div className="flex gap-2 mb-0 flex-wrap">
+                    {FILTER_TAB_ORDER.map(status => {
+                        const isActive = activeStatus === status;
+                        return (
+                            <button
+                                key={status}
+                                onClick={() => { setActiveStatus(status); setPage(1); }}
+                                className={`inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-xl border transition-all duration-200 cursor-pointer ${
+                                    isActive
+                                        ? 'bg-mimos-50 text-mimos-700 border-mimos-200 shadow-sm'
+                                        : 'bg-white/70 text-slate-600 border-slate-200/80 hover:bg-white hover:border-slate-300'
+                                }`}
+                            >
+                                {isActive && <span className={`inline-block w-2 h-2 rounded-full ${FILTER_DOT_COLOR[status]}`} />}
+                                {FILTER_LABELS[status]}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             {isLoading && (
