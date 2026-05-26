@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { BarChart3, Clock, Loader2, TrendingUp, Download } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import * as api from '../../services/api';
+import DatePicker from '../../components/ui/DatePicker';
 
 export default function Reports() {
     const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
@@ -87,15 +88,25 @@ export default function Reports() {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-4 mb-8 p-5 bg-white/70 backdrop-blur-xl border border-slate-200/60 shadow-xs rounded-3xl items-end relative z-10">
-                <div className="flex-1 min-w-[200px]">
+                <div className="flex-1 min-w-[200px] relative z-30">
                     <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Start Date</label>
-                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-white/85 border border-slate-200 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-500 hover:border-slate-300 transition-all cursor-pointer shadow-inner" />
+                    <DatePicker
+                        id="start-date"
+                        value={startDate}
+                        onChange={(val) => setStartDate(val)}
+                        min="2000-01-01"
+                        className="py-3"
+                    />
                 </div>
-                <div className="flex-1 min-w-[200px]">
+                <div className="flex-1 min-w-[200px] relative z-20">
                     <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">End Date</label>
-                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-white/85 border border-slate-200 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-500 hover:border-slate-300 transition-all cursor-pointer shadow-inner" />
+                    <DatePicker
+                        id="end-date"
+                        value={endDate}
+                        onChange={(val) => setEndDate(val)}
+                        min="2000-01-01"
+                        className="py-3"
+                    />
                 </div>
                 <div className="flex-1 min-w-[200px]">
                     <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
@@ -107,9 +118,6 @@ export default function Reports() {
                                 <option key={loc.id} value={loc.id} className="bg-white">{loc.code} - {loc.name}</option>
                             ))}
                         </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400 font-bold">
-                            ↓
-                        </div>
                     </div>
                 </div>
             </div>
