@@ -9,6 +9,7 @@ use App\Http\Resources\RoomResource;
 use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class RoomController extends Controller
 {
@@ -86,6 +87,8 @@ class RoomController extends Controller
     public function update(UpdateRoomRequest $request, Room $room): JsonResponse
     {
         $room->update($request->validated());
+
+        Cache::forget("room_images_gallery:{$room->id}");
 
         return (new RoomResource($room->fresh('location')))->response();
     }
@@ -170,6 +173,8 @@ class RoomController extends Controller
             }
         }
 
+        Cache::forget("room_images_gallery:{$room->id}");
+
         return response()->json([
             'message' => 'Images uploaded successfully.',
             'image_url' => $room->image_url,
@@ -218,6 +223,8 @@ class RoomController extends Controller
             }
         }
 
+        Cache::forget("room_images_gallery:{$room->id}");
+
         return response()->json([
             'message' => 'Image deleted successfully.',
             'image_url' => $room->fresh()->image_url,
@@ -252,6 +259,8 @@ class RoomController extends Controller
         }
 
         $room->update(['image_url' => '/' . $cleanPath]);
+
+        Cache::forget("room_images_gallery:{$room->id}");
 
         return response()->json([
             'message' => 'Cover image updated successfully.',

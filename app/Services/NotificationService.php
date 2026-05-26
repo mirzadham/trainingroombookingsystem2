@@ -30,11 +30,10 @@ class NotificationService
             $recipient->notify(new BookingStatusChangedNotification($booking, $type));
 
             $notifRecord->update([
-                'status' => 'sent',
-                'sent_at' => Carbon::now(),
+                'status' => 'queued',
             ]);
         } catch (Exception $e) {
-            Log::error('Booking email notification failed', [
+            Log::error('Booking email notification dispatch failed', [
                 'booking_id' => $booking->id,
                 'type' => $type,
                 'error' => $e->getMessage()

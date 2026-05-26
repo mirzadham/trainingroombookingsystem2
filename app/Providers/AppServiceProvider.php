@@ -31,5 +31,44 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Room::class, RoomPolicy::class);
+
+        // Listen for booking notification delivery success
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Notifications\Events\NotificationSent::class,
+            function (\Illuminate\Notifications\Events\NotificationSent $event) {
+                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+                    $booking = $event->notification->getBooking();
+                    $type = $event->notification->getType();
+
+                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                        ->where('type', $type)
+                        ->update([
+                            'status' => 'sent',
+                            'sent_at' => now(),
+                        ]);
+                }
+            }
+        );
+
+        // Listen for booking notification delivery failure
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Notifications\Events\NotificationFailed::class,
+            function (\Illuminate\Notifications\Events\NotificationFailed $event) {
+                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+                    $booking = $event->notification->getBooking();
+                    $type = $event->notification->getType();
+                    
+                    $exception = $event->data['exception'] ?? null;
+                    $errorMessage = $exception ? $exception->getMessage() : 'SMTP mail delivery failed.';
+
+                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                        ->where('type', $type)
+                        ->update([
+                            'status' => 'failed',
+                            'error_message' => substr($errorMessage, 0, 1000),
+                        ]);
+                }
+            }
+        );
     }
 }

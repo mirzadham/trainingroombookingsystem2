@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Room extends Model
 {
@@ -76,30 +77,33 @@ class Room extends Model
             return [$this->image_url];
         }
 
-        $absoluteDir = public_path($dirName);
+        // Cache the scanned directory result to avoid disk read overhead
+        return Cache::remember("room_images_gallery:{$this->id}", 86400, function () use ($dirName) {
+            $absoluteDir = public_path($dirName);
 
-        if (is_dir($absoluteDir)) {
-            $files = scandir($absoluteDir);
-            $images = [];
-            $validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (is_dir($absoluteDir)) {
+                $files = scandir($absoluteDir);
+                $images = [];
+                $validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
-            foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
-                    continue;
+                foreach ($files as $file) {
+                    if ($file === '.' || $file === '..') {
+                        continue;
+                    }
+
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                    if (in_array($ext, $validExtensions)) {
+                        $images[] = rtrim($dirName, '/') . '/' . $file;
+                    }
                 }
 
-                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                if (in_array($ext, $validExtensions)) {
-                    $images[] = rtrim($dirName, '/') . '/' . $file;
+                if (!empty($images)) {
+                    sort($images);
+                    return $images;
                 }
             }
 
-            if (!empty($images)) {
-                sort($images);
-                return $images;
-            }
-        }
-
-        return [$this->image_url];
+            return [$this->image_url];
+        });
     }
 }

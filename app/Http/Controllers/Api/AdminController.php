@@ -172,8 +172,10 @@ class AdminController extends Controller
                 ->whereDate('start_time', today())
                 ->count(),
             'this_month_bookings' => (clone $baseQuery)
-                ->whereMonth('start_time', now()->month)
-                ->whereYear('start_time', now()->year)
+                ->whereBetween('start_time', [
+                    now()->startOfMonth()->toDateTimeString(),
+                    now()->endOfMonth()->toDateTimeString()
+                ])
                 ->count(),
             'total_rooms' => $user->isSuperAdmin()
                 ? \App\Models\Room::active()->count()

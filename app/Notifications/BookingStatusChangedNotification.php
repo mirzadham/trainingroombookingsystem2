@@ -18,6 +18,16 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
         protected string $type
     ) {}
 
+    public function getBooking(): Booking
+    {
+        return $this->booking;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
     public function via($notifiable): array
     {
         return ['mail'];

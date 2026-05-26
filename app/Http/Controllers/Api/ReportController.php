@@ -45,6 +45,7 @@ class ReportController extends Controller
         $roomIds = $rooms->pluck('id')->toArray();
 
         $bookings = Booking::approved()
+            ->select(['id', 'room_id', 'start_time', 'end_time'])
             ->whereIn('room_id', $roomIds)
             ->where('start_time', '>=', $start)
             ->where('end_time', '<=', $end->copy()->endOfDay())
@@ -98,10 +99,9 @@ class ReportController extends Controller
             $query->whereHas('room', fn($q) => $q->where('location_id', $locId));
         }
 
-        $bookings = $query->get();
         $hourCounts = array_fill($openHour, $closeHour - $openHour, 0);
 
-        foreach ($bookings as $booking) {
+        foreach ($query->select(['id', 'start_time', 'end_time'])->lazy() as $booking) {
             $startHour = $booking->start_time->hour;
             $endHour = $booking->end_time->hour;
             for ($h = $startHour; $h < $endHour; $h++) {
