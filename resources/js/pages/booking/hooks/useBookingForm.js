@@ -32,6 +32,7 @@ export default function useBookingForm() {
                 startTime: searchParams.get('start_time') || '',
                 endTime: searchParams.get('end_time') || '',
                 date: searchParams.get('date') || '',
+                imageUrl: searchParams.get('image_url') || '',
             };
             sessionStorage.setItem(`${SESSION_KEY}_room`, JSON.stringify(info));
         } else {

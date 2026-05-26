@@ -130,6 +130,14 @@ export default function SearchResults() {
  * Helper to deterministically generate 5 room photo URLs using existing assets.
  */
 function getRoomImages(room) {
+    if (!room) return [];
+    
+    // Prioritize real uploaded images array if available
+    if (room.images && room.images.length > 0) {
+        return room.images; // Return ONLY the real images for the search card slider
+    }
+    
+    // Fallback if no images array is returned from backend
     const mainImg = room.image_url || '/images/rooms/default.png';
     const allImages = [
         '/images/rooms/seminar-room-a.png',
@@ -142,9 +150,7 @@ function getRoomImages(room) {
         '/images/rooms/training-hall.png'
     ];
     
-    // Filter out primary image to prevent duplicate picks
     const otherImages = allImages.filter(img => img !== mainImg);
-    
     const roomId = room.id || 0;
     const img2 = otherImages[roomId % otherImages.length];
     const img3 = otherImages[(roomId + 1) % otherImages.length];
@@ -184,9 +190,15 @@ function RoomCard({ room, onClick, formatAmenity }) {
             : 'text-amber-700 bg-amber-50/90 border-amber-200/60';
 
     return (
-        <button
-            onClick={onClick}
-            disabled={room.available_slots === 0}
+        <div
+            onClick={room.available_slots > 0 ? onClick : undefined}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' && room.available_slots > 0) {
+                    onClick();
+                }
+            }}
             className={`group/card text-left w-full bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/60 overflow-hidden shadow-lg shadow-slate-100/50 transition-all duration-300 cursor-pointer ${
                 room.available_slots > 0
                     ? 'hover:scale-[1.02] hover:shadow-xl hover:shadow-mimos-500/5 hover:border-mimos-500/30'
@@ -273,6 +285,6 @@ function RoomCard({ room, onClick, formatAmenity }) {
                     </div>
                 )}
             </div>
-        </button>
+        </div>
     );
 }

@@ -119,7 +119,7 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
 
         // Pass info via React Router state (fallback, though useBookingForm will use sessionStorage too if we set it there)
         const locationName = typeof room.location === 'object' ? room.location?.name : room.location;
-        let url = `/book?room_id=${room.id}&room_name=${encodeURIComponent(room.name)}&location=${encodeURIComponent(locationName || '')}&capacity=${room.capacity}&date=${date}&start_time=${startTime}&end_time=${duration.endTimeStr}`;
+        let url = `/book?room_id=${room.id}&room_name=${encodeURIComponent(room.name)}&location=${encodeURIComponent(locationName || '')}&capacity=${room.capacity}&date=${date}&start_time=${startTime}&end_time=${duration.endTimeStr}&image_url=${encodeURIComponent(room.image_url || '')}`;
         if (endDate) {
             url += `&end_date=${endDate}`;
         }

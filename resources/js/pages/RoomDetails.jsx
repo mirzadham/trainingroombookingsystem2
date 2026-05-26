@@ -11,6 +11,36 @@ import RoomTimeGrid from '../components/RoomTimeGrid';
  */
 function getRoomImages(room) {
     if (!room) return [];
+    
+    // Prioritize real uploaded images array if available
+    if (room.images && room.images.length > 0) {
+        if (room.images.length >= 5) {
+            return room.images.slice(0, 5); // Take up to first 5
+        }
+        
+        // If we have fewer than 5 images, pad them with default placeholders to preserve the 5-photo grid layout
+        const photos = [...room.images];
+        const allImages = [
+            '/images/rooms/seminar-room-a.png',
+            '/images/rooms/training-lab-1.png',
+            '/images/rooms/meeting-room-b1.png',
+            '/images/rooms/boardroom.png',
+            '/images/rooms/collaboration-space.png',
+            '/images/rooms/innovation-lab.png',
+            '/images/rooms/meeting-room-k1.png',
+            '/images/rooms/training-hall.png'
+        ];
+        
+        const otherImages = allImages.filter(img => !photos.includes(img));
+        let i = 0;
+        while (photos.length < 5 && i < otherImages.length) {
+            photos.push(otherImages[i]);
+            i++;
+        }
+        return photos;
+    }
+    
+    // Fallback if no images array is returned from backend
     const mainImg = room.image_url || '/images/rooms/default.png';
     const allImages = [
         '/images/rooms/seminar-room-a.png',
@@ -23,7 +53,6 @@ function getRoomImages(room) {
         '/images/rooms/training-hall.png'
     ];
     
-    // Filter out primary image to prevent duplicate picks
     const otherImages = allImages.filter(img => img !== mainImg);
     
     const roomId = room.id || 0;
@@ -119,6 +148,7 @@ export default function RoomDetails() {
     }
 
     const photos = getRoomImages(room);
+    const galleryImages = room.images && room.images.length > 0 ? room.images : photos;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
@@ -272,7 +302,7 @@ export default function RoomDetails() {
                     {/* Top bar */}
                     <div className="flex items-center justify-between w-full text-white pb-4 border-b border-white/10">
                         <span className="text-sm font-semibold text-slate-300">
-                            {lightboxIndex + 1} / {photos.length}
+                            {lightboxIndex + 1} / {galleryImages.length}
                         </span>
                         <button 
                             onClick={() => setIsLightboxOpen(false)}
@@ -286,7 +316,7 @@ export default function RoomDetails() {
                     {/* Main large image with arrows */}
                     <div className="relative flex items-center justify-center flex-1 py-4 min-h-0">
                         <button 
-                            onClick={() => setLightboxIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
+                            onClick={() => setLightboxIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))}
                             className="absolute left-2 md:left-6 p-3 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 border border-white/10 rounded-full transition shadow-lg active:scale-95 cursor-pointer z-10"
                             aria-label="Previous photo"
                         >
@@ -294,13 +324,13 @@ export default function RoomDetails() {
                         </button>
 
                         <img 
-                            src={photos[lightboxIndex]} 
+                            src={galleryImages[lightboxIndex]} 
                             alt={`${room.name} Large Gallery View`}
                             className="max-w-full max-h-[60vh] object-contain rounded-2xl shadow-2xl transition-all duration-300"
                         />
 
                         <button 
-                            onClick={() => setLightboxIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
+                            onClick={() => setLightboxIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1))}
                             className="absolute right-2 md:right-6 p-3 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 border border-white/10 rounded-full transition shadow-lg active:scale-95 cursor-pointer z-10"
                             aria-label="Next photo"
                         >
@@ -311,7 +341,7 @@ export default function RoomDetails() {
                     {/* Bottom thumbnail selector strip */}
                     <div className="flex flex-col items-center justify-center gap-4 border-t border-white/10 pt-4">
                         <div className="flex items-center gap-2 md:gap-3 overflow-x-auto max-w-full py-2 px-4 no-scrollbar">
-                            {photos.map((photo, idx) => (
+                            {galleryImages.map((photo, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => setLightboxIndex(idx)}

@@ -40,9 +40,9 @@ export default function AccountStep({ form }) {
         roomInfo, formatTime, formatDate, setStep
     } = form;
 
-    // Resolve room photo deterministically using room ID
+    // Prioritize actual dynamic image URL passed from search/details view
     const roomIdVal = parseInt(roomInfo.roomId) || 0;
-    const roomImage = allImages[roomIdVal % allImages.length];
+    const roomImage = roomInfo.imageUrl || allImages[roomIdVal % allImages.length];
 
     // Helper to calculate exact duration between start and end times
     const calculateDuration = (start, end) => {
