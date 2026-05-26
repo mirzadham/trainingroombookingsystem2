@@ -27,6 +27,10 @@ class Room extends Model
         'capacity' => 'integer',
     ];
 
+    protected $appends = [
+        'images',
+    ];
+
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
@@ -51,5 +55,51 @@ class Room extends Model
     public function scopeMinCapacity($query, int $attendees)
     {
         return $query->where('capacity', '>=', $attendees);
+    }
+
+    /**
+     * Get all images associated with this room.
+     * Scans the folder of the room's main image if it's in a subfolder.
+     */
+    public function getImagesAttribute(): array
+    {
+        if (!$this->image_url) {
+            return [];
+        }
+
+        // Standard placeholders are directly in /images/rooms/
+        // Real room-specific galleries are in subfolders like /images/rooms/khtp/{room}/
+        $dirName = str_replace('\\', '/', dirname($this->image_url));
+        
+        // If the main image is directly in /images/rooms or not structured, return it alone
+        if ($dirName === '/images/rooms' || $dirName === 'images/rooms' || $dirName === '/' || $dirName === '.') {
+            return [$this->image_url];
+        }
+
+        $absoluteDir = public_path($dirName);
+
+        if (is_dir($absoluteDir)) {
+            $files = scandir($absoluteDir);
+            $images = [];
+            $validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (in_array($ext, $validExtensions)) {
+                    $images[] = rtrim($dirName, '/') . '/' . $file;
+                }
+            }
+
+            if (!empty($images)) {
+                sort($images);
+                return $images;
+            }
+        }
+
+        return [$this->image_url];
     }
 }

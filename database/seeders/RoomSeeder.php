@@ -64,6 +64,13 @@ class RoomSeeder extends Seeder
                 'description' => 'Modern, high-comfort classroom-style room designed for optimal visibility, acoustics, and group learning activities. Equipped with modern presentation tools.',
                 'image_url' => '/images/rooms/innovation-lab.png',
             ],
+            [
+                'name' => 'Auditorium',
+                'capacity' => 150,
+                'amenities' => ['projector', 'sound_system', 'video_conferencing', 'microphones', 'air_conditioning'],
+                'description' => 'A grand auditorium space equipped with a massive projector screen, professional theater-grade acoustics, and high-tier presentation tools. Ideal for keynotes, large conferences, and major corporate events.',
+                'image_url' => '/images/rooms/tpm/auditorium/VISITMIMOS-11.jpg',
+            ],
         ];
 
         // KHTP Rooms
