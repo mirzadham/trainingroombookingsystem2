@@ -21,6 +21,7 @@ class RoomResource extends JsonResource
             'image_url' => $this->image_url,
             'images' => $this->images,
             'is_active' => $this->is_active,
+            'location_id' => $this->location_id,
             'location' => new LocationResource($this->whenLoaded('location')),
             // Dynamic attributes set by availability check
             'is_available' => $this->when(isset($this->is_available), $this->is_available),

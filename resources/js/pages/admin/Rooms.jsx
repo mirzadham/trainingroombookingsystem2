@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, Power, Camera } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, Power, Camera, ChevronDown } from 'lucide-react';
 import * as api from '../../services/api';
 import BlackoutsModal from '../../components/admin/BlackoutsModal';
 import RoomImagesModal from '../../components/admin/RoomImagesModal';
@@ -11,6 +11,7 @@ export default function AdminRooms() {
     const [editingRoom, setEditingRoom] = useState(null);
     const [selectedRoomForBlackout, setSelectedRoomForBlackout] = useState(null);
     const [selectedRoomForImages, setSelectedRoomForImages] = useState(null);
+    const [locationFilter, setLocationFilter] = useState('');
 
     const { data: rooms, isLoading } = useQuery({
         queryKey: ['admin-rooms'],
@@ -20,6 +21,12 @@ export default function AdminRooms() {
     const { data: locations } = useQuery({
         queryKey: ['locations'],
         queryFn: api.getLocations,
+    });
+
+    const filteredRooms = (rooms || []).filter(room => {
+        if (!locationFilter) return true;
+        const roomLocationId = room.location_id || room.location?.id;
+        return roomLocationId === parseInt(locationFilter);
     });
 
     const createMutation = useMutation({
@@ -39,17 +46,34 @@ export default function AdminRooms() {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Manage Rooms</h1>
                     <p className="text-sm text-slate-500 mt-1">Add, edit, or deactivate training rooms</p>
                 </div>
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer"
-                >
-                    <Plus className="w-4 h-4" /> Add Room
-                </button>
+                {!isLoading && (
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative min-w-[180px]">
+                            <select
+                                value={locationFilter}
+                                onChange={e => setLocationFilter(e.target.value)}
+                                className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/20 cursor-pointer appearance-none transition-all duration-200 shadow-sm"
+                            >
+                                <option value="">All Locations</option>
+                                {locations?.map(loc => (
+                                    <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer shrink-0"
+                        >
+                            <Plus className="w-4 h-4" /> Add Room
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Add Room Form */}
@@ -80,76 +104,86 @@ export default function AdminRooms() {
             )}
 
             {/* Rooms Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(rooms || []).map((room) => (
-                    <div key={room.id} className={`bg-white border border-slate-200 shadow-sm rounded-2xl p-5 transition ${!room.is_active ? 'opacity-50' : 'hover:bg-slate-50'}`}>
-                        <div className="flex items-start justify-between mb-3">
-                            <div>
-                                <h3 className="text-sm font-semibold text-slate-900">{room.name}</h3>
-                                <span className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                                    <MapPin className="w-3 h-3" />{room.location?.code || room.location?.name}
-                                </span>
-                            </div>
-                            {!room.is_active && (
-                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-                                    Inactive
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                            <span className="flex items-center gap-1"><Users className="w-3 h-3" />{room.capacity} seats</span>
-                        </div>
-
-                        {room.amenities?.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-4">
-                                {room.amenities.map(a => (
-                                    <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                        {a.replace(/_/g, ' ')}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-
-                        <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
-                            <button
-                                onClick={() => setEditingRoom(room)}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition cursor-pointer"
-                            >
-                                <Edit2 className="w-3 h-3" /> Edit
-                            </button>
-                            <button
-                                onClick={() => setSelectedRoomForBlackout(room)}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-pink-700 bg-pink-50 hover:bg-pink-100 border border-pink-200 rounded-lg transition cursor-pointer"
-                            >
-                                <CalendarOff className="w-3.5 h-3.5" /> Blackouts
-                            </button>
-                            <button
-                                onClick={() => setSelectedRoomForImages(room)}
-                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition cursor-pointer"
-                            >
-                                <Camera className="w-3.5 h-3.5" /> Photos
-                            </button>
-                            <button
-                                onClick={() => {
-                                    const action = room.is_active ? 'deactivate' : 'activate';
-                                    if (confirm(`Are you sure you want to ${action} "${room.name}"?${!room.is_active ? '' : ' Users will not be able to book this room while it is inactive.'}`)) {
-                                        toggleActiveMutation.mutate(room.id);
-                                    }
-                                }}
-                                disabled={toggleActiveMutation.isPending}
-                                className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer ${
-                                    room.is_active
-                                        ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200'
-                                        : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
-                                }`}
-                            >
-                                <Power className="w-3 h-3" /> {room.is_active ? 'Deactivate' : 'Activate'}
-                            </button>
-                        </div>
+            {!isLoading && (
+                filteredRooms.length === 0 ? (
+                    <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center shadow-xs">
+                        <DoorOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <h3 className="text-base font-semibold text-slate-800">No rooms found</h3>
+                        <p className="text-sm text-slate-400 mt-1">There are no training rooms associated with this location filter.</p>
                     </div>
-                ))}
-            </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredRooms.map((room) => (
+                            <div key={room.id} className={`bg-white border border-slate-200 shadow-sm rounded-2xl p-5 transition ${!room.is_active ? 'opacity-50' : 'hover:bg-slate-50'}`}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-slate-900">{room.name}</h3>
+                                        <span className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                                            <MapPin className="w-3 h-3" />{room.location?.code || room.location?.name}
+                                        </span>
+                                    </div>
+                                    {!room.is_active && (
+                                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                                            Inactive
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+                                    <span className="flex items-center gap-1"><Users className="w-3 h-3" />{room.capacity} seats</span>
+                                </div>
+
+                                {room.amenities?.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mb-4">
+                                        {room.amenities.map(a => (
+                                            <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                                                {a.replace(/_/g, ' ')}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
+                                    <button
+                                        onClick={() => setEditingRoom(room)}
+                                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition cursor-pointer"
+                                    >
+                                        <Edit2 className="w-3 h-3" /> Edit
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedRoomForBlackout(room)}
+                                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-pink-700 bg-pink-50 hover:bg-pink-100 border border-pink-200 rounded-lg transition cursor-pointer"
+                                    >
+                                        <CalendarOff className="w-3.5 h-3.5" /> Blackouts
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedRoomForImages(room)}
+                                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition cursor-pointer"
+                                    >
+                                        <Camera className="w-3.5 h-3.5" /> Photos
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const action = room.is_active ? 'deactivate' : 'activate';
+                                            if (confirm(`Are you sure you want to ${action} "${room.name}"?${!room.is_active ? '' : ' Users will not be able to book this room while it is inactive.'}`)) {
+                                                toggleActiveMutation.mutate(room.id);
+                                            }
+                                        }}
+                                        disabled={toggleActiveMutation.isPending}
+                                        className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer ${
+                                            room.is_active
+                                                ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200'
+                                                : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                                        }`}
+                                    >
+                                        <Power className="w-3 h-3" /> {room.is_active ? 'Deactivate' : 'Activate'}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            )}
 
             {/* Blackout override modal */}
             {selectedRoomForBlackout && (
