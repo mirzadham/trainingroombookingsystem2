@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, Power } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, Power, Camera } from 'lucide-react';
 import * as api from '../../services/api';
 import BlackoutsModal from '../../components/admin/BlackoutsModal';
+import RoomImagesModal from '../../components/admin/RoomImagesModal';
 
 export default function AdminRooms() {
     const queryClient = useQueryClient();
     const [showForm, setShowForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [selectedRoomForBlackout, setSelectedRoomForBlackout] = useState(null);
+    const [selectedRoomForImages, setSelectedRoomForImages] = useState(null);
 
     const { data: rooms, isLoading } = useQuery({
         queryKey: ['admin-rooms'],
@@ -123,6 +125,12 @@ export default function AdminRooms() {
                                 <CalendarOff className="w-3.5 h-3.5" /> Blackouts
                             </button>
                             <button
+                                onClick={() => setSelectedRoomForImages(room)}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition cursor-pointer"
+                            >
+                                <Camera className="w-3.5 h-3.5" /> Photos
+                            </button>
+                            <button
                                 onClick={() => {
                                     const action = room.is_active ? 'deactivate' : 'activate';
                                     if (confirm(`Are you sure you want to ${action} "${room.name}"?${!room.is_active ? '' : ' Users will not be able to book this room while it is inactive.'}`)) {
@@ -148,6 +156,14 @@ export default function AdminRooms() {
                 <BlackoutsModal
                     room={selectedRoomForBlackout}
                     onClose={() => setSelectedRoomForBlackout(null)}
+                />
+            )}
+
+            {/* Room photos uploader modal */}
+            {selectedRoomForImages && (
+                <RoomImagesModal
+                    room={rooms?.find(r => r.id === selectedRoomForImages.id) || selectedRoomForImages}
+                    onClose={() => setSelectedRoomForImages(null)}
                 />
             )}
 

@@ -120,4 +120,143 @@ class RoomController extends Controller
             'room' => new RoomResource($room->load('location')),
         ]);
     }
+
+    /**
+     * POST /api/admin/rooms/{room}/images
+     * Upload one or more photos for a room.
+     */
+    public function uploadImage(Request $request, Room $room): JsonResponse
+    {
+        $this->authorize('update', $room);
+
+        $request->validate([
+            'files' => 'required|array',
+            'files.*' => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240',
+        ]);
+
+        $uploadedImages = [];
+        $uploadDir = "images/rooms/uploads/{$room->id}";
+        $absoluteDir = public_path($uploadDir);
+
+        if (!is_dir($absoluteDir)) {
+            mkdir($absoluteDir, 0755, true);
+        }
+
+        foreach ($request->file('files') as $file) {
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $cleanName = preg_replace('/[^a-zA-Z0-9_]/', '_', $originalName);
+            $extension = $file->getClientOriginalExtension();
+            $filename = time() . '_' . uniqid() . '_' . $cleanName . '.' . $extension;
+
+            $file->move($absoluteDir, $filename);
+            $uploadedImages[] = '/' . $uploadDir . '/' . $filename;
+        }
+
+        // Set cover image automatically if the room doesn't have a custom one
+        if (empty($room->image_url) || 
+            !str_contains($room->image_url, '/uploads/') || 
+            str_contains($room->image_url, 'default.png') || 
+            str_contains($room->image_url, 'seminar-room-a.png') ||
+            str_contains($room->image_url, 'training-hall.png') ||
+            str_contains($room->image_url, 'training-lab-1.png') ||
+            str_contains($room->image_url, 'boardroom.png') ||
+            str_contains($room->image_url, 'meeting-room-b1.png') ||
+            str_contains($room->image_url, 'collaboration-space.png') ||
+            str_contains($room->image_url, 'innovation-lab.png') ||
+            str_contains($room->image_url, 'meeting-room-k1.png')
+        ) {
+            if (!empty($uploadedImages)) {
+                $room->update(['image_url' => $uploadedImages[0]]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Images uploaded successfully.',
+            'image_url' => $room->image_url,
+            'images' => $room->fresh()->images,
+        ]);
+    }
+
+    /**
+     * DELETE /api/admin/rooms/{room}/images
+     * Delete an uploaded photo from disk.
+     */
+    public function deleteImage(Request $request, Room $room): JsonResponse
+    {
+        $this->authorize('update', $room);
+
+        $request->validate([
+            'image_path' => 'required|string',
+        ]);
+
+        $imagePath = $request->input('image_path');
+        $expectedSubdir = "images/rooms/uploads/{$room->id}";
+        $cleanPath = ltrim(parse_url($imagePath, PHP_URL_PATH), '/');
+        
+        if (!str_starts_with($cleanPath, $expectedSubdir)) {
+            return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
+        }
+
+        $absolutePath = public_path($cleanPath);
+
+        if (file_exists($absolutePath)) {
+            unlink($absolutePath);
+        }
+
+        // Re-assign cover photo if the deleted image was primary
+        $currentCoverRelative = ltrim(parse_url($room->image_url, PHP_URL_PATH), '/');
+        if ($cleanPath === $currentCoverRelative) {
+            $remaining = $room->images;
+            $remaining = array_values(array_filter($remaining, function($img) use ($imagePath) {
+                return $img !== $imagePath;
+            }));
+
+            if (!empty($remaining)) {
+                $room->update(['image_url' => $remaining[0]]);
+            } else {
+                $room->update(['image_url' => '/images/rooms/default.png']);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Image deleted successfully.',
+            'image_url' => $room->fresh()->image_url,
+            'images' => $room->fresh()->images,
+        ]);
+    }
+
+    /**
+     * POST /api/admin/rooms/{room}/images/set-primary
+     * Select which image should be the primary cover image.
+     */
+    public function setPrimaryImage(Request $request, Room $room): JsonResponse
+    {
+        $this->authorize('update', $room);
+
+        $request->validate([
+            'image_path' => 'required|string',
+        ]);
+
+        $imagePath = $request->input('image_path');
+        $expectedSubdir = "images/rooms/uploads/{$room->id}";
+        $cleanPath = ltrim(parse_url($imagePath, PHP_URL_PATH), '/');
+        
+        if (!str_starts_with($cleanPath, $expectedSubdir)) {
+            return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
+        }
+
+        $absolutePath = public_path($cleanPath);
+
+        if (!file_exists($absolutePath)) {
+            return response()->json(['message' => 'Image file not found on server.'], 404);
+        }
+
+        $room->update(['image_url' => '/' . $cleanPath]);
+
+        return response()->json([
+            'message' => 'Cover image updated successfully.',
+            'image_url' => $room->image_url,
+            'images' => $room->images,
+        ]);
+    }
 }

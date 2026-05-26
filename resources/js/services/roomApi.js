@@ -23,3 +23,14 @@ export const deleteRoom = (id) =>
 
 export const toggleRoomActive = (id) =>
     api.post(`/admin/rooms/${id}/toggle-active`).then(r => r.data);
+
+export const uploadRoomImages = (id, formData) =>
+    api.post(`/admin/rooms/${id}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }).then(r => r.data);
+
+export const deleteRoomImage = (id, imagePath) =>
+    api.delete(`/admin/rooms/${id}/images`, { data: { image_path: imagePath } }).then(r => r.data);
+
+export const setRoomPrimaryImage = (id, imagePath) =>
+    api.post(`/admin/rooms/${id}/images/set-primary`, { image_path: imagePath }).then(r => r.data);
