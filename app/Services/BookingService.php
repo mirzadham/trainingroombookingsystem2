@@ -333,6 +333,7 @@ class BookingService
                     'total_occurrences' => $weeks,
                 ]);
 
+                $booking->load(['room.location', 'user']);
                 $bookings->push($booking);
             }
         });
@@ -342,7 +343,7 @@ class BookingService
             $this->notificationService->sendBookingNotification($bookings->first(), 'submitted');
         }
 
-        return $bookings->load(['room.location', 'user']);
+        return $bookings;
     }
 
     /**
