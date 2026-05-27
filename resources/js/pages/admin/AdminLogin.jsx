@@ -37,7 +37,7 @@ export default function AdminLogin() {
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-white">
             {/* Left Panel: Visual/Brand */}
-            <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-900 to-slate-800 p-12 flex-col justify-center relative overflow-hidden">
+            <div className="hidden md:flex md:w-1/2 bg-slate-900 p-12 flex-col justify-center relative overflow-hidden">
                 {/* Background Decor */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-mimos-500/10 rounded-full blur-3xl" />
@@ -54,7 +54,7 @@ export default function AdminLogin() {
                     <div className="my-auto">
                         <h1 className="text-5xl lg:text-7xl font-bold text-white leading-none tracking-tight">
                             COMMAND<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-mimos-400 to-pink-400">CENTER</span>
+                            <span className="text-mimos-400">CENTER</span>
                         </h1>
                     </div>
                     

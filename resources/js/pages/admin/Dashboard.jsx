@@ -5,10 +5,10 @@ import * as api from '../../services/api';
 import Badge from '../../components/ui/Badge';
 
 const STAT_CARDS = [
-    { key: 'pending_count', label: 'Pending Approvals', icon: CalendarCheck, color: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/20' },
-    { key: 'today_bookings', label: "Today's Bookings", icon: Clock, color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/20' },
-    { key: 'total_rooms', label: 'Active Rooms', icon: DoorOpen, color: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20' },
-    { key: 'this_month_bookings', label: 'This Month', icon: TrendingUp, color: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20' },
+    { key: 'pending_count', label: 'Pending Approvals', icon: CalendarCheck, color: 'bg-amber-600', shadow: 'shadow-amber-500/20' },
+    { key: 'today_bookings', label: "Today's Bookings", icon: Clock, color: 'bg-blue-600', shadow: 'shadow-blue-500/20' },
+    { key: 'total_rooms', label: 'Active Rooms', icon: DoorOpen, color: 'bg-emerald-600', shadow: 'shadow-emerald-500/20' },
+    { key: 'this_month_bookings', label: 'This Month', icon: TrendingUp, color: 'bg-violet-600', shadow: 'shadow-violet-500/20' },
 ];
 
 export default function Dashboard() {
@@ -34,12 +34,12 @@ export default function Dashboard() {
                         key={card.key}
                         className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 shadow-xs hover:shadow-xl hover:border-mimos-500/30 hover:-translate-y-0.5 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group relative overflow-hidden"
                     >
-                        {/* Soft ambient light card background gradient */}
-                        <div className={`absolute -right-4 -bottom-4 w-28 h-28 bg-gradient-to-br ${card.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full blur-xl transition-all duration-500`} />
+                        {/* Soft ambient light card background */}
+                        <div className={`absolute -right-4 -bottom-4 w-28 h-28 ${card.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full blur-xl transition-all duration-500`} />
                         
                         <div className="flex items-center justify-between mb-4 relative z-10">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
-                            <div className={`p-2.5 rounded-2xl bg-gradient-to-br ${card.color} shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-300`}>
+                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
+                             <div className={`p-2.5 rounded-2xl ${card.color} shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-300`}>
                                 <card.icon className="w-4.5 h-4.5 text-white" />
                             </div>
                         </div>
@@ -47,7 +47,7 @@ export default function Dashboard() {
                             {isLoading ? (
                                 <span className="text-slate-300 animate-pulse">...</span>
                             ) : (
-                                <span className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+                                <span className="text-slate-900">
                                     {stats[card.key] ?? 0}
                                 </span>
                             )}

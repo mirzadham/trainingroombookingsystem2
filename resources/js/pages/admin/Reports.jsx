@@ -168,11 +168,11 @@ export default function Reports() {
                                             className="h-full rounded-full transition-all duration-700 ease-out shadow-xs group-hover/item:shadow-sm"
                                             style={{
                                                 width: `${room.utilization_pct}%`,
-                                                background: room.utilization_pct > 70
-                                                    ? 'linear-gradient(90deg, #f59e0b, #a72190, #ec4899)'
+                                                backgroundColor: room.utilization_pct > 70
+                                                    ? '#a72190'
                                                     : room.utilization_pct > 30
-                                                        ? 'linear-gradient(90deg, #3b82f6, #6366f1, #a72190)'
-                                                        : 'linear-gradient(90deg, #10b981, #06b6d4)',
+                                                        ? '#3b82f6'
+                                                        : '#10b981',
                                             }}
                                         />
                                     </div>
@@ -225,9 +225,9 @@ export default function Reports() {
                                                 className="w-full rounded-t-full transition-all duration-700 ease-out origin-bottom group-hover/bar:shadow-md"
                                                 style={{
                                                     height: `${Math.max((heightPct / 100) * 160, 6)}px`,
-                                                    background: heightPct > 70
-                                                        ? 'linear-gradient(to top, #a72190, #ec4899, #f43f5e)'
-                                                        : 'linear-gradient(to top, #3b82f6, #6366f1, #a72190)',
+                                                    backgroundColor: heightPct > 70
+                                                        ? '#a72190'
+                                                        : '#6366f1',
                                                 }}
                                             />
                                         </div>

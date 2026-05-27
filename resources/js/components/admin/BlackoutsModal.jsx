@@ -180,7 +180,7 @@ export default function BlackoutsModal({ room, onClose }) {
                                 <button
                                     type="submit"
                                     disabled={createMutation.isPending}
-                                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/30 transition disabled:opacity-50 cursor-pointer"
+                                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/30 transition disabled:opacity-50 cursor-pointer"
                                 >
                                     {createMutation.isPending ? (
                                         <>

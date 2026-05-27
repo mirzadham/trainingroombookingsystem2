@@ -102,7 +102,7 @@ export default function AdminLayout() {
                                 to={item.path}
                                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] group relative overflow-hidden ${
                                     isActive
-                                        ? 'bg-gradient-to-r from-mimos-500/10 to-pink-500/5 text-mimos-600 shadow-xs border-l-4 border-mimos-500 pl-2.5'
+                                        ? 'bg-mimos-500/8 text-mimos-600 shadow-xs border-l-4 border-mimos-500 pl-2.5'
                                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border-l-4 border-transparent'
                                 }`}
                             >
@@ -150,7 +150,7 @@ export default function AdminLayout() {
                 {/* Simulated/Polled Real-Time Floating Glassmorphism Alert */}
                 {showToast && (
                     <div className="fixed top-6 right-6 z-[9999] w-80 bg-slate-900/95 border border-slate-700/80 backdrop-blur-md rounded-2xl shadow-2xl p-4 flex gap-3 items-start animate-slide-in text-white">
-                        <div className="p-2 bg-gradient-to-r from-mimos-500 to-pink-600 rounded-xl shrink-0 shadow-md">
+                        <div className="p-2 bg-mimos-600 rounded-xl shrink-0 shadow-md">
                             <Bell className="w-4 h-4 text-white animate-bounce" />
                         </div>
                         <div className="flex-1 min-w-0">

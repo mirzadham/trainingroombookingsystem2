@@ -242,7 +242,7 @@ export default function RoomImagesModal({ room, onClose }) {
 
                                             {/* Primary Cover Badge */}
                                             {primary && (
-                                                <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] uppercase font-bold tracking-wider shadow-sm flex items-center gap-1">
+                                                <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] uppercase font-bold tracking-wider shadow-sm flex items-center gap-1">
                                                     <Star className="w-3 h-3 fill-white" /> Cover Photo
                                                 </div>
                                             )}

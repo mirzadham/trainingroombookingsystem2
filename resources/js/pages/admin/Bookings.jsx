@@ -304,7 +304,7 @@ export default function AdminBookings() {
                     <Filter className="w-4 h-4" />
                     Advanced Filters
                     {activeFilterCount > 0 && (
-                        <span className="bg-gradient-to-r from-mimos-500 to-mimos-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        <span className="bg-mimos-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                             {activeFilterCount}
                         </span>
                     )}
@@ -696,7 +696,7 @@ export default function AdminBookings() {
                 <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-4 flex-wrap justify-between min-w-[320px] max-w-[90%] md:w-auto">
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Selected</span>
-                        <span className="bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full shadow-md">
+                        <span className="bg-mimos-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full shadow-md">
                             {selectedIds.length}
                         </span>
                     </div>

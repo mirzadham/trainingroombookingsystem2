@@ -119,7 +119,7 @@ export default function ClaimInvite() {
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-white font-sans antialiased">
             {/* Left Panel: Visual/Brand */}
-            <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-950 to-slate-900 p-12 flex-col justify-between relative overflow-hidden">
+            <div className="hidden md:flex md:w-1/2 bg-slate-950 p-12 flex-col justify-between relative overflow-hidden">
                 {/* Background Decor */}
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-mimos-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
@@ -143,7 +143,7 @@ export default function ClaimInvite() {
                         </span>
                         <h1 className="text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
                             WELCOME TO THE<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-mimos-400 via-pink-400 to-pink-500">
+                            <span className="text-mimos-400">
                                 CONTROL TEAM
                             </span>
                         </h1>

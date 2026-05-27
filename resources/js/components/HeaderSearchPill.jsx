@@ -92,7 +92,7 @@ export default function HeaderSearchPill({
             {/* Search Button */}
             <button
                 type="submit"
-                className="ml-1 flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-mimos-500 to-pink-600 text-white text-sm font-semibold shadow-sm hover:shadow transition-all cursor-pointer whitespace-nowrap"
+                className="ml-1 flex items-center gap-1.5 px-4 py-2 rounded-full bg-mimos-500 hover:bg-mimos-600 text-white text-sm font-semibold shadow-sm hover:shadow transition-all cursor-pointer whitespace-nowrap"
             >
                 <Search className="w-3.5 h-3.5" />
                 <span>Search</span>

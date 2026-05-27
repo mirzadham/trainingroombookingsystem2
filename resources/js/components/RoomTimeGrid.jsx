@@ -221,7 +221,7 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
                     className={`
                         w-full py-3 rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2
                         ${step === 2 && duration
-                            ? 'bg-gradient-to-r from-mimos-500 to-pink-600 text-white shadow-lg shadow-mimos-500/25 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
+                            ? 'bg-mimos-500 hover:bg-mimos-600 text-white shadow-lg shadow-mimos-500/25 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
                             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         }
                     `}

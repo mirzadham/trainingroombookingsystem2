@@ -318,7 +318,7 @@ export default function AccountStep({ form }) {
                     disabled={!canProceedToAuthOrSubmit || submitting}
                     loading={submitting}
                     size="lg"
-                    className="flex-1 max-w-xl group py-3.5 text-base bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500 hover:shadow-xl hover:-translate-y-0.5 hover:scale-[1.005] duration-200 transition-all cursor-pointer shadow-lg shadow-mimos-500/20"
+                    className="flex-1 max-w-xl group py-3.5 text-base bg-mimos-500 hover:bg-mimos-600 hover:shadow-xl hover:-translate-y-0.5 hover:scale-[1.005] duration-200 transition-all cursor-pointer shadow-lg shadow-mimos-500/20"
                 >
                     Confirm & Submit Booking
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />

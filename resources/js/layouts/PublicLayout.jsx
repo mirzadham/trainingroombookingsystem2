@@ -79,7 +79,7 @@ export default function PublicLayout() {
                                 >
                                     Calendar
                                     {location.pathname === '/calendar' && (
-                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mimos-500 to-pink-500 rounded-full animate-pulse" />
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-mimos-500 rounded-full animate-pulse" />
                                     )}
                                 </Link>
                                 {isAuthenticated && (
@@ -93,7 +93,7 @@ export default function PublicLayout() {
                                     >
                                         My Bookings
                                         {location.pathname === '/my-bookings' && (
-                                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-mimos-500 to-pink-500 rounded-full animate-pulse" />
+                                            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-mimos-500 rounded-full animate-pulse" />
                                         )}
                                     </Link>
                                 )}
@@ -126,7 +126,7 @@ export default function PublicLayout() {
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                                         className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 bg-white/95 border border-slate-200/60 rounded-xl text-slate-700 hover:text-mimos-500 hover:border-mimos-500/30 hover:scale-[1.02] shadow-sm hover:shadow transition-all duration-300 cursor-pointer"
                                     >
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-mimos-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                        <div className="w-6 h-6 rounded-full bg-mimos-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                             {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-3 h-3" />}
                                         </div>
                                         <span className="hidden sm:inline text-sm font-semibold max-w-[100px] truncate">{user?.name}</span>
@@ -188,7 +188,7 @@ export default function PublicLayout() {
                             ) : (
                                 <Link
                                     to="/login"
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] shadow-md shadow-mimos-500/10 hover:shadow-mimos-500/25 text-white rounded-xl transition-all duration-300 font-semibold text-sm"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-mimos-500 hover:bg-mimos-600 hover:scale-[1.02] shadow-md shadow-mimos-500/10 hover:shadow-mimos-500/25 text-white rounded-xl transition-all duration-300 font-semibold text-sm"
                                 >
                                     <LogIn className="w-4 h-4" />
                                     <span>Sign In</span>

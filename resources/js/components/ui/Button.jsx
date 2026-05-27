@@ -1,7 +1,7 @@
 import React from 'react';
 
 const variants = {
-    primary: 'bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40',
+    primary: 'bg-mimos-500 hover:bg-mimos-600 text-white shadow-lg shadow-mimos-500/25 hover:shadow-mimos-500/40',
     secondary: 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-700',
     danger: 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/25',
     ghost: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100',

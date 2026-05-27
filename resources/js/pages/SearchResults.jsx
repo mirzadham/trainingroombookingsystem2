@@ -102,7 +102,7 @@ export default function SearchResults() {
                     </p>
                     <button
                         onClick={() => navigate('/')}
-                        className="px-6 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer"
+                        className="px-6 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer"
                     >
                         New Search
                     </button>

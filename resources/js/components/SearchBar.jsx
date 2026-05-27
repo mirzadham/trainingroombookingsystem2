@@ -111,7 +111,7 @@ export default function SearchBar({
                 <div className="mt-3 flex justify-end">
                     <button
                         type="submit"
-                        className="group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] text-white text-sm font-semibold rounded-xl shadow-md shadow-mimos-500/10 hover:shadow-mimos-500/20 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-2 px-6 py-2.5 bg-mimos-500 hover:bg-mimos-600 hover:scale-[1.02] active:scale-[0.98] text-white text-sm font-semibold rounded-xl shadow-md shadow-mimos-500/10 hover:shadow-mimos-500/20 transition-all duration-300 cursor-pointer"
                     >
                         <Search className="w-4 h-4" />
                         Search
@@ -187,7 +187,7 @@ export default function SearchBar({
                 <div className="mt-8 flex justify-center">
                     <button
                         type="submit"
-                        className="group flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-2 px-10 py-4 bg-mimos-500 hover:bg-mimos-600 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"
                     >
                         <Search className="w-5 h-5" />
                         <span>Search Available Rooms</span>

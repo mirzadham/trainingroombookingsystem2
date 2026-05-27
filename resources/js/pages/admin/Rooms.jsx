@@ -68,7 +68,7 @@ export default function AdminRooms() {
                         </div>
                         <button
                             onClick={() => setShowForm(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer shrink-0"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer shrink-0"
                         >
                             <Plus className="w-4 h-4" /> Add Room
                         </button>
@@ -317,7 +317,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading }) {
                                         onClick={() => toggleAmenity(item.value)}
                                         className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-200 cursor-pointer ${
                                             isSelected
-                                                ? 'bg-gradient-to-r from-mimos-500/10 to-pink-500/10 border-mimos-300 text-mimos-700 shadow-sm'
+                                                ? 'bg-mimos-500/10 border-mimos-300 text-mimos-700 shadow-sm'
                                                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                                         }`}
                                     >
@@ -375,7 +375,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading }) {
                 <div className="sm:col-span-2 flex gap-3 pt-4 border-t border-slate-200">
                     <button type="button" onClick={onCancel} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancel</button>
                     <button type="submit" disabled={isLoading}
-                        className="px-6 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-medium rounded-xl disabled:opacity-50 transition cursor-pointer">
+                        className="px-6 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-medium rounded-xl disabled:opacity-50 transition cursor-pointer">
                         {isLoading ? 'Saving...' : room ? 'Update Room' : 'Create Room'}
                     </button>
                 </div>

@@ -43,7 +43,7 @@ export default function BookingWizard() {
                         <React.Fragment key={label}>
                             <div className={`flex items-center gap-2.5 text-xs font-bold shrink-0 transition-colors duration-300 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold transition-all duration-300 ${
-                                    isCompleted ? 'bg-gradient-to-br from-mimos-500 to-pink-500 text-white shadow-md shadow-mimos-500/20' :
+                                    isCompleted ? 'bg-mimos-500 text-white shadow-md shadow-mimos-500/20' :
                                     isActive ? 'bg-white border-2 border-mimos-500 text-mimos-500 shadow-md shadow-mimos-500/10' :
                                     'bg-slate-50 border border-slate-200/80 text-slate-400'
                                 }`}>
@@ -52,7 +52,7 @@ export default function BookingWizard() {
                                 <span className="hidden sm:inline tracking-wider uppercase text-[10px]">{label}</span>
                             </div>
                             {i < STEPS.length - 1 && (
-                                <div className={`flex-1 h-[2px] mx-3 sm:mx-5 rounded-full ${isCompleted ? 'bg-gradient-to-r from-mimos-500 to-pink-500' : 'bg-slate-200'}`} />
+                                <div className={`flex-1 h-[2px] mx-3 sm:mx-5 rounded-full ${isCompleted ? 'bg-mimos-500' : 'bg-slate-200'}`} />
                             )}
                         </React.Fragment>
                     );
@@ -80,7 +80,7 @@ export default function BookingWizard() {
                         {/* Right Column: Sticky Live Summary */}
                         <div className="w-full lg:w-[380px] shrink-0 sticky top-8 animate-in fade-in slide-in-from-right-4 duration-500">
                             <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden relative">
-                                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-mimos-500 via-pink-500 to-indigo-500" />
+                                <div className="absolute top-0 left-0 right-0 h-[3px] bg-mimos-500" />
                                 <div className="bg-slate-50/50 border-b border-slate-200/50 p-6">
                                     <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-1">Booking Summary</h3>
                                     <p className="text-[11px] text-slate-500 font-medium">Verify details before confirming</p>
@@ -144,16 +144,19 @@ export default function BookingWizard() {
                                     {(form.title || form.attendees) && (
                                         <>
                                             <div className="h-px bg-slate-100" />
-                                            <div className="space-y-4">
+                                            <div className="bg-slate-50/70 rounded-2xl border border-slate-100 p-4 space-y-4">
                                                 {form.title && (
                                                     <div>
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Purpose</div>
-                                                        <div className="text-sm text-slate-700 font-medium line-clamp-2 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">{form.title}</div>
+                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Purpose</div>
+                                                        <div className="text-sm text-slate-700 font-medium line-clamp-2 leading-relaxed">{form.title}</div>
                                                     </div>
                                                 )}
+                                                
+                                                {form.title && form.attendees && <div className="h-px bg-slate-200/60" />}
+                                                
                                                 {form.attendees && (
                                                     <div>
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Attendees</div>
+                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Attendees</div>
                                                         <div className="text-sm text-slate-700 font-semibold">{form.attendees} people</div>
                                                     </div>
                                                 )}
@@ -163,7 +166,7 @@ export default function BookingWizard() {
                                 </div>
                                 
                                 {/* Visual Footer */}
-                                <div className="h-1.5 bg-gradient-to-r from-mimos-500 to-pink-600" />
+                                <div className="h-1.5 bg-mimos-600" />
                             </div>
                         </div>
                     </div>

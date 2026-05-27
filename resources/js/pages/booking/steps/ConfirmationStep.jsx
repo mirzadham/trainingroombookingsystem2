@@ -30,7 +30,7 @@ export default function ConfirmationStep({ form }) {
 
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 mb-8 text-left max-w-sm mx-auto shadow-inner relative overflow-hidden">
                 {/* Decorative element */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-mimos-500/10 to-pink-500/10 rounded-bl-full -mr-4 -mt-4" />
+                <div className="absolute top-0 right-0 w-24 h-24 bg-mimos-500/5 rounded-bl-full -mr-4 -mt-4" />
                 
                 <div className="space-y-4 relative z-10">
                     <div>

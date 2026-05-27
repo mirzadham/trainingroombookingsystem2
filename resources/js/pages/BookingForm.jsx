@@ -228,7 +228,7 @@ export default function BookingForm() {
                     <button
                         onClick={handleNext}
                         disabled={!canProceedToReview}
-                        className="group w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="group w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                     >
                         Review Booking
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -284,7 +284,7 @@ export default function BookingForm() {
                         <button
                             onClick={handleNext}
                             disabled={submitting}
-                            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-50 cursor-pointer"
                         >
                             {submitting ? (
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -355,7 +355,7 @@ export default function BookingForm() {
                             </div>
                         )}
                         <button type="submit" disabled={authLoading}
-                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-50 cursor-pointer">
+                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all disabled:opacity-50 cursor-pointer">
                             {authLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : authMode === 'login' ? 'Sign In & Book' : 'Register & Book'}
                         </button>
                     </form>
@@ -384,7 +384,7 @@ export default function BookingForm() {
                         <button onClick={() => navigate('/my-bookings')} className="flex-1 px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition cursor-pointer">
                             My Bookings
                         </button>
-                        <button onClick={() => navigate('/')} className="flex-1 px-6 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-semibold rounded-xl transition cursor-pointer">
+                        <button onClick={() => navigate('/')} className="flex-1 px-6 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl transition cursor-pointer">
                             Book Another
                         </button>
                     </div>

@@ -30,7 +30,7 @@ export default class ErrorBoundary extends React.Component {
                         </p>
                         <button
                             onClick={() => window.location.reload()}
-                            className="px-6 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all cursor-pointer"
+                            className="px-6 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/25 transition-all cursor-pointer"
                         >
                             Refresh Page
                         </button>

@@ -119,8 +119,8 @@ export default function LocationPicker({
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                 </div>
-                                {/* Dark Gradient Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                                {/* Dark Overlay */}
+                                <div className="absolute inset-0 bg-slate-900/50 opacity-80 group-hover:opacity-90 transition-opacity" />
                                 
                                 <div className="absolute inset-0 p-4 flex flex-col justify-end">
                                     <h3 className="text-base font-bold text-white mb-0.5 drop-shadow-md">{loc.name}</h3>

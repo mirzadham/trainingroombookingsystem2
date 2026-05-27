@@ -144,7 +144,7 @@ export default function AdminUsers() {
                 </div>
                 <button
                     onClick={() => setShowInviteModal(true)}
-                    className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-mimos-500 to-pink-600 hover:from-mimos-600 hover:to-pink-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-mimos-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
+                    className="flex items-center justify-center gap-2 px-5 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold text-sm rounded-xl shadow-lg shadow-mimos-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
                 >
                     <UserPlus className="w-4 h-4" /> Invite Administrator
                 </button>
@@ -588,7 +588,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-semibold rounded-xl hover:opacity-95 disabled:opacity-50 transition cursor-pointer"
+                            className="flex-1 px-4 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl disabled:opacity-50 transition cursor-pointer"
                         >
                             {isLoading ? 'Sending...' : 'Send Invite'}
                         </button>
@@ -740,7 +740,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-mimos-500 to-pink-600 text-white font-semibold rounded-xl hover:opacity-95 disabled:opacity-50 transition cursor-pointer"
+                            className="flex-1 px-4 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl disabled:opacity-50 transition cursor-pointer"
                         >
                             {isLoading ? 'Saving...' : 'Update Details'}
                         </button>

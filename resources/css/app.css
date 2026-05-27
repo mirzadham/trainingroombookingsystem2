@@ -62,31 +62,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: none;
 }
 
-/* Ambient gradient mesh drifting */
-@keyframes mesh-drift {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.08);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.95);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
 
-.animate-mesh-drift-1 {
-  animation: mesh-drift 18s infinite alternate ease-in-out;
-}
-.animate-mesh-drift-2 {
-  animation: mesh-drift 24s infinite alternate-reverse ease-in-out;
-}
-.animate-mesh-drift-3 {
-  animation: mesh-drift 16s infinite alternate ease-in-out;
-}
 
 /* Success Checkmark Animation */
 @keyframes checkmark-circle {
