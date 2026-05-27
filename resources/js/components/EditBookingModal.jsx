@@ -89,7 +89,7 @@ export default function EditBookingModal({ booking, onClose, onSave, isSaving })
         <div
             ref={backdropRef}
             onClick={handleBackdropClick}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
         >
             <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl shadow-slate-900/20 border border-slate-200/50 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
                 {/* Header */}

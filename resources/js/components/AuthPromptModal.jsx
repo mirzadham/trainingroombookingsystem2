@@ -44,7 +44,7 @@ export default function AuthPromptModal({ isOpen, onClose, redirectUrl }) {
 
     return (
         <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-50 flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] z-[100] flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
             onClick={onClose}
         >
             <div 

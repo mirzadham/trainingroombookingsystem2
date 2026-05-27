@@ -95,7 +95,7 @@ export default function BlackoutsModal({ room, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-fade-in">
             <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-100 animate-slide-up">
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">

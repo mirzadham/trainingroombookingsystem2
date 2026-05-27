@@ -247,7 +247,7 @@ export default function PublicLayout() {
             />
 
             {/* Main Content */}
-            <main className="flex-grow relative z-10">
+            <main className="flex-grow relative">
                 <Outlet />
             </main>
 
