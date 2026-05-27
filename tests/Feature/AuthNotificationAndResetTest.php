@@ -114,13 +114,13 @@ class AuthNotificationAndResetTest extends TestCase
         $bookingService = app(BookingService::class);
         $booking = $bookingService->create($bookingData, $user);
 
-        // Assert notification logged in database
+        // Assert notification logged in database (remains pending because Notification::fake() is used)
         $this->assertDatabaseHas('booking_notifications', [
             'user_id' => $user->id,
             'booking_id' => $booking->id,
             'type' => 'submitted',
             'channel' => 'email',
-            'status' => 'sent',
+            'status' => 'pending',
         ]);
 
         Notification::assertSentTo($user, BookingStatusChangedNotification::class);
