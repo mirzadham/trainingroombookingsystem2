@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Building2 } from 'lucide-react';
+import { assetPath } from '../../utils/basePath';
 
 export default function LocationPicker({
     id,
@@ -37,18 +38,18 @@ export default function LocationPicker({
     const getLocationDetails = (loc) => {
         if (loc.code === 'KHTP') {
             return {
-                image: '/images/locations/khtp.png',
+                image: assetPath('/images/locations/khtp.png'),
                 description: 'Kulim Hi-Tech Park.',
             };
         }
         if (loc.code === 'TPM') {
             return {
-                image: '/images/locations/tpm.png',
+                image: assetPath('/images/locations/tpm.png'),
                 description: 'Technology Park Malaysia.',
             };
         }
         return {
-            image: '/images/MIMOS-Academy.png',
+            image: assetPath('/images/MIMOS-Academy.png'),
             description: loc.address || 'Premium facility.',
         };
     };

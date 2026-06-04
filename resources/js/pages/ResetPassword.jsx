@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { assetPath } from '../utils/basePath';
 
 export default function ResetPassword() {
     const [searchParams] = useSearchParams();
@@ -65,7 +66,7 @@ export default function ResetPassword() {
                 <div className="relative z-10 h-full flex flex-col justify-between">
                     <div>
                         <Link to="/" className="inline-block mb-12">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/20" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-8 w-auto bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/20" />
                         </Link>
                     </div>
                     
@@ -87,7 +88,7 @@ export default function ResetPassword() {
                 <div className="w-full max-w-[380px]">
                     <div className="md:hidden mb-12">
                         <Link to="/">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-8 w-auto" />
                         </Link>
                     </div>
 

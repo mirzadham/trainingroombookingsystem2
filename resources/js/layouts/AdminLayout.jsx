@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import * as api from '../services/api';
+import { assetPath } from '../utils/basePath';
 import { 
     LayoutDashboard, 
     CalendarCheck, 
@@ -88,7 +89,7 @@ export default function AdminLayout() {
                 {/* Logo */}
                 <div className="p-6 border-b border-slate-200/55 flex flex-col gap-2">
                     <Link to="/admin" className="flex items-center gap-3">
-                        <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-10 w-auto" />
+                        <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-10 w-auto" />
                     </Link>
                 </div>
 

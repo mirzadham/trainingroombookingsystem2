@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, Users, Loader2, Monitor, Wifi, Coffee, Maximize, Che
 import { createPortal } from 'react-dom';
 import * as api from '../services/api';
 import RoomTimeGrid from '../components/RoomTimeGrid';
+import { assetPath } from '../utils/basePath';
 
 /**
  * Helper to deterministically generate 5 room photo URLs using existing assets.
@@ -37,7 +38,7 @@ function getRoomImages(room) {
             photos.push(otherImages[i]);
             i++;
         }
-        return photos;
+        return photos.map(img => assetPath(img));
     }
     
     // Fallback if no images array is returned from backend
@@ -61,7 +62,7 @@ function getRoomImages(room) {
     const img4 = otherImages[(roomId + 2) % otherImages.length];
     const img5 = otherImages[(roomId + 3) % otherImages.length];
     
-    return [mainImg, img2, img3, img4, img5];
+    return [mainImg, img2, img3, img4, img5].map(img => assetPath(img));
 }
 
 // Fallback icon mapping for amenities

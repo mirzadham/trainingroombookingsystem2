@@ -4,6 +4,7 @@ import { LogIn, LogOut, User, ChevronDown, Menu, X, Calendar, BookOpen, Search }
 import { useAuth } from '../hooks/useAuth';
 import HeaderSearchPill from '../components/HeaderSearchPill';
 import HeaderSearchModal from '../components/HeaderSearchModal';
+import { assetPath } from '../utils/basePath';
 
 export default function PublicLayout() {
     const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -48,7 +49,7 @@ export default function PublicLayout() {
                     <div className="flex items-center justify-between h-20">
                         {/* Left: Logo */}
                         <Link to="/" className="flex items-center gap-3 group flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Academy" className="h-9 w-auto" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Academy" className="h-9 w-auto" />
                         </Link>
 
                         {/* Center: Pill Search — hidden on mobile, shown on md+ */}

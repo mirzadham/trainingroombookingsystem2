@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, MapPin, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as api from '../services/api';
+import { assetPath } from '../utils/basePath';
 
 export default function SearchResults() {
     const [searchParams] = useSearchParams();
@@ -134,7 +135,7 @@ function getRoomImages(room) {
     
     // Prioritize real uploaded images array if available
     if (room.images && room.images.length > 0) {
-        return room.images; // Return ONLY the real images for the search card slider
+        return room.images.map(img => assetPath(img)); // Return ONLY the real images for the search card slider
     }
     
     // Fallback if no images array is returned from backend
@@ -157,7 +158,7 @@ function getRoomImages(room) {
     const img4 = otherImages[(roomId + 2) % otherImages.length];
     const img5 = otherImages[(roomId + 3) % otherImages.length];
     
-    return [mainImg, img2, img3, img4, img5];
+    return [mainImg, img2, img3, img4, img5].map(img => assetPath(img));
 }
 
 /**

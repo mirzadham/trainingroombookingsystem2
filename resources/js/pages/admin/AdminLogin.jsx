@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Lock, Mail, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { assetPath } from '../../utils/basePath';
 
 export default function AdminLogin() {
     const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ export default function AdminLogin() {
                 <div className="relative z-10 h-full flex flex-col justify-between">
                     <div>
                         <a href="/" className="inline-block mb-12">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/20" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-8 w-auto bg-white/10 p-1.5 rounded-lg backdrop-blur-md border border-white/20" />
                         </a>
                     </div>
                     
@@ -69,7 +70,7 @@ export default function AdminLogin() {
                 <div className="w-full max-w-[380px]">
                     <div className="md:hidden mb-12">
                         <a href="/">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-8 w-auto" />
                         </a>
                     </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Building2, Lock, Mail, Eye, EyeOff, ArrowRight, UserPlus, Phone } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { assetPath } from '../utils/basePath';
 
 export default function Login() {
     const [searchParams] = useSearchParams();
@@ -86,7 +87,7 @@ export default function Login() {
                 <div className="w-full max-w-[380px]">
                     <div className="md:hidden mb-12">
                         <Link to="/">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-8 w-auto" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-8 w-auto" />
                         </Link>
                     </div>
 

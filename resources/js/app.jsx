@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './hooks/useAuth';
 import AppRouter from './AppRouter';
 import ErrorBoundary from './components/ErrorBoundary';
+import { BASE_PATH } from './utils/basePath';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -23,7 +24,7 @@ root.render(
     <React.StrictMode>
         <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
-                <BrowserRouter>
+                <BrowserRouter basename={BASE_PATH}>
                     <AuthProvider>
                         <AppRouter />
                     </AuthProvider>

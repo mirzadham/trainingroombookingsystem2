@@ -3,13 +3,14 @@ import {
     USER_TOKEN_KEY, USER_DATA_KEY,
     ADMIN_TOKEN_KEY, ADMIN_DATA_KEY,
 } from '../constants/authKeys';
+import { BASE_PATH } from '../utils/basePath';
 
 /**
  * Shared Axios instance with auth interceptors.
  * Domain-specific API modules import this client.
  */
 const apiClient = axios.create({
-    baseURL: '/api',
+    baseURL: `${BASE_PATH}/api`,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

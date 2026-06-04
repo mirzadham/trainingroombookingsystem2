@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { validateInviteToken } from '../../services/api';
+import { assetPath } from '../../utils/basePath';
 
 export default function ClaimInvite() {
     const [searchParams] = useSearchParams();
@@ -130,7 +131,7 @@ export default function ClaimInvite() {
                     <div>
                         <Link to="/" className="inline-block mb-12 transition-transform duration-300 hover:scale-[1.02]">
                             <img 
-                                src="/images/MIMOS-Academy.png" 
+                                src={assetPath('/images/MIMOS-Academy.png')} 
                                 alt="MIMOS Logo" 
                                 className="h-9 w-auto bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20" 
                             />
@@ -165,7 +166,7 @@ export default function ClaimInvite() {
                     {/* Small brand header for mobile */}
                     <div className="md:hidden flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
                         <Link to="/">
-                            <img src="/images/MIMOS-Academy.png" alt="MIMOS Logo" className="h-7 w-auto" />
+                            <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-7 w-auto" />
                         </Link>
                         <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded">Admin Access</span>
                     </div>

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
+import { assetPath } from '../../../utils/basePath';
 
 const allImages = [
     '/images/rooms/seminar-room-a.png',
@@ -42,7 +43,7 @@ export default function AccountStep({ form }) {
 
     // Prioritize actual dynamic image URL passed from search/details view
     const roomIdVal = parseInt(roomInfo.roomId) || 0;
-    const roomImage = roomInfo.imageUrl || allImages[roomIdVal % allImages.length];
+    const roomImage = assetPath(roomInfo.imageUrl || allImages[roomIdVal % allImages.length]);
 
     // Helper to calculate exact duration between start and end times
     const calculateDuration = (start, end) => {
