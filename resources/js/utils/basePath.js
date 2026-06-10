@@ -15,6 +15,11 @@ export const BASE_PATH = raw.endsWith('/') ? raw.slice(0, -1) : raw;
  * Usage: assetPath('/images/rooms/photo.png') → '/roombooking/images/rooms/photo.png'
  */
 export function assetPath(path) {
+    if (!path) return '';
+    // If the path is an absolute/external URL, do not prepend the base path
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//')) {
+        return path;
+    }
     if (!BASE_PATH) return path;
     // Avoid double-prefixing
     if (path.startsWith(BASE_PATH)) return path;

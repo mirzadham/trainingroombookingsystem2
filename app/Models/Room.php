@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class Room extends Model
 {
@@ -60,7 +61,6 @@ class Room extends Model
 
     /**
      * Get all images associated with this room.
-     * Scans the folder of the room's main image if it's in a subfolder.
      */
     public function getImagesAttribute(): array
     {
@@ -68,34 +68,23 @@ class Room extends Model
             return [];
         }
 
-        // Standard placeholders are directly in /images/rooms/
-        // Real room-specific galleries are in subfolders like /images/rooms/khtp/{room}/
-        $dirName = str_replace('\\', '/', dirname($this->image_url));
-        
-        // If the main image is directly in /images/rooms or not structured, return it alone
-        if ($dirName === '/images/rooms' || $dirName === 'images/rooms' || $dirName === '/' || $dirName === '.') {
+        // If it's a default static placeholder asset (does not contain a room-specific upload folder like '/rooms/{id}/'), return it alone
+        if (!preg_match('/\/rooms\/\d+\//', $this->image_url)) {
             return [$this->image_url];
         }
 
         // Cache the scanned directory result to avoid disk read overhead
-        return Cache::remember("room_images_gallery:{$this->id}", 86400, function () use ($dirName) {
-            $absoluteDir = public_path($dirName);
+        return Cache::remember("room_images_gallery:{$this->id}", 86400, function () {
+            $diskName = env('FILESYSTEM_DISK', 's3');
+            $disk = Storage::disk($diskName);
+            $directory = "rooms/{$this->id}";
 
-            if (is_dir($absoluteDir)) {
-                $files = scandir($absoluteDir);
-                $images = [];
-                $validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-
-                foreach ($files as $file) {
-                    if ($file === '.' || $file === '..') {
-                        continue;
-                    }
-
-                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                    if (in_array($ext, $validExtensions)) {
-                        $images[] = rtrim($dirName, '/') . '/' . $file;
-                    }
-                }
+            if ($disk->exists($directory)) {
+                $files = $disk->files($directory);
+                
+                $images = array_map(function ($file) use ($disk) {
+                    return $disk->url($file);
+                }, $files);
 
                 if (!empty($images)) {
                     sort($images);

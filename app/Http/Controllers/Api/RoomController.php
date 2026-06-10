@@ -10,6 +10,7 @@ use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class RoomController extends Controller
 {
@@ -138,12 +139,8 @@ class RoomController extends Controller
         ]);
 
         $uploadedImages = [];
-        $uploadDir = "images/rooms/uploads/{$room->id}";
-        $absoluteDir = public_path($uploadDir);
-
-        if (!is_dir($absoluteDir)) {
-            mkdir($absoluteDir, 0755, true);
-        }
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        $disk = Storage::disk($diskName);
 
         foreach ($request->file('files') as $file) {
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
@@ -151,23 +148,17 @@ class RoomController extends Controller
             $extension = $file->getClientOriginalExtension();
             $filename = time() . '_' . uniqid() . '_' . $cleanName . '.' . $extension;
 
-            $file->move($absoluteDir, $filename);
-            $uploadedImages[] = '/' . $uploadDir . '/' . $filename;
+            $path = "rooms/{$room->id}/{$filename}";
+            
+            // Put file onto the configured disk (S3/R2 or local public)
+            $disk->put($path, file_get_contents($file), 'public');
+            
+            // Store the full URL to the database
+            $uploadedImages[] = $disk->url($path);
         }
 
         // Set cover image automatically if the room doesn't have a custom one
-        if (empty($room->image_url) || 
-            !str_contains($room->image_url, '/uploads/') || 
-            str_contains($room->image_url, 'default.png') || 
-            str_contains($room->image_url, 'seminar-room-a.png') ||
-            str_contains($room->image_url, 'training-hall.png') ||
-            str_contains($room->image_url, 'training-lab-1.png') ||
-            str_contains($room->image_url, 'boardroom.png') ||
-            str_contains($room->image_url, 'meeting-room-b1.png') ||
-            str_contains($room->image_url, 'collaboration-space.png') ||
-            str_contains($room->image_url, 'innovation-lab.png') ||
-            str_contains($room->image_url, 'meeting-room-k1.png')
-        ) {
+        if (empty($room->image_url) || !preg_match('/\/rooms\/\d+\//', $room->image_url)) {
             if (!empty($uploadedImages)) {
                 $room->update(['image_url' => $uploadedImages[0]]);
             }
@@ -195,22 +186,28 @@ class RoomController extends Controller
         ]);
 
         $imagePath = $request->input('image_path');
-        $expectedSubdir = "images/rooms/uploads/{$room->id}";
-        $cleanPath = ltrim(parse_url($imagePath, PHP_URL_PATH), '/');
         
-        if (!str_starts_with($cleanPath, $expectedSubdir)) {
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        $disk = Storage::disk($diskName);
+        $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
+        $relativeKey = ltrim($parsedUrl, '/');
+
+        // If local storage is used, the URL has "/storage/rooms/..." prefix
+        if ($diskName === 'public' && str_starts_with($relativeKey, 'storage/')) {
+            $relativeKey = substr($relativeKey, 8);
+        }
+
+        // Security check: ensure the image path belongs to this room
+        if (!str_starts_with($relativeKey, "rooms/{$room->id}/")) {
             return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
         }
 
-        $absolutePath = public_path($cleanPath);
-
-        if (file_exists($absolutePath)) {
-            unlink($absolutePath);
+        if ($disk->exists($relativeKey)) {
+            $disk->delete($relativeKey);
         }
 
         // Re-assign cover photo if the deleted image was primary
-        $currentCoverRelative = ltrim(parse_url($room->image_url, PHP_URL_PATH), '/');
-        if ($cleanPath === $currentCoverRelative) {
+        if ($room->image_url === $imagePath) {
             $remaining = $room->images;
             $remaining = array_values(array_filter($remaining, function($img) use ($imagePath) {
                 return $img !== $imagePath;
@@ -245,20 +242,27 @@ class RoomController extends Controller
         ]);
 
         $imagePath = $request->input('image_path');
-        $expectedSubdir = "images/rooms/uploads/{$room->id}";
-        $cleanPath = ltrim(parse_url($imagePath, PHP_URL_PATH), '/');
         
-        if (!str_starts_with($cleanPath, $expectedSubdir)) {
+        $diskName = env('FILESYSTEM_DISK', 's3');
+        $disk = Storage::disk($diskName);
+        $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
+        $relativeKey = ltrim($parsedUrl, '/');
+
+        // If local storage is used, the URL has "/storage/rooms/..." prefix
+        if ($diskName === 'public' && str_starts_with($relativeKey, 'storage/')) {
+            $relativeKey = substr($relativeKey, 8);
+        }
+
+        // Security check: ensure the image path belongs to this room
+        if (!str_starts_with($relativeKey, "rooms/{$room->id}/")) {
             return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
         }
 
-        $absolutePath = public_path($cleanPath);
-
-        if (!file_exists($absolutePath)) {
+        if (!$disk->exists($relativeKey)) {
             return response()->json(['message' => 'Image file not found on server.'], 404);
         }
 
-        $room->update(['image_url' => '/' . $cleanPath]);
+        $room->update(['image_url' => $imagePath]);
 
         Cache::forget("room_images_gallery:{$room->id}");
 

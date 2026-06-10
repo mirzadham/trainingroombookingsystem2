@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Upload, Trash2, Check, Star, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import * as api from '../../services/api';
+import { assetPath } from '../../utils/basePath';
 
 export default function RoomImagesModal({ room, onClose }) {
     const queryClient = useQueryClient();
@@ -235,7 +236,7 @@ export default function RoomImagesModal({ room, onClose }) {
                                         >
                                             {/* Room Image */}
                                             <img
-                                                src={img}
+                                                src={assetPath(img)}
                                                 alt={room.name}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                             />

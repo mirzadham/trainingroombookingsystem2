@@ -16,7 +16,7 @@ function getRoomImages(room) {
     // Prioritize real uploaded images array if available
     if (room.images && room.images.length > 0) {
         if (room.images.length >= 5) {
-            return room.images.slice(0, 5); // Take up to first 5
+            return room.images.slice(0, 5).map(img => assetPath(img)); // Take up to first 5
         }
         
         // If we have fewer than 5 images, pad them with default placeholders to preserve the 5-photo grid layout
@@ -149,7 +149,7 @@ export default function RoomDetails() {
     }
 
     const photos = getRoomImages(room);
-    const galleryImages = room.images && room.images.length > 0 ? room.images : photos;
+    const galleryImages = room.images && room.images.length > 0 ? room.images.map(img => assetPath(img)) : photos;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
