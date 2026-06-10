@@ -6,8 +6,9 @@ use App\Models\AdminInvitation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class AdminInvitationNotification extends Notification
+class AdminInvitationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

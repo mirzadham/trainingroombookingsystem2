@@ -125,4 +125,46 @@ class AuthNotificationAndResetTest extends TestCase
 
         Notification::assertSentTo($user, BookingStatusChangedNotification::class);
     }
+
+    public function test_booking_notification_tracks_attempts_and_success_without_fake(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'test@mimos.my',
+        ]);
+
+        $location = Location::create([
+            'name' => 'Kuala Lumpur HQ',
+            'code' => 'KLHQ',
+        ]);
+
+        $room = Room::create([
+            'location_id' => $location->id,
+            'name' => 'Auditorium Alpha',
+            'capacity' => 50,
+            'is_active' => true,
+        ]);
+
+        $bookingData = [
+            'room_id' => $room->id,
+            'title' => 'Project Kickoff Meeting',
+            'description' => 'Important internal alignment',
+            'start_time' => now()->addDays(2)->setTime(10, 0, 0)->toDateTimeString(),
+            'end_time' => now()->addDays(2)->setTime(11, 0, 0)->toDateTimeString(),
+            'attendees' => 20,
+            'phone' => '+60123456789',
+        ];
+
+        $bookingService = app(BookingService::class);
+        $booking = $bookingService->create($bookingData, $user);
+
+        // Assert notification database record transitions to 'sent' and 'attempts' is 1
+        $this->assertDatabaseHas('booking_notifications', [
+            'user_id' => $user->id,
+            'booking_id' => $booking->id,
+            'type' => 'submitted',
+            'channel' => 'email',
+            'status' => 'sent',
+            'attempts' => 1,
+        ]);
+    }
 }

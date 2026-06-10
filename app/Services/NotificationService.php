@@ -26,7 +26,6 @@ class NotificationService
         ]);
 
         try {
-            $notifRecord->increment('attempts');
             $recipient->notify(new BookingStatusChangedNotification($booking, $type));
         } catch (Exception $e) {
             Log::error('Booking email notification dispatch failed', [

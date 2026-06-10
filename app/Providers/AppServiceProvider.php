@@ -32,6 +32,21 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Room::class, RoomPolicy::class);
 
+        // Listen for booking notification delivery attempt
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Notifications\Events\NotificationSending::class,
+            function (\Illuminate\Notifications\Events\NotificationSending $event) {
+                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+                    $booking = $event->notification->getBooking();
+                    $type = $event->notification->getType();
+
+                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                        ->where('type', $type)
+                        ->increment('attempts');
+                }
+            }
+        );
+
         // Listen for booking notification delivery success
         \Illuminate\Support\Facades\Event::listen(
             \Illuminate\Notifications\Events\NotificationSent::class,
