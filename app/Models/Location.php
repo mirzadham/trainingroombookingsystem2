@@ -14,6 +14,8 @@ class Location extends Model
         'name',
         'code',
         'address',
+        'image_url',
+        'description',
         'is_active',
     ];
 

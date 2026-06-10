@@ -36,21 +36,9 @@ export default function LocationPicker({
 
     // Map content to locations
     const getLocationDetails = (loc) => {
-        if (loc.code === 'KHTP') {
-            return {
-                image: assetPath('/images/locations/khtp.png'),
-                description: 'Kulim Hi-Tech Park.',
-            };
-        }
-        if (loc.code === 'TPM') {
-            return {
-                image: assetPath('/images/locations/tpm.png'),
-                description: 'Technology Park Malaysia.',
-            };
-        }
         return {
-            image: assetPath('/images/MIMOS-Academy.png'),
-            description: loc.address || 'Premium facility.',
+            image: loc.image_url ? assetPath(loc.image_url) : assetPath('/images/MIMOS-Academy.png'),
+            description: loc.description || loc.address || 'Premium facility.',
         };
     };
 
