@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import Button from './ui/Button';
 
@@ -7,6 +8,8 @@ import Button from './ui/Button';
  * user attempts to book a room. Connects seamlessly with standard auth flows.
  */
 export default function AuthPromptModal({ isOpen, onClose, redirectUrl }) {
+    const navigate = useNavigate();
+
     // Prevent background scrolling when modal is open
     useEffect(() => {
         if (isOpen) {
@@ -34,12 +37,14 @@ export default function AuthPromptModal({ isOpen, onClose, redirectUrl }) {
 
     const handleLogin = () => {
         const url = `/login?redirect=${encodeURIComponent(redirectUrl)}&mode=login`;
-        window.location.href = url;
+        navigate(url);
+        onClose();
     };
 
     const handleSignUp = () => {
         const url = `/login?redirect=${encodeURIComponent(redirectUrl)}&mode=register`;
-        window.location.href = url;
+        navigate(url);
+        onClose();
     };
 
     return (
