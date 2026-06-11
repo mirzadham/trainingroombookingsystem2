@@ -283,4 +283,28 @@ class UserManagementController extends Controller
             'user' => $user->load('location')
         ]);
     }
+
+    /**
+     * GET /api/admin/users/search
+     * Search active users for booking association.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $request->validate([
+            'q' => 'required|string|min:1',
+        ]);
+
+        $search = $request->query('q');
+
+        $users = User::where('status', '!=', 'suspended')
+            ->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+            })
+            ->limit(15)
+            ->get(['id', 'name', 'email', 'phone', 'department']);
+
+        return response()->json($users);
+    }
 }

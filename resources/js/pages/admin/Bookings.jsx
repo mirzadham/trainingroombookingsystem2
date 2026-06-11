@@ -6,6 +6,7 @@ import BookingCard from '../../components/BookingCard';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import { groupBookingsList } from '../../utils/bookingGrouping';
+import AdminBookingModal from '../../components/admin/AdminBookingModal';
 
 const STATUS_COLORS = {
     pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -42,6 +43,7 @@ export default function AdminBookings() {
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [page, setPage] = useState(1);
+    const [showAdminBookingModal, setShowAdminBookingModal] = useState(false);
 
     // Debounced search
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -259,15 +261,24 @@ export default function AdminBookings() {
                     <h1 className="text-2xl font-bold text-slate-900">Manage Bookings</h1>
                     <p className="text-sm text-slate-500 mt-1">Approve, reject, or review booking requests</p>
                 </div>
-                {isPendingTab && bookings.length > 0 && (
+                <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
+                    {isPendingTab && bookings.length > 0 && (
+                        <button
+                            onClick={handleSelectAll}
+                            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition cursor-pointer"
+                        >
+                            {selectedIds.length === bookings.length ? <CheckSquare className="w-4 h-4 text-mimos-500" /> : <Square className="w-4 h-4" />}
+                            {selectedIds.length === bookings.length ? 'Deselect All' : 'Select All Pending'}
+                        </button>
+                    )}
                     <button
-                        onClick={handleSelectAll}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition cursor-pointer self-start sm:self-auto"
+                        onClick={() => setShowAdminBookingModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-mimos-600 hover:bg-mimos-700 text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
                     >
-                        {selectedIds.length === bookings.length ? <CheckSquare className="w-4 h-4 text-mimos-500" /> : <Square className="w-4 h-4" />}
-                        {selectedIds.length === bookings.length ? 'Deselect All' : 'Select All Pending'}
+                        <CalendarDays className="w-4 h-4" />
+                        Book Room
                     </button>
-                )}
+                </div>
             </div>
 
             {/* Status filter tabs */}
@@ -802,6 +813,13 @@ export default function AdminBookings() {
                 }}
                 onClose={() => setShowBatchApproveConfirm(false)}
             />
+
+            {showAdminBookingModal && (
+                <AdminBookingModal
+                    onClose={() => setShowAdminBookingModal(false)}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] })}
+                />
+            )}
         </div>
     );
 }

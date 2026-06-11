@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // Admin endpoints
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/bookings', [App\Http\Controllers\Api\AdminController::class, 'bookings']);
+    Route::post('/bookings', [App\Http\Controllers\Api\AdminController::class, 'storeBooking']);
     Route::post('/bookings/batch-approve', [App\Http\Controllers\Api\AdminController::class, 'batchApprove']);
     Route::post('/bookings/batch-reject', [App\Http\Controllers\Api\AdminController::class, 'batchReject']);
     Route::post('/bookings/{booking}/approve', [App\Http\Controllers\Api\AdminController::class, 'approve']);
@@ -57,6 +58,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::put('/bookings/{booking}', [App\Http\Controllers\Api\AdminController::class, 'updateBooking']);
     Route::get('/dashboard', [App\Http\Controllers\Api\AdminController::class, 'dashboard']);
     Route::get('/audit-logs', [App\Http\Controllers\Api\AdminController::class, 'auditLogs']);
+    Route::get('/users/search', [App\Http\Controllers\Api\UserManagementController::class, 'search']);
 
     // Super Admin specific endpoints
     Route::middleware(['super-admin'])->group(function () {

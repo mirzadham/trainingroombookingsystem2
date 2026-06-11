@@ -41,3 +41,9 @@ export const createRoomBlackout = (data) =>
 
 export const deleteRoomBlackout = (id) =>
     api.delete(`/admin/blackouts/${id}`).then(r => r.data);
+
+export const adminSearchUsers = (q) =>
+    api.get('/admin/users/search', { params: { q } }).then(r => r.data);
+
+export const adminCreateBooking = (data) =>
+    api.post('/admin/bookings', data).then(r => r.data);

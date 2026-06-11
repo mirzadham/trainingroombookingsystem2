@@ -7,9 +7,19 @@ use App\Http\Requests\Admin\AdminUpdateBookingRequest;
 use App\Http\Requests\Admin\RejectBookingRequest;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
+use App\Models\Room;
+use App\Models\RoomBlackout;
+use App\Models\User;
+use App\Enums\BookingStatus;
+use App\Enums\UserRole;
 use App\Services\ApprovalService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -328,6 +338,284 @@ class AdminController extends Controller
         $logs = $query->orderByDesc('created_at')->paginate(30);
 
         return response()->json($logs);
+    }
+
+    /**
+     * POST /api/admin/bookings
+     * Create a booking as an admin (auto-approved, option to bypass validations).
+     */
+    public function storeBooking(
+        Request $request, 
+        \App\Services\BookingService $bookingService, 
+        \App\Services\AvailabilityService $availabilityService,
+        \App\Services\AuditService $auditService
+    ): JsonResponse {
+        $admin = $request->user();
+
+        $validated = $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'start_time' => 'required|string',
+            'end_time' => 'required|string',
+            'attendees' => 'required|integer|min:1',
+            
+            // Booker details
+            'booker_type' => 'required|in:registered,guest',
+            'user_id' => 'required_if:booker_type,registered|nullable|exists:users,id',
+            'guest_name' => 'required_if:booker_type,guest|nullable|string|max:255',
+            'guest_email' => 'required_if:booker_type,guest|nullable|email|max:255',
+            'guest_phone' => 'nullable|string|max:20',
+            
+            // Bypass validations toggle
+            'bypass_validation' => 'nullable|boolean',
+        ]);
+
+        $roomId = (int)$validated['room_id'];
+        $room = Room::findOrFail($roomId);
+
+        // 1. Authorize: check if admin has access to this room's location
+        if (!$admin->hasLocationAccess($room->location_id)) {
+            throw ValidationException::withMessages([
+                'authorization' => 'You do not have access to bookings at this location.',
+            ]);
+        }
+
+        // 2. Resolve/Create Booker
+        $targetUser = null;
+        if ($validated['booker_type'] === 'guest') {
+            $email = $validated['guest_email'];
+            $targetUser = User::where('email', $email)->first();
+
+            if (!$targetUser) {
+                // Auto-create standard external user account
+                $targetUser = User::create([
+                    'name' => $validated['guest_name'],
+                    'email' => $email,
+                    'phone' => $validated['guest_phone'] ?? null,
+                    'password' => Hash::make(Str::random(16)),
+                    'role' => UserRole::User,
+                    'user_type' => 'external',
+                    'status' => 'active',
+                ]);
+            } else {
+                if (!empty($validated['guest_phone']) && empty($targetUser->phone)) {
+                    $targetUser->update(['phone' => $validated['guest_phone']]);
+                }
+            }
+        } else {
+            $targetUser = User::findOrFail($validated['user_id']);
+        }
+
+        $phone = $validated['booker_type'] === 'guest' 
+            ? ($validated['guest_phone'] ?? '') 
+            : ($validated['guest_phone'] ?? $targetUser->phone ?? '');
+
+        // 3. Determine if it is a multi-day booking
+        $isMultiDay = !empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date'];
+        
+        $bypass = !empty($validated['bypass_validation']);
+
+        $createdBookings = collect();
+
+        DB::transaction(function () use ($validated, $targetUser, $room, $isMultiDay, $bypass, $availabilityService, $auditService, $admin, $phone, &$createdBookings) {
+            $startDate = Carbon::parse($validated['start_date']);
+            $endDate   = $isMultiDay ? Carbon::parse($validated['end_date']) : $startDate;
+
+            $startTimeRaw = Carbon::parse($validated['start_time']);
+            $endTimeRaw   = Carbon::parse($validated['end_time']);
+
+            // End time must be after start time
+            if ($endTimeRaw->lte($startTimeRaw)) {
+                throw ValidationException::withMessages([
+                    'end_time' => 'End time must be after start time.',
+                ]);
+            }
+
+            if ($isMultiDay) {
+                // Validate multi-day duration rules (e.g. maximum days)
+                $maxDays = (int) config('booking.max_duration_days', 14);
+                $totalDays = $startDate->diffInDays($endDate) + 1;
+                if ($totalDays > $maxDays) {
+                    throw ValidationException::withMessages([
+                        'end_date' => "Consecutive multi-day bookings cannot exceed {$maxDays} days.",
+                    ]);
+                }
+
+                $timeStart = $startTimeRaw->format('H:i:s');
+                $timeEnd   = $endTimeRaw->format('H:i:s');
+                $groupId = Str::uuid()->toString();
+
+                for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
+                    $dayStart = Carbon::createFromTimeString($timeStart, 'Asia/Kuala_Lumpur')
+                        ->setDate($current->year, $current->month, $current->day);
+                    $dayEnd   = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
+                        ->setDate($current->year, $current->month, $current->day);
+
+                    // A. Check for double booking (Overlap) - ALWAYS enforced
+                    if ($availabilityService->hasConflict($room->id, $dayStart, $dayEnd)) {
+                        throw ValidationException::withMessages([
+                            'time' => 'The selected room is unavailable on ' . $current->format('Y-m-d') . ' due to another approved booking or blackout.',
+                        ]);
+                    }
+
+                    // B. Validate minor rules if bypass is false
+                    if (!$bypass) {
+                        $this->runStrictValidationRules($dayStart, $dayEnd, $room, $validated['attendees']);
+                    }
+
+                    // Convert to UTC for persistence
+                    $dayStartUtc = $dayStart->copy()->setTimezone('UTC');
+                    $dayEndUtc   = $dayEnd->copy()->setTimezone('UTC');
+
+                    $booking = Booking::create([
+                        'user_id' => $targetUser->id,
+                        'room_id' => $room->id,
+                        'title' => $validated['title'],
+                        'description' => $validated['description'] ?? null,
+                        'start_time' => $dayStartUtc,
+                        'end_time' => $dayEndUtc,
+                        'attendees' => $validated['attendees'],
+                        'phone' => $phone,
+                        'status' => BookingStatus::Approved,
+                        'approved_by' => $admin->id,
+                        'approved_at' => Carbon::now(),
+                        'group_id' => $groupId,
+                    ]);
+
+                    // Audit log
+                    $auditService->log($admin, $booking, 'created', [
+                        'group_id' => $groupId,
+                        'booking_date' => $current->format('Y-m-d'),
+                        'multi_day_booking' => true,
+                        'admin_created' => true,
+                    ]);
+
+                    $createdBookings->push($booking);
+                }
+            } else {
+                // Single-day booking
+                $start = Carbon::createFromTimeString($startTimeRaw->format('H:i:s'), 'Asia/Kuala_Lumpur')
+                    ->setDate($startDate->year, $startDate->month, $startDate->day);
+                $end   = Carbon::createFromTimeString($endTimeRaw->format('H:i:s'), 'Asia/Kuala_Lumpur')
+                    ->setDate($startDate->year, $startDate->month, $startDate->day);
+
+                // A. Check for double booking (Overlap) - ALWAYS enforced
+                if ($availabilityService->hasConflict($room->id, $start, $end)) {
+                    throw ValidationException::withMessages([
+                        'time' => 'The selected room is unavailable during this time slot.',
+                    ]);
+                }
+
+                // B. Validate minor rules if bypass is false
+                if (!$bypass) {
+                    $this->runStrictValidationRules($start, $end, $room, $validated['attendees']);
+                }
+
+                // Convert to UTC for persistence
+                $startUtc = $start->copy()->setTimezone('UTC');
+                $endUtc   = $end->copy()->setTimezone('UTC');
+
+                $booking = Booking::create([
+                    'user_id' => $targetUser->id,
+                    'room_id' => $room->id,
+                    'title' => $validated['title'],
+                    'description' => $validated['description'] ?? null,
+                    'start_time' => $startUtc,
+                    'end_time' => $endUtc,
+                    'attendees' => $validated['attendees'],
+                    'phone' => $phone,
+                    'status' => BookingStatus::Approved,
+                    'approved_by' => $admin->id,
+                    'approved_at' => Carbon::now(),
+                ]);
+
+                // Audit log
+                $auditService->log($admin, $booking, 'created', [
+                    'admin_created' => true,
+                ]);
+
+                $createdBookings->push($booking);
+            }
+        });
+
+        // Send booking notification outside transaction to avoid lock holding
+        if ($createdBookings->isNotEmpty()) {
+            $notificationService = app(\App\Services\NotificationService::class);
+            $notificationService->sendBookingNotification($createdBookings->first(), 'approved');
+        }
+
+        return response()->json([
+            'message' => 'Booking created and approved successfully.',
+            'bookings' => BookingResource::collection($createdBookings),
+        ], 201);
+    }
+
+    /**
+     * Helper to run strict booking validation rules (operating hours, capacity, duration).
+     */
+    private function runStrictValidationRules(Carbon $start, Carbon $end, Room $room, int $attendees): void
+    {
+        $now = Carbon::now('Asia/Kuala_Lumpur');
+
+        $openHour = config('booking.operating_hours.open');
+        $closeHour = config('booking.operating_hours.close');
+        $minDuration = config('booking.min_duration_minutes');
+        $maxDuration = config('booking.max_duration_minutes');
+        $advanceMinutes = config('booking.same_day_advance_minutes');
+
+        // Operating hours
+        $closeDisplay = $closeHour - 12;
+        if ($start->hour < $openHour || $end->hour > $closeHour) {
+            throw ValidationException::withMessages([
+                'time' => "Bookings must be within operating hours ({$openHour}:00 AM – {$closeDisplay}:00 PM).",
+            ]);
+        }
+        if ($end->hour === $closeHour && $end->minute > 0) {
+            throw ValidationException::withMessages([
+                'time' => "Bookings must end by {$closeDisplay}:00 PM.",
+            ]);
+        }
+
+        // Min duration
+        $durationMinutes = $start->diffInMinutes($end);
+        if ($durationMinutes < $minDuration) {
+            throw ValidationException::withMessages([
+                'duration' => "Minimum booking duration is {$minDuration} minutes.",
+            ]);
+        }
+
+        // Max duration
+        if ($durationMinutes > $maxDuration) {
+            $maxHours = $maxDuration / 60;
+            $displayHours = floor($maxHours) === $maxHours ? (int)$maxHours : round($maxHours, 1);
+            throw ValidationException::withMessages([
+                'duration' => "Maximum booking duration is {$displayHours} hours.",
+            ]);
+        }
+
+        // Same-day booking must be at least N minutes before start
+        if ($advanceMinutes > 0 && $start->isSameDay($now) && $start->diffInMinutes($now, false) > -$advanceMinutes) {
+            throw ValidationException::withMessages([
+                'start_time' => "Same-day bookings must be made at least {$advanceMinutes} minutes before the start time.",
+            ]);
+        }
+
+        // Cannot book in the past
+        if ($start->isPast()) {
+            throw ValidationException::withMessages([
+                'start_time' => 'Cannot book a time slot in the past.',
+            ]);
+        }
+
+        // Attendees capacity limit
+        if ($attendees > $room->capacity) {
+            throw ValidationException::withMessages([
+                'attendees' => "Number of attendees ({$attendees}) exceeds room capacity ({$room->capacity}).",
+            ]);
+        }
     }
 }
 
