@@ -4,8 +4,11 @@ import { BarChart3, Clock, Loader2, TrendingUp, Download } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import * as api from '../../services/api';
 import DatePicker from '../../components/ui/DatePicker';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Reports() {
+    const { adminUser } = useAuth();
+    const isLocationAdmin = adminUser?.role === 'location_admin';
     const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
     const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [locationFilter, setLocationFilter] = useState('');
@@ -108,18 +111,20 @@ export default function Reports() {
                         className="py-3"
                     />
                 </div>
-                <div className="flex-1 min-w-[200px]">
-                    <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
-                    <div className="relative">
-                        <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-white/85 border border-slate-200 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-500 hover:border-slate-300 transition-all cursor-pointer appearance-none shadow-inner">
-                            <option value="" className="bg-white">All Locations</option>
-                            {(locations || []).map(loc => (
-                                <option key={loc.id} value={loc.id} className="bg-white">{loc.code} - {loc.name}</option>
-                            ))}
-                        </select>
+                {!isLocationAdmin && (
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
+                        <div className="relative">
+                            <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-white/85 border border-slate-200 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-500 hover:border-slate-300 transition-all cursor-pointer appearance-none shadow-inner">
+                                <option value="" className="bg-white">All Locations</option>
+                                {(locations || []).map(loc => (
+                                    <option key={loc.id} value={loc.id} className="bg-white">{loc.code} - {loc.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {isLoading && (

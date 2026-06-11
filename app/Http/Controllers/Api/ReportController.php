@@ -94,9 +94,11 @@ class ReportController extends Controller
             ->where('start_time', '>=', $request->start_date)
             ->where('end_time', '<=', Carbon::parse($request->end_date)->endOfDay());
 
-        if ($request->location_id || $user->isLocationAdmin()) {
-            $locId = $request->location_id ?? $user->location_id;
+        if ($user->isLocationAdmin()) {
+            $locId = $user->location_id;
             $query->whereHas('room', fn($q) => $q->where('location_id', $locId));
+        } elseif ($request->location_id) {
+            $query->whereHas('room', fn($q) => $q->where('location_id', $request->location_id));
         }
 
         $hourCounts = array_fill($openHour, $closeHour - $openHour, 0);
