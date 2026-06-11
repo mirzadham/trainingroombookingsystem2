@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import * as api from '../services/api';
 import { isAdminRole } from '../constants/roles';
 import {
@@ -9,6 +10,7 @@ import {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+    const queryClient = useQueryClient();
     const [user, setUser] = useState(null);
     const [adminUser, setAdminUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -33,6 +35,7 @@ export function AuthProvider({ children }) {
                     .catch(() => {
                         localStorage.removeItem(USER_TOKEN_KEY);
                         localStorage.removeItem(USER_DATA_KEY);
+                        queryClient.clear();
                         setUser(null);
                     })
             );
@@ -50,47 +53,52 @@ export function AuthProvider({ children }) {
                     .catch(() => {
                         localStorage.removeItem(ADMIN_TOKEN_KEY);
                         localStorage.removeItem(ADMIN_DATA_KEY);
+                        queryClient.clear();
                         setAdminUser(null);
                     })
             );
         }
 
         Promise.allSettled(promises).finally(() => setLoading(false));
-    }, []);
+    }, [queryClient]);
 
     // Regular user login — writes ONLY to user keys
     const login = useCallback(async (email, password) => {
         const data = await api.login({ email, password });
         localStorage.setItem(USER_TOKEN_KEY, data.token);
         localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+        queryClient.clear();
         setUser(data.user);
         return data;
-    }, []);
+    }, [queryClient]);
 
     // Admin login — writes ONLY to admin keys
     const adminLogin = useCallback(async (email, password) => {
         const data = await api.adminLogin({ email, password });
         localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
         localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(data.user));
+        queryClient.clear();
         setAdminUser(data.user);
         return data;
-    }, []);
+    }, [queryClient]);
 
     const register = useCallback(async (formData) => {
         const data = await api.register(formData);
         localStorage.setItem(USER_TOKEN_KEY, data.token);
         localStorage.setItem(USER_DATA_KEY, JSON.stringify(data.user));
+        queryClient.clear();
         setUser(data.user);
         return data;
-    }, []);
+    }, [queryClient]);
 
     // User logout — clears ONLY user keys
     const logout = useCallback(async () => {
         try { await api.logout(); } catch {}
         localStorage.removeItem(USER_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
+        queryClient.clear();
         setUser(null);
-    }, []);
+    }, [queryClient]);
 
     const updateProfile = useCallback(async (formData) => {
         const data = await api.updateProfile(formData);
@@ -117,17 +125,19 @@ export function AuthProvider({ children }) {
         try { await api.adminLogout(); } catch {}
         localStorage.removeItem(ADMIN_TOKEN_KEY);
         localStorage.removeItem(ADMIN_DATA_KEY);
+        queryClient.clear();
         setAdminUser(null);
-    }, []);
+    }, [queryClient]);
 
     // Claim invitation — registers details and logs admin in directly
     const claimAdminInvite = useCallback(async (formData) => {
         const data = await api.claimInvite(formData);
         localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
         localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify(data.user));
+        queryClient.clear();
         setAdminUser(data.user);
         return data;
-    }, []);
+    }, [queryClient]);
 
     const value = {
         // User session
