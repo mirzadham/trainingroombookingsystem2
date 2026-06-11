@@ -28,7 +28,8 @@ export default function DatePicker({
     className = '',
     placeholder = 'Select date',
     variant = 'default',
-    showModeToggle = false
+    showModeToggle = false,
+    placement = 'bottom'
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value ? parseISO(value) : new Date());
@@ -190,7 +191,11 @@ export default function DatePicker({
 
             {/* Calendar Popover */}
             {isOpen && (
-                <div className="absolute z-[100] mt-2 top-full left-0 bg-white rounded-xl shadow-2xl shadow-slate-400/50 border border-slate-100 p-4 w-[320px] origin-top animate-in fade-in zoom-in-95 duration-200">
+                <div className={`absolute z-[100] left-0 bg-white rounded-xl shadow-2xl shadow-slate-400/50 border border-slate-100 p-4 w-[320px] animate-in fade-in zoom-in-95 duration-200 ${
+                    placement === 'top'
+                        ? 'bottom-full mb-2 origin-bottom'
+                        : 'top-full mt-2 origin-top'
+                }`}>
                     {/* Premium Sliding Pill Mode Toggle */}
                     {showModeToggle && (
                         <div className="relative bg-slate-100/80 p-0.5 flex rounded-full mb-4 border border-slate-200/20 text-xs font-semibold text-slate-500 relative select-none">

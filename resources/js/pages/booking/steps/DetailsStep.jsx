@@ -89,6 +89,7 @@ export default function DetailsStep({ form }) {
                                             setEndDate(val || null);
                                         }}
                                         min={roomInfo.date || ''}
+                                        placement="top"
                                     />
                                 </div>
                                 <button
