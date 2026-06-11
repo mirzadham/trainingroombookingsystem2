@@ -22,6 +22,7 @@ class Booking extends Model
         'phone',
         'status',
         'rejection_reason',
+        'rejected_by',
         'cancellation_reason',
         'cancelled_by',
         'recurrence_group_id',
@@ -56,6 +57,11 @@ class Booking extends Model
     public function canceller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function rejecter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 
     /**

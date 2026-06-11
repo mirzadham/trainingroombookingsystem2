@@ -93,6 +93,7 @@ class ApprovalService
         $booking->update([
             'status' => BookingStatus::Rejected,
             'rejection_reason' => $reason,
+            'rejected_by' => $admin->id,
         ]);
 
         $this->auditService->log($admin, $booking, 'rejected', [
@@ -100,7 +101,7 @@ class ApprovalService
         ]);
         $this->notificationService->sendBookingNotification($booking, 'rejected');
 
-        return $booking->fresh(['room.location', 'user']);
+        return $booking->fresh(['room.location', 'user', 'rejecter']);
     }
 
     /**

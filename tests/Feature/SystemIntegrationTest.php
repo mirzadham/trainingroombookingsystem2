@@ -185,6 +185,7 @@ class SystemIntegrationTest extends TestCase
 
         $approveResponse->assertStatus(200);
         $this->assertEquals('approved', Booking::find($bookingId)->status->value);
+        $this->assertEquals($tpmAdmin->id, Booking::find($bookingId)->approved_by);
 
         // Verify Audit Log
         $this->assertDatabaseHas('audit_logs', [
@@ -237,6 +238,7 @@ class SystemIntegrationTest extends TestCase
 
         $this->assertEquals('rejected', Booking::find($overlapBookingId)->status->value);
         $this->assertEquals('Schedule collision with Product Planning Summit', Booking::find($overlapBookingId)->rejection_reason);
+        $this->assertEquals($tpmAdmin->id, Booking::find($overlapBookingId)->rejected_by);
 
         // Verify Reject Audit Log
         $this->assertDatabaseHas('audit_logs', [

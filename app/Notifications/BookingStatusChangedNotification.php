@@ -40,7 +40,10 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
         $startTime = $this->booking->start_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
         $endTime = $this->booking->end_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
 
-        $mail = new MailMessage;
+        $mail = (new MailMessage)->salutation("Regards,\nMIMOS Academy");
+        
+        $pic = $this->getPicDetails();
+        $picLine = "**Person in Charge**: {$pic['name']} (Email: {$pic['email']}" . ($pic['phone'] ? ", Phone: {$pic['phone']}" : "") . ")";
 
         switch ($this->type) {
             case 'submitted':
@@ -49,15 +52,17 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     ->line('Your booking request has been successfully submitted and is currently pending approval.')
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
+                    ->line($picLine)
                     ->action('View My Bookings', url('/my-bookings'));
                 break;
 
             case 'approved':
                 $mail->subject('Booking Approved — Training Room Booking System')
                     ->greeting('Hello ' . $notifiable->name . ',')
-                    ->line('Great news! Your booking request has been approved by the administrator.')
+                    ->line('Great news! Your booking request has been approved.')
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
+                    ->line($picLine)
                     ->line('📅 A calendar event is attached to this email — open it to add this booking directly to your calendar (Outlook, Google Calendar, Apple Calendar, etc.).')
                     ->action('View Booking Details', url('/my-bookings'));
 
@@ -86,6 +91,7 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
                     ->line('**Reason**: ' . $reason)
+                    ->line($picLine)
                     ->action('Search Alternative Rooms', url('/'));
                 break;
 
@@ -95,6 +101,7 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     ->line('Your booking request has been successfully cancelled.')
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
+                    ->line($picLine)
                     ->action('Book Another Room', url('/'));
                 break;
 
@@ -106,10 +113,60 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     ->line('**Room**: ' . $roomName . ' (' . $locationName . ')')
                     ->line('**Time**: ' . $startTime . ' to ' . $endTime)
                     ->line('**Cancellation Reason**: ' . $reason)
+                    ->line($picLine)
                     ->action('Search Alternative Rooms', url('/'));
                 break;
         }
 
         return $mail;
+    }
+
+    /**
+     * Get the contact details of the Person in Charge (PIC) for this booking.
+     */
+    protected function getPicDetails(): array
+    {
+        $fallbackName = env('ADMIN_CONTACT_NAME', 'MIMOS Academy');
+        $fallbackEmail = env('ADMIN_CONTACT_EMAIL', 'academy@mimos.my');
+        $fallbackPhone = env('ADMIN_CONTACT_PHONE', '04-40525404');
+
+        $this->booking->loadMissing(['room.location.admins', 'approver', 'rejecter', 'canceller']);
+
+        $picUser = null;
+        switch ($this->type) {
+            case 'approved':
+                $picUser = $this->booking->approver;
+                break;
+            case 'rejected':
+                $picUser = $this->booking->rejecter;
+                break;
+            case 'admin_cancelled':
+                $picUser = $this->booking->canceller;
+                break;
+        }
+
+        if ($picUser) {
+            return [
+                'name' => $picUser->name,
+                'email' => $picUser->email,
+                'phone' => $picUser->phone ?? $fallbackPhone,
+            ];
+        }
+
+        $locationAdmins = $this->booking->room->location->admins;
+        if ($locationAdmins && $locationAdmins->isNotEmpty()) {
+            $locationAdmin = $locationAdmins->first();
+            return [
+                'name' => $locationAdmin->name,
+                'email' => $locationAdmin->email,
+                'phone' => $locationAdmin->phone ?? $fallbackPhone,
+            ];
+        }
+
+        return [
+            'name' => $fallbackName,
+            'email' => $fallbackEmail,
+            'phone' => $fallbackPhone,
+        ];
     }
 }
