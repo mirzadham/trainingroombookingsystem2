@@ -40,6 +40,39 @@ class NotificationService
             ]);
         }
 
+        // Notify admins of new booking submissions
+        if ($type === 'submitted') {
+            $this->notifyAdminsOfNewBooking($booking);
+        }
+
         return $notifRecord;
+    }
+
+    /**
+     * Notify all relevant location admins and super admins of a new booking request.
+     */
+    protected function notifyAdminsOfNewBooking(Booking $booking): void
+    {
+        try {
+            $booking->loadMissing('room.location');
+            $locationId = $booking->room->location_id;
+
+            $admins = \App\Models\User::whereIn('role', [\App\Enums\UserRole::SuperAdmin, \App\Enums\UserRole::LocationAdmin])
+                ->where(function ($q) use ($locationId) {
+                    $q->where('role', \App\Enums\UserRole::SuperAdmin)
+                      ->orWhere('location_id', $locationId);
+                })
+                ->where('status', '!=', 'suspended')
+                ->get();
+
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\AdminNewBookingNotification($booking));
+            }
+        } catch (Exception $e) {
+            Log::error('Admin new booking notification dispatch failed', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }
