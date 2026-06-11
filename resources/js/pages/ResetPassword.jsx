@@ -12,6 +12,7 @@ export default function ResetPassword() {
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -153,9 +154,16 @@ export default function ResetPassword() {
                                 <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
                                     <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Confirm Password</label>
                                     <input
-                                        type="password" value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required
-                                        className="w-full pb-2 bg-transparent text-slate-900 text-sm focus:outline-none"
+                                        type={showConfirmPassword ? 'text' : 'password'} value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required
+                                        className="w-full pb-2 pr-10 bg-transparent text-slate-900 text-sm focus:outline-none"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-0 bottom-2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
                                 </div>
 
                                 <div className="pt-4">
