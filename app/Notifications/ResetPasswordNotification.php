@@ -26,7 +26,7 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
         $resetUrl = config('app.url') . '/reset-password?token=' . urlencode($this->token) . '&email=' . urlencode($this->email);
 
         return (new MailMessage)
-            ->subject('Reset Password Notification - MIMOS Academy')
+            ->subject('Reset Your Password — Training Room Booking System')
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('You are receiving this email because we received a password reset request for your account.')
             ->action('Reset Password', $resetUrl)
