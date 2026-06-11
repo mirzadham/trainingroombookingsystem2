@@ -46,4 +46,20 @@ class RoomPolicy
     {
         return $this->update($user, $room); // Same access rules
     }
+
+    /**
+     * Can this user view this room details in admin panel?
+     */
+    public function view(User $user, Room $room): bool
+    {
+        if (!$user->isAdmin()) {
+            return false;
+        }
+
+        if ($user->isLocationAdmin()) {
+            return $room->location_id === $user->location_id;
+        }
+
+        return true;
+    }
 }

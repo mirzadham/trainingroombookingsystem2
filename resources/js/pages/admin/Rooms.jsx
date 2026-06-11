@@ -4,9 +4,12 @@ import { Plus, Edit2, Trash2, Loader2, DoorOpen, Users, MapPin, X, CalendarOff, 
 import * as api from '../../services/api';
 import BlackoutsModal from '../../components/admin/BlackoutsModal';
 import RoomImagesModal from '../../components/admin/RoomImagesModal';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminRooms() {
     const queryClient = useQueryClient();
+    const { adminUser } = useAuth();
+    const isLocationAdmin = adminUser?.role === 'location_admin';
     const [showForm, setShowForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [selectedRoomForBlackout, setSelectedRoomForBlackout] = useState(null);
@@ -53,19 +56,21 @@ export default function AdminRooms() {
                 </div>
                 {!isLoading && (
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="relative min-w-[180px]">
-                            <select
-                                value={locationFilter}
-                                onChange={e => setLocationFilter(e.target.value)}
-                                className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/20 cursor-pointer appearance-none transition-all duration-200 shadow-sm"
-                            >
-                                <option value="">All Locations</option>
-                                {locations?.map(loc => (
-                                    <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                        </div>
+                        {!isLocationAdmin && (
+                            <div className="relative min-w-[180px]">
+                                <select
+                                    value={locationFilter}
+                                    onChange={e => setLocationFilter(e.target.value)}
+                                    className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/20 cursor-pointer appearance-none transition-all duration-200 shadow-sm"
+                                >
+                                    <option value="">All Locations</option>
+                                    {locations?.map(loc => (
+                                        <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                        )}
                         <button
                             onClick={() => setShowForm(true)}
                             className="flex items-center gap-2 px-4 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer shrink-0"
@@ -83,6 +88,7 @@ export default function AdminRooms() {
                     onSubmit={(data) => createMutation.mutate(data)}
                     onCancel={() => setShowForm(false)}
                     isLoading={createMutation.isPending}
+                    adminUser={adminUser}
                 />
             )}
 
@@ -94,6 +100,7 @@ export default function AdminRooms() {
                     onSubmit={(data) => updateMutation.mutate({ id: editingRoom.id, data })}
                     onCancel={() => setEditingRoom(null)}
                     isLoading={updateMutation.isPending}
+                    adminUser={adminUser}
                 />
             )}
 
@@ -164,19 +171,19 @@ export default function AdminRooms() {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            const action = room.is_active ? 'deactivate' : 'activate';
+                                            const action = room.is_active ? 'deactivate' : 'reactivate';
                                             if (confirm(`Are you sure you want to ${action} "${room.name}"?${!room.is_active ? '' : ' Users will not be able to book this room while it is inactive.'}`)) {
                                                 toggleActiveMutation.mutate(room.id);
                                             }
                                         }}
                                         disabled={toggleActiveMutation.isPending}
-                                        className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer ${
+                                        className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition cursor-pointer ${
                                             room.is_active
-                                                ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200'
-                                                : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'
+                                                ? 'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 font-medium'
+                                                : 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-300 font-semibold'
                                         }`}
                                     >
-                                        <Power className="w-3 h-3" /> {room.is_active ? 'Deactivate' : 'Activate'}
+                                        <Power className="w-3 h-3" /> {room.is_active ? 'Deactivate' : 'Reactivate'}
                                     </button>
                                 </div>
                             </div>
@@ -218,9 +225,14 @@ const PREDEFINED_AMENITIES = [
     { value: 'coffee_tea', label: 'Coffee & Tea' },
 ];
 
-function RoomForm({ room, locations, onSubmit, onCancel, isLoading }) {
+function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser }) {
+    const isLocationAdmin = adminUser?.role === 'location_admin';
     const [name, setName] = useState(room?.name || '');
-    const [locationId, setLocationId] = useState(room?.location_id || '');
+    const [locationId, setLocationId] = useState(() => {
+        if (room?.location_id) return room.location_id;
+        if (isLocationAdmin && adminUser?.location_id) return adminUser.location_id;
+        return '';
+    });
     const [capacity, setCapacity] = useState(room?.capacity || '');
     const [description, setDescription] = useState(room?.description || '');
     const [amenities, setAmenities] = useState(room?.amenities || []);
@@ -283,10 +295,25 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading }) {
                 </div>
                 <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wider">Location</label>
-                    <select value={locationId} onChange={e => setLocationId(e.target.value)} required
-                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 appearance-none cursor-pointer">
-                        <option value="" className="bg-white">Select...</option>
-                        {locations.map(loc => <option key={loc.id} value={loc.id} className="bg-white">{loc.name} ({loc.code})</option>)}
+                    <select 
+                        value={locationId} 
+                        onChange={e => setLocationId(e.target.value)} 
+                        required
+                        disabled={isLocationAdmin}
+                        className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 appearance-none cursor-pointer ${
+                            isLocationAdmin ? 'bg-slate-100/85 cursor-not-allowed opacity-80' : ''
+                        }`}
+                    >
+                        {isLocationAdmin ? (
+                            locations.filter(loc => loc.id === adminUser.location_id).map(loc => (
+                                <option key={loc.id} value={loc.id} className="bg-white">{loc.name} ({loc.code})</option>
+                            ))
+                        ) : (
+                            <>
+                                <option value="" className="bg-white">Select...</option>
+                                {locations.map(loc => <option key={loc.id} value={loc.id} className="bg-white">{loc.name} ({loc.code})</option>)}
+                            </>
+                        )}
                     </select>
                 </div>
                 <div>

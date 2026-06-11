@@ -79,6 +79,7 @@ class RoomController extends Controller
      */
     public function show(Request $request, Room $room): JsonResponse
     {
+        $this->authorize('view', $room);
         return (new RoomResource($room->load('location')))->response();
     }
 
