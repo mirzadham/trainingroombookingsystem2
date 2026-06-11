@@ -41,6 +41,7 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
             ->line("**Title/Purpose**: {$this->booking->title}")
             ->line("**Attendees**: {$this->booking->attendees} people")
             ->action('Review Pending Bookings', url('/admin'))
-            ->line('Please log in to the admin panel to approve or reject this booking request.');
+            ->line('Please log in to the admin panel to approve or reject this booking request.')
+            ->salutation("Regards,\nMIMOS Academy");
     }
 }

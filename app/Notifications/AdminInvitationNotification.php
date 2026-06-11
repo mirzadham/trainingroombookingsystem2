@@ -35,6 +35,7 @@ class AdminInvitationNotification extends Notification implements ShouldQueue
             ->line('Please click the button below to accept your invitation and set up your password details:')
             ->action('Set Up Admin Account', $setupUrl)
             ->line("This invitation token is secure, single-use, and will expire on **{$this->invitation->expires_at->format('M d, Y H:i')}**.")
-            ->line('If you were not expecting this invitation, you can safely ignore this email.');
+            ->line('If you were not expecting this invitation, you can safely ignore this email.')
+            ->salutation("Regards,\nMIMOS Academy");
     }
 }
