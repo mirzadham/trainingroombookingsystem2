@@ -24,6 +24,7 @@ const AdminReports = lazy(() => import('./pages/admin/Reports'));
 const AdminAuditLogs = lazy(() => import('./pages/admin/AuditLogs'));
 const AdminUsers = lazy(() => import('./pages/admin/Users'));
 const ClaimInvite = lazy(() => import('./pages/admin/ClaimInvite'));
+const AdminCalendar = lazy(() => import('./pages/admin/Calendar'));
 
 function AdminRoute({ children }) {
     const { isAdminAuthenticated, loading } = useAuth();
@@ -73,6 +74,7 @@ export default function AppRouter() {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/bookings" element={<AdminBookings />} />
                     <Route path="/admin/rooms" element={<AdminRooms />} />
+                    <Route path="/admin/calendar" element={<AdminCalendar />} />
                     <Route path="/admin/reports" element={<AdminReports />} />
                     <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
                     <Route path="/admin/users" element={<AdminUsers />} />

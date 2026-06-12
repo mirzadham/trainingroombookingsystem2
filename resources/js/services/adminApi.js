@@ -47,3 +47,6 @@ export const adminSearchUsers = (q) =>
 
 export const adminCreateBooking = (data) =>
     api.post('/admin/bookings', data).then(r => r.data);
+
+export const getAdminCalendarEvents = (params) =>
+    api.get('/admin/calendar', { params }).then(r => r.data);

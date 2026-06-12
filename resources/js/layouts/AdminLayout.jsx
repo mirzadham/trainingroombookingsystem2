@@ -7,6 +7,7 @@ import { assetPath } from '../utils/basePath';
 import { 
     LayoutDashboard, 
     CalendarCheck, 
+    CalendarDays,
     DoorOpen, 
     BarChart3, 
     LogOut,
@@ -21,6 +22,7 @@ import {
 
 const baseNavItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/calendar', icon: CalendarDays, label: 'Calendar' },
     { path: '/admin/bookings', icon: CalendarCheck, label: 'Bookings' },
     { path: '/admin/rooms', icon: DoorOpen, label: 'Rooms' },
     { path: '/admin/reports', icon: BarChart3, label: 'Reports' },

@@ -4,7 +4,7 @@ import { X, Calendar, Clock, Users, Plus, AlertCircle, Loader2, Search, Check, S
 import * as api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
 
-export default function AdminBookingModal({ onClose, onSuccess }) {
+export default function AdminBookingModal({ onClose, onSuccess, initialDate = '' }) {
     const { adminUser } = useAuth();
     const queryClient = useQueryClient();
 
@@ -25,8 +25,8 @@ export default function AdminBookingModal({ onClose, onSuccess }) {
     const [selectedRoomId, setSelectedRoomId] = useState('');
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = useState(initialDate || '');
+    const [endDate, setEndDate] = useState(initialDate || '');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [attendees, setAttendees] = useState('');

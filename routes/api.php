@@ -84,6 +84,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     // Reports
     Route::get('/reports/utilization', [App\Http\Controllers\Api\ReportController::class, 'utilization']);
     Route::get('/reports/peak-hours', [App\Http\Controllers\Api\ReportController::class, 'peakHours']);
+
+    // Admin Calendar View
+    Route::get('/calendar', [App\Http\Controllers\Api\AdminController::class, 'calendar']);
 });
 
 // Calendar (public, read-only)

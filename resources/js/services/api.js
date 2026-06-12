@@ -13,7 +13,7 @@ export { login, register, adminLogin, logout, adminLogout, getUser, getAdminUser
 
 export { getBookings, createBooking, getBooking, updateBooking, cancelBooking, createRecurringBooking } from './bookingApi';
 export { getPublicRooms, getPublicRoom, getRoomsWithTimeline, getAdminRooms, createRoom, updateRoom, deleteRoom, toggleRoomActive, uploadRoomImages, deleteRoomImage, setRoomPrimaryImage } from './roomApi';
-export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, adminCancelBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout, adminSearchUsers, adminCreateBooking } from './adminApi';
+export { getAdminBookings, approveBooking, rejectBooking, adminUpdateBooking, adminCancelBooking, getAdminDashboard, getUtilizationReport, getPeakHoursReport, batchApproveBookings, batchRejectBookings, getAuditLogs, getRoomBlackouts, createRoomBlackout, deleteRoomBlackout, adminSearchUsers, adminCreateBooking, getAdminCalendarEvents } from './adminApi';
 export { searchAvailability, getTimeline, getSuggestions, getLocations, getCalendarEvents } from './availabilityApi';
 export { getUsers, updateUser, toggleUserStatus, getAdminInvitations, inviteAdmin, resendInvite, revokeInvite, validateInviteToken, claimInvite } from './userApi';
 
