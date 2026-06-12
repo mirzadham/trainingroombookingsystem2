@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus, Lock, CalendarOff, AlertCircle, Check, X, Ban, RefreshCw, CalendarCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus, Lock, CalendarOff, AlertCircle, Check, X, Ban, RefreshCw, CalendarCheck, Mail } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, parseISO, min, max } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 import * as api from '../../services/api';
@@ -562,6 +562,12 @@ export default function AdminCalendar() {
                                                 <User className="w-3.5 h-3.5 text-slate-445" />
                                                 <span className="truncate">{evt.booked_by}</span>
                                             </div>
+                                            {evt.booked_by_email && (
+                                                <div className="flex items-center gap-1.5">
+                                                    <Mail className="w-3.5 h-3.5 text-slate-445" />
+                                                    <span className="truncate">{evt.booked_by_email}</span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Inline Approve / Reject controls for Pending bookings */}

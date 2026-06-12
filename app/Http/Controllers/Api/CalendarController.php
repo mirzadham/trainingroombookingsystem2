@@ -20,7 +20,7 @@ class CalendarController extends Controller
         ]);
 
         $query = Booking::approved()
-            ->with(['room.location', 'user:id,name'])
+            ->with(['room.location', 'user:id,name,email'])
             ->where('start_time', '>=', $request->start_date)
             ->where('end_time', '<=', Carbon::parse($request->end_date)->endOfDay());
 
@@ -40,6 +40,7 @@ class CalendarController extends Controller
             'room_id' => $b->room_id,
             'location' => $b->room->location->code,
             'booked_by' => $b->user->name,
+            'booked_by_email' => $b->user->email,
             'group_id' => $b->group_id,
         ]);
 

@@ -572,7 +572,7 @@ class AdminController extends Controller
         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
         // 1. Query Bookings
-        $bookingQuery = Booking::with(['room.location', 'user:id,name'])
+        $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
             ->where('start_time', '>=', $startDate)
             ->where('end_time', '<=', $endDate);
 
@@ -605,6 +605,7 @@ class AdminController extends Controller
             'location' => $b->room->location->code,
             'location_id' => $b->room->location_id,
             'booked_by' => $b->user->name,
+            'booked_by_email' => $b->user->email,
             'group_id' => $b->group_id,
             'status' => $b->status->value,
             'type' => 'booking',
@@ -636,7 +637,7 @@ class AdminController extends Controller
 
         // 2. Query Blackouts (if blackout is requested or status is all/default)
         if (!$request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
-            $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name'])
+            $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name,email'])
                 ->where('start_time', '>=', $startDate)
                 ->where('end_time', '<=', $endDate);
 
@@ -662,6 +663,7 @@ class AdminController extends Controller
                 'location' => $bo->room->location->code,
                 'location_id' => $bo->room->location_id,
                 'booked_by' => $bo->creator->name,
+                'booked_by_email' => $bo->creator->email,
                 'status' => 'blackout',
                 'type' => 'blackout',
                 'description' => $bo->description,

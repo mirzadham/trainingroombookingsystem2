@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus, Mail } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, parseISO, min, max } from 'date-fns';
 import { Link } from 'react-router-dom';
 import * as api from '../services/api';
@@ -346,6 +346,12 @@ export default function CalendarPage() {
                                                     <User className="w-3.5 h-3.5" />
                                                     {evt.booked_by}
                                                 </div>
+                                                {evt.booked_by_email && (
+                                                    <div className="flex items-center gap-2 text-slate-550">
+                                                        <Mail className="w-3.5 h-3.5 text-slate-400" />
+                                                        <span className="truncate">{evt.booked_by_email}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
