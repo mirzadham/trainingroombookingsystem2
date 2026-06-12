@@ -124,7 +124,7 @@ export default function CalendarPage() {
                             </select>
                             
                             <Link
-                                to="/"
+                                to={`/search?date=${format(selectedDate, 'yyyy-MM-dd')}${locationFilter ? `&location_id=${locationFilter}` : ''}`}
                                 className="flex items-center gap-2 px-4 py-2 bg-mimos-600 hover:bg-mimos-700 text-white text-sm font-medium rounded-xl transition shadow-sm hover:shadow"
                             >
                                 <Plus className="w-4 h-4" />
@@ -315,6 +315,14 @@ export default function CalendarPage() {
                         <p className="text-xs text-slate-500 mb-4">
                             {selectedEvents.length} booking{selectedEvents.length !== 1 ? 's' : ''}
                         </p>
+
+                        <Link
+                            to={`/search?date=${format(selectedDate, 'yyyy-MM-dd')}${locationFilter ? `&location_id=${locationFilter}` : ''}`}
+                            className="w-full mb-4 flex items-center justify-center gap-2 py-2.5 bg-mimos-600 hover:bg-mimos-700 text-white text-xs font-semibold rounded-xl transition shadow-sm hover:shadow cursor-pointer border-0"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Book a Room for this Date
+                        </Link>
 
                         {selectedEvents.length === 0 && (
                             <div className="text-center py-8 text-slate-600 text-sm">
