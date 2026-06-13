@@ -13,6 +13,7 @@ import {
     LogOut,
     Building2,
     ChevronRight,
+    ChevronLeft,
     History,
     Bell,
     X,
@@ -39,6 +40,18 @@ export default function AdminLayout() {
         ...baseNavItems,
         ...(isSuperAdmin ? [{ path: '/admin/users', icon: Users, label: 'Users' }] : [])
     ];
+
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        return localStorage.getItem('admin-sidebar-collapsed') === 'true';
+    });
+
+    const toggleSidebar = () => {
+        setIsCollapsed(prev => {
+            const next = !prev;
+            localStorage.setItem('admin-sidebar-collapsed', String(next));
+            return next;
+        });
+    };
 
     // Live alert notification state
     const [showToast, setShowToast] = useState(false);
@@ -87,11 +100,36 @@ export default function AdminLayout() {
     return (
         <div className="min-h-screen flex bg-slate-50 text-slate-900">
             {/* Sidebar */}
-            <aside className="w-64 flex-shrink-0 border-r border-slate-200/60 bg-white/75 backdrop-blur-xl flex flex-col shadow-sm relative z-30">
+            <aside className={`${isCollapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out flex-shrink-0 border-r border-slate-200/60 bg-white/75 backdrop-blur-xl flex flex-col shadow-sm relative z-30`}>
+                {/* Floating Toggle Button */}
+                <button
+                    onClick={toggleSidebar}
+                    className="absolute top-7 -right-3.5 z-40 bg-white border border-slate-200/80 shadow-md rounded-full p-1.5 cursor-pointer hover:bg-slate-50 active:scale-95 transition-all duration-200 flex items-center justify-center text-slate-500 hover:text-slate-800"
+                    title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                >
+                    {isCollapsed ? (
+                        <ChevronRight className="w-3.5 h-3.5" />
+                    ) : (
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                    )}
+                </button>
+
                 {/* Logo */}
-                <div className="p-6 border-b border-slate-200/55 flex flex-col gap-2">
-                    <Link to="/admin" className="flex items-center gap-3">
-                        <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-10 w-auto" />
+                <div className={`p-6 border-b border-slate-200/55 flex flex-col gap-2 transition-all duration-300 ${isCollapsed ? 'items-center px-4' : ''}`}>
+                    <Link to="/admin" className="flex items-center justify-center gap-3 w-full">
+                        {isCollapsed ? (
+                            <img 
+                                src={assetPath('/images/MIMOS.png')} 
+                                alt="MIMOS Logo" 
+                                className="h-9 w-9 object-contain transition-all duration-300" 
+                            />
+                        ) : (
+                            <img 
+                                src={assetPath('/images/MIMOS-Academy.png')} 
+                                alt="MIMOS Logo" 
+                                className="h-10 w-auto transition-all duration-300" 
+                            />
+                        )}
                     </Link>
                 </div>
 
@@ -103,29 +141,52 @@ export default function AdminLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] group relative overflow-hidden ${
+                                title={isCollapsed ? item.label : undefined}
+                                className={`flex items-center rounded-xl text-sm font-medium transition-all duration-300 ease-out transform hover:scale-[1.02] active:scale-[0.98] group relative overflow-hidden ${
+                                    isCollapsed 
+                                        ? 'justify-center p-2.5 gap-0 border-l-0' 
+                                        : 'gap-3 px-3.5 py-2.5 border-l-4'
+                                } ${
                                     isActive
-                                        ? 'bg-mimos-500/8 text-mimos-600 shadow-xs border-l-4 border-mimos-500 pl-2.5'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border-l-4 border-transparent'
+                                        ? isCollapsed 
+                                            ? 'bg-mimos-500/8 text-mimos-600 shadow-xs pl-2.5 border-l-4 border-mimos-500' 
+                                            : 'bg-mimos-500/8 text-mimos-600 shadow-xs border-l-4 border-mimos-500 pl-2.5'
+                                        : isCollapsed
+                                            ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border-l-4 border-transparent pl-2.5'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 border-l-4 border-transparent'
                                 }`}
                             >
-                                <item.icon className={`w-4.5 h-4.5 transition-all duration-300 ${
+                                <item.icon className={`w-4.5 h-4.5 transition-all duration-300 flex-shrink-0 ${
                                     isActive 
                                         ? 'text-mimos-500 scale-110' 
                                         : 'text-slate-400 group-hover:text-slate-700 group-hover:scale-105'
                                 }`} />
-                                <span>{item.label}</span>
-                                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-mimos-500/70" />}
+                                {!isCollapsed && (
+                                    <span className="transition-opacity duration-300 whitespace-nowrap">
+                                        {item.label}
+                                    </span>
+                                )}
+                                {!isCollapsed && isActive && (
+                                    <ChevronRight className="w-3.5 h-3.5 ml-auto text-mimos-500/70" />
+                                )}
                             </Link>
                         );
                     })}
                 </nav>
 
                 {/* Logout */}
-                <div className="p-4 border-t border-slate-200/55">
-                    <button onClick={handleLogout} className="flex items-center gap-3 px-3.5 py-2.5 w-full rounded-xl text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50/80 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
-                        <LogOut className="w-4.5 h-4.5 transition-transform group-hover:translate-x-1" />
-                        <span>Sign Out</span>
+                <div className={`p-4 border-t border-slate-200/55 transition-all duration-300 ${isCollapsed ? 'flex justify-center px-2' : ''}`}>
+                    <button 
+                        onClick={handleLogout} 
+                        title={isCollapsed ? "Sign Out" : undefined}
+                        className={`flex items-center rounded-xl text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50/80 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
+                            isCollapsed 
+                                ? 'justify-center p-2.5 gap-0 w-11' 
+                                : 'gap-3 px-3.5 py-2.5 w-full'
+                        }`}
+                    >
+                        <LogOut className="w-4.5 h-4.5 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+                        {!isCollapsed && <span className="whitespace-nowrap">Sign Out</span>}
                     </button>
                 </div>
             </aside>
