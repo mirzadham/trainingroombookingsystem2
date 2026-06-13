@@ -28,13 +28,17 @@ class AdminInvitationNotification extends Notification implements ShouldQueue
         $roleLabel = $this->invitation->role === 'super_admin' ? 'Super Admin' : 'Location Admin';
         $locationLabel = $this->invitation->location ? " for {$this->invitation->location->name}" : '';
 
+        $formattedExpiry = $this->invitation->expires_at
+            ?->setTimezone('Asia/Kuala_Lumpur')
+            ?->format('M d, Y \a\t h:i A');
+
         return (new MailMessage)
-            ->subject('Invitation to Join Room Booking Admin Panel')
-            ->greeting('Hello,')
-            ->line("You have been invited by {$this->invitation->inviter->name} to join the Training Room Booking System as a **{$roleLabel}**{$locationLabel}.")
-            ->line('Please click the button below to accept your invitation and set up your password details:')
-            ->action('Set Up Admin Account', $setupUrl)
-            ->line("This invitation token is secure, single-use, and will expire on **{$this->invitation->expires_at->format('M d, Y H:i')}**.")
+            ->subject('Invitation to Join the MIMOS Academy Admin Panel')
+            ->greeting('Welcome to the MIMOS Academy Admin Team,')
+            ->line("You have been invited by **{$this->invitation->inviter->name}** to join the Training Room Booking System as a **{$roleLabel}**{$locationLabel}.")
+            ->line('Please click the button below to accept your invitation and configure your administrator credentials:')
+            ->action('Accept Invitation & Set Up Account', $setupUrl)
+            ->line("For your security, this invitation token is secure, single-use, and will expire on **{$formattedExpiry} MYT**.")
             ->line('If you were not expecting this invitation, you can safely ignore this email.')
             ->salutation("Regards,\nMIMOS Academy");
     }

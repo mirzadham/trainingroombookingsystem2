@@ -32,16 +32,17 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
         $requesterDept = $this->booking->user->department ?? 'N/A';
 
         return (new MailMessage)
-            ->subject("[New Booking Request] - {$roomName} ({$locationName})")
+            ->subject("[Action Required] New Booking Request: {$roomName} ({$locationName})")
             ->greeting("Hello {$notifiable->name},")
-            ->line("A new booking request has been submitted and is currently pending your review and approval.")
-            ->line("**Requested By**: {$requesterName} ({$requesterEmail}, Dept: {$requesterDept})")
-            ->line("**Room**: {$roomName} ({$locationName})")
-            ->line("**Time**: {$startTime} to {$endTime}")
-            ->line("**Title/Purpose**: {$this->booking->title}")
-            ->line("**Attendees**: {$this->booking->attendees} people")
-            ->action('Review Pending Bookings', url('/admin'))
-            ->line('Please log in to the admin panel to approve or reject this booking request.')
+            ->line("A new booking request has been submitted and requires your administrative review and approval.")
+            ->line("### Booking Details")
+            ->line("- **Requested By:** {$requesterName} ({$requesterEmail} | Dept: {$requesterDept})")
+            ->line("- **Room:** {$roomName} ({$locationName})")
+            ->line("- **Time:** {$startTime} to {$endTime} MYT")
+            ->line("- **Purpose:** {$this->booking->title}")
+            ->line("- **Attendees:** {$this->booking->attendees} people")
+            ->action('Review Pending Request', url('/admin'))
+            ->line('Please log in to the administrator portal to approve or reject this booking request.')
             ->salutation("Regards,\nMIMOS Academy");
     }
 }
