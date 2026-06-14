@@ -257,9 +257,15 @@ function RoomCard({ room, onClick, formatAmenity }) {
 
             {/* Details */}
             <div className="p-6">
-                <h3 className="text-lg font-bold text-slate-900 mb-1.5 group-hover/card:text-mimos-500 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-0.5 group-hover/card:text-mimos-500 transition-colors">
                     {room.name}
                 </h3>
+                {room.location_legend && room.location_legend.toLowerCase() !== 'tbc' && (
+                    <p className="text-xs text-slate-400 font-semibold mb-2.5">
+                        {room.location_legend}
+                    </p>
+                )}
+                {!room.location_legend || room.location_legend.toLowerCase() === 'tbc' ? <div className="h-1 mb-1.5" /> : null}
 
                 <div className="flex flex-wrap items-center gap-3 mb-4">
                     <span className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">

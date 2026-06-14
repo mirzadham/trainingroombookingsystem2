@@ -127,6 +127,11 @@ export default function AdminRooms() {
                                         <h3 className="text-sm font-semibold text-slate-900">{room.name}</h3>
                                         <span className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
                                             <MapPin className="w-3 h-3" />{room.location?.code || room.location?.name}
+                                            {room.location_legend && room.location_legend.toLowerCase() !== 'tbc' && (
+                                                <span className="text-[10px] bg-slate-100 text-slate-500 rounded px-1 py-0.2 ml-1.5 font-medium border border-slate-200">
+                                                    {room.location_legend}
+                                                </span>
+                                            )}
                                         </span>
                                     </div>
                                     {!room.is_active && (
@@ -235,6 +240,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
     });
     const [capacity, setCapacity] = useState(room?.capacity || '');
     const [description, setDescription] = useState(room?.description || '');
+    const [locationLegend, setLocationLegend] = useState(room?.location_legend || '');
     const [amenities, setAmenities] = useState(room?.amenities || []);
     const [customAmenity, setCustomAmenity] = useState('');
 
@@ -277,6 +283,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
             location_id: parseInt(locationId),
             capacity: parseInt(capacity),
             description: description || null,
+            location_legend: locationLegend || null,
             amenities,
         });
     };
@@ -324,6 +331,11 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
                 <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wider">Description</label>
                     <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50" />
+                </div>
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wider">Room Location (e.g., Floor, Wing)</label>
+                    <input type="text" value={locationLegend} onChange={e => setLocationLegend(e.target.value)} placeholder="e.g. 1st Floor, East Wing"
                         className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50" />
                 </div>
 

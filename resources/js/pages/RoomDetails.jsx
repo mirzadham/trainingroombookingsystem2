@@ -254,9 +254,21 @@ export default function RoomDetails() {
                         {/* Description */}
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 mb-3">About this room</h3>
-                            <p className="text-slate-600 leading-relaxed">
+                            <p className="text-slate-600 leading-relaxed mb-6">
                                 {room.description || 'A premium training room equipped with modern amenities to ensure a productive and comfortable environment for all your meetings and training sessions. Designed with professional acoustics and high-speed connectivity.'}
                             </p>
+
+                            {room.location_legend && room.location_legend.toLowerCase() !== 'tbc' && (
+                                <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center gap-3 max-w-md">
+                                    <div className="w-10 h-10 rounded-xl bg-mimos-500/10 flex items-center justify-center text-mimos-600 shrink-0">
+                                        <MapPin className="w-5 h-5 text-mimos-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Room Location</div>
+                                        <div className="text-sm font-semibold text-slate-800">{room.location_legend}</div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Amenities List */}
