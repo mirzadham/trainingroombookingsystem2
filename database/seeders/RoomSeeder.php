@@ -21,6 +21,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'video_conferencing', 'sound_system'],
                 'description' => 'Premium large seminar room equipped with high-definition projection, state-of-the-art sound systems, and video conferencing capabilities. Perfect for large-scale training, workshops, and corporate seminars.',
                 'image_url' => '/images/rooms/seminar-room-a.png',
+                'location_legend' => '2nd floor',
             ],
             [
                 'name' => 'Seminar Room 2',
@@ -28,6 +29,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'video_conferencing', 'sound_system'],
                 'description' => 'Mid-sized modern seminar room with flexible seating configurations, dual display inputs, and professional acoustics. Optimized for interactive workshops and collaborative learning.',
                 'image_url' => '/images/rooms/training-hall.png',
+                'location_legend' => '2nd floor',
             ],
             [
                 'name' => 'BDA Lab (Aluminium)',
@@ -35,6 +37,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'computers', 'air_conditioning'],
                 'description' => 'Dedicated Big Data Analytics lab featuring high-performance computer workstations, high-speed networking, and collaborative software tooling. Designed for intensive tech training.',
                 'image_url' => '/images/rooms/training-lab-1.png',
+                'location_legend' => '2nd floor',
             ],
             [
                 'name' => 'Argon Room',
@@ -42,6 +45,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'video_conferencing', 'smart_tv'],
                 'description' => 'A high-end medium meeting and training room styled with modern executive furniture, high-speed Wi-Fi, and smart presentation displays.',
                 'image_url' => '/images/rooms/boardroom.png',
+                'location_legend' => '2nd floor',
             ],
             [
                 'name' => 'Magnesium Room',
@@ -49,6 +53,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'video_conferencing'],
                 'description' => 'Sleek, modern meeting space equipped with an interactive whiteboard, seamless wireless sharing, and comfortable ergonomic seating.',
                 'image_url' => '/images/rooms/meeting-room-b1.png',
+                'location_legend' => '1st floor',
             ],
             [
                 'name' => 'Training Room 1 (Samarium)',
@@ -56,6 +61,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'smart_tv'],
                 'description' => 'Fully air-conditioned professional training room featuring modular writing tables, magnetic glass boards, and high-brightness projection equipment.',
                 'image_url' => '/images/rooms/collaboration-space.png',
+                'location_legend' => 'tbc',
             ],
             [
                 'name' => 'Training Room 2 (Europium)',
@@ -63,6 +69,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'smart_tv'],
                 'description' => 'Modern, high-comfort classroom-style room designed for optimal visibility, acoustics, and group learning activities. Equipped with modern presentation tools.',
                 'image_url' => '/images/rooms/innovation-lab.png',
+                'location_legend' => 'tbc',
             ],
             [
                 'name' => 'Auditorium',
@@ -70,6 +77,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'sound_system', 'video_conferencing', 'microphones', 'air_conditioning'],
                 'description' => 'A grand auditorium space equipped with a massive projector screen, professional theater-grade acoustics, and high-tier presentation tools. Ideal for keynotes, large conferences, and major corporate events.',
                 'image_url' => '/images/rooms/tpm/auditorium/VISITMIMOS-11.jpg',
+                'location_legend' => '2nd floor',
             ],
         ];
 
@@ -81,6 +89,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'smart_tv'],
                 'description' => 'Kulim Tech Park modern classroom-style room designed for high-comfort long training sessions. Features advanced temperature control and smart screens.',
                 'image_url' => '/images/rooms/collaboration-space.png',
+                'location_legend' => 'tbc',
             ],
             [
                 'name' => 'Training Room 2',
@@ -88,6 +97,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'smart_tv'],
                 'description' => 'Professional training room in Kulim with highly flexible modular tables, perfect for team brainstorming and small-to-mid-size classroom training.',
                 'image_url' => '/images/rooms/innovation-lab.png',
+                'location_legend' => 'tbc',
             ],
             [
                 'name' => 'Town Hall',
@@ -95,6 +105,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'sound_system', 'video_conferencing', 'microphones'],
                 'description' => 'Expansive open-concept town hall layout for massive corporate presentations, panel discussions, and keynotes. Outfitted with dual giant screens and premium sound system.',
                 'image_url' => '/images/rooms/training-hall.png',
+                'location_legend' => 'tbc',
             ],
             [
                 'name' => 'K World',
@@ -102,6 +113,7 @@ class RoomSeeder extends Seeder
                 'amenities' => ['projector', 'whiteboard', 'computers', 'video_conferencing'],
                 'description' => 'Cutting-edge digital exploration space featuring advanced tech computers, VR capabilities, and immersive media systems for next-generation training.',
                 'image_url' => '/images/rooms/training-lab-1.png',
+                'location_legend' => 'tbc',
             ],
         ];
 

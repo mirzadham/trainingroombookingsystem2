@@ -28,6 +28,7 @@ class UpdateRoomRequest extends FormRequest
             'capacity' => 'sometimes|integer|min:1',
             'amenities' => 'nullable|array',
             'description' => 'nullable|string|max:500',
+            'location_legend' => 'nullable|string|max:100',
             'is_active' => 'sometimes|boolean',
         ];
     }

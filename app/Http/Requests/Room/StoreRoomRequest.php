@@ -29,6 +29,7 @@ class StoreRoomRequest extends FormRequest
             'capacity' => 'required|integer|min:1',
             'amenities' => 'nullable|array',
             'description' => 'nullable|string|max:500',
+            'location_legend' => 'nullable|string|max:100',
         ];
     }
 }

@@ -221,6 +221,7 @@ class AvailabilityService
                     'capacity' => $room->capacity,
                     'location' => $room->location->name,
                     'location_code' => $room->location->code,
+                    'location_legend' => $room->location_legend,
                     'amenities' => $room->amenities ?? [],
                     'image_url' => $room->image_url,
                     'images' => $room->images,
