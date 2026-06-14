@@ -33,6 +33,6 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             ->action('Reset Password', $resetUrl)
             ->line('For security reasons, this password reset link is only valid for the next **60 minutes**.')
             ->line('If you did not request a password reset, no further action is required. Your account remains secure and your password will not be changed.')
-            ->salutation("Regards,\nMIMOS Academy");
+            ->salutation("Regards,  \nMIMOS Academy");
     }
 }

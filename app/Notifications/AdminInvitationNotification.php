@@ -40,6 +40,6 @@ class AdminInvitationNotification extends Notification implements ShouldQueue
             ->action('Accept Invitation & Set Up Account', $setupUrl)
             ->line("For your security, this invitation token is secure, single-use, and will expire on **{$formattedExpiry} MYT**.")
             ->line('If you were not expecting this invitation, you can safely ignore this email.')
-            ->salutation("Regards,\nMIMOS Academy");
+            ->salutation("Regards,  \nMIMOS Academy");
     }
 }

@@ -40,7 +40,7 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
         $startTime = $this->booking->start_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
         $endTime = $this->booking->end_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
 
-        $mail = (new MailMessage)->salutation("Regards,\nMIMOS Academy");
+        $mail = (new MailMessage)->salutation("Regards,  \nMIMOS Academy");
         
         $pic = $this->getPicDetails();
         $picLine = "**Support Contact (Person in Charge):** {$pic['name']} (Email: {$pic['email']}" . ($pic['phone'] ? ", Phone: {$pic['phone']}" : "") . ")";
