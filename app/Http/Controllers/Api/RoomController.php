@@ -140,7 +140,7 @@ class RoomController extends Controller
         ]);
 
         $uploadedImages = [];
-        $diskName = env('FILESYSTEM_DISK', 's3');
+        $diskName = config('filesystems.default');
         $disk = Storage::disk($diskName);
 
         foreach ($request->file('files') as $file) {
@@ -188,7 +188,7 @@ class RoomController extends Controller
 
         $imagePath = $request->input('image_path');
         
-        $diskName = env('FILESYSTEM_DISK', 's3');
+        $diskName = config('filesystems.default');
         $disk = Storage::disk($diskName);
         $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
         $relativeKey = ltrim($parsedUrl, '/');
@@ -244,7 +244,7 @@ class RoomController extends Controller
 
         $imagePath = $request->input('image_path');
         
-        $diskName = env('FILESYSTEM_DISK', 's3');
+        $diskName = config('filesystems.default');
         $disk = Storage::disk($diskName);
         $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
         $relativeKey = ltrim($parsedUrl, '/');

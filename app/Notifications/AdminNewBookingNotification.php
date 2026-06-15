@@ -25,8 +25,8 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
     {
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
-        $startTime = $this->booking->start_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
-        $endTime = $this->booking->end_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
+        $startTime = $this->booking->start_time->format('d M Y, h:i A');
+        $endTime = $this->booking->end_time->format('d M Y, h:i A');
         $requesterName = $this->booking->user->name;
         $requesterEmail = $this->booking->user->email;
         $requesterDept = $this->booking->user->department ?? 'N/A';

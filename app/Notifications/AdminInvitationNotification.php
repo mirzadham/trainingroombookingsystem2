@@ -29,7 +29,6 @@ class AdminInvitationNotification extends Notification implements ShouldQueue
         $locationLabel = $this->invitation->location ? " for {$this->invitation->location->name}" : '';
 
         $formattedExpiry = $this->invitation->expires_at
-            ?->setTimezone('Asia/Kuala_Lumpur')
             ?->format('M d, Y \a\t h:i A');
 
         return (new MailMessage)

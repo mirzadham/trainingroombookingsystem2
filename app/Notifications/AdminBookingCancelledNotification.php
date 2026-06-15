@@ -27,8 +27,8 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
     {
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
-        $startTime = $this->booking->start_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
-        $endTime = $this->booking->end_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
+        $startTime = $this->booking->start_time->format('d M Y, h:i A');
+        $endTime = $this->booking->end_time->format('d M Y, h:i A');
         $userName = $this->booking->user->name;
         $userEmail = $this->booking->user->email;
 

@@ -37,8 +37,8 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
     {
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
-        $startTime = $this->booking->start_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
-        $endTime = $this->booking->end_time->setTimezone('Asia/Kuala_Lumpur')->format('d M Y, h:i A');
+        $startTime = $this->booking->start_time->format('d M Y, h:i A');
+        $endTime = $this->booking->end_time->format('d M Y, h:i A');
 
         $mail = (new MailMessage)->salutation("Regards,  \nMIMOS Academy");
         

@@ -466,17 +466,14 @@ class AdminController extends Controller
                         $this->runStrictValidationRules($dayStart, $dayEnd, $room, $validated['attendees']);
                     }
 
-                    // Convert to UTC for persistence
-                    $dayStartUtc = $dayStart->copy()->setTimezone('UTC');
-                    $dayEndUtc   = $dayEnd->copy()->setTimezone('UTC');
-
+                    // Store using local Asia/Kuala_Lumpur times directly
                     $booking = Booking::create([
                         'user_id' => $targetUser->id,
                         'room_id' => $room->id,
                         'title' => $validated['title'],
                         'description' => $validated['description'] ?? null,
-                        'start_time' => $dayStartUtc,
-                        'end_time' => $dayEndUtc,
+                        'start_time' => $dayStart,
+                        'end_time' => $dayEnd,
                         'attendees' => $validated['attendees'],
                         'phone' => $phone,
                         'status' => BookingStatus::Approved,
@@ -514,17 +511,14 @@ class AdminController extends Controller
                     $this->runStrictValidationRules($start, $end, $room, $validated['attendees']);
                 }
 
-                // Convert to UTC for persistence
-                $startUtc = $start->copy()->setTimezone('UTC');
-                $endUtc   = $end->copy()->setTimezone('UTC');
-
+                // Store using local Asia/Kuala_Lumpur times directly
                 $booking = Booking::create([
                     'user_id' => $targetUser->id,
                     'room_id' => $room->id,
                     'title' => $validated['title'],
                     'description' => $validated['description'] ?? null,
-                    'start_time' => $startUtc,
-                    'end_time' => $endUtc,
+                    'start_time' => $start,
+                    'end_time' => $end,
                     'attendees' => $validated['attendees'],
                     'phone' => $phone,
                     'status' => BookingStatus::Approved,

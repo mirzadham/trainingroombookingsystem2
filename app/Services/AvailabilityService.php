@@ -158,16 +158,13 @@ class AvailabilityService
                         $currentEnd = Carbon::createFromTimeString($timeEndStr, 'Asia/Kuala_Lumpur')
                             ->setDate($current->year, $current->month, $current->day);
 
-                        // Convert to UTC for matching since $booking->start_time and end_time are in UTC
-                        $currentStartUtc = $currentStart->copy()->setTimezone('UTC');
-                        $currentEndUtc = $currentEnd->copy()->setTimezone('UTC');
-
-                        $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStartUtc, $currentEndUtc) {
-                            return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
+                        // Compare directly using local Asia/Kuala_Lumpur times
+                        $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStart, $currentEnd) {
+                            return $booking->start_time < $currentEnd && $booking->end_time > $currentStart;
                         });
 
-                        $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStartUtc, $currentEndUtc) {
-                            return Carbon::parse($bo->start_time) < $currentEndUtc && Carbon::parse($bo->end_time) > $currentStartUtc;
+                        $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStart, $currentEnd) {
+                            return Carbon::parse($bo->start_time) < $currentEnd && Carbon::parse($bo->end_time) > $currentStart;
                         });
 
                         if ($overlappingBooking || $overlappingBlackout) {
@@ -176,16 +173,13 @@ class AvailabilityService
                         }
                     }
                 } else {
-                    // Single day check
-                    $currentStartUtc = $slotStart->copy()->setTimezone('Asia/Kuala_Lumpur')->setTimezone('UTC');
-                    $currentEndUtc = $slotEnd->copy()->setTimezone('Asia/Kuala_Lumpur')->setTimezone('UTC');
-
-                    $overlappingBooking = $roomBookings->first(function ($booking) use ($currentStartUtc, $currentEndUtc) {
-                        return $booking->start_time < $currentEndUtc && $booking->end_time > $currentStartUtc;
+                    // Single day check (already local times)
+                    $overlappingBooking = $roomBookings->first(function ($booking) use ($slotStart, $slotEnd) {
+                        return $booking->start_time < $slotEnd && $booking->end_time > $slotStart;
                     });
 
-                    $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStartUtc, $currentEndUtc) {
-                        return Carbon::parse($bo->start_time) < $currentEndUtc && Carbon::parse($bo->end_time) > $currentStartUtc;
+                    $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($slotStart, $slotEnd) {
+                        return Carbon::parse($bo->start_time) < $slotEnd && Carbon::parse($bo->end_time) > $slotStart;
                     });
 
                     $isOccupied = (bool)($overlappingBooking || $overlappingBlackout);

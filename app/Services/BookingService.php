@@ -72,17 +72,14 @@ class BookingService
                     'attendees'  => $data['attendees'],
                 ], $maxMultidayDuration);
 
-                // 3) Convert to UTC only for persistence in the database.
-                $dayStartUtc = $dayStart->copy()->setTimezone('UTC');
-                $dayEndUtc   = $dayEnd->copy()->setTimezone('UTC');
-
+                // 3) Store using local Asia/Kuala_Lumpur times directly.
                 $booking = Booking::create([
                     'user_id'              => $user->id,
                     'room_id'              => $data['room_id'],
                     'title'                => $data['title'],
                     'description'          => $data['description'] ?? null,
-                    'start_time'           => $dayStartUtc,
-                    'end_time'             => $dayEndUtc,
+                    'start_time'           => $dayStart,
+                    'end_time'             => $dayEnd,
                     'attendees'            => $data['attendees'],
                     'phone'                => $data['phone'],
                     'status'               => BookingStatus::Pending,

@@ -76,7 +76,7 @@ class Room extends Model
 
         // Cache the scanned directory result to avoid disk read overhead
         return Cache::remember("room_images_gallery:{$this->id}", 86400, function () {
-            $diskName = env('FILESYSTEM_DISK', 's3');
+            $diskName = config('filesystems.default');
             $disk = Storage::disk($diskName);
             $directory = "rooms/{$this->id}";
 
