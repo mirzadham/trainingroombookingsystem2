@@ -266,4 +266,74 @@ class AuthNotificationAndResetTest extends TestCase
         $this->assertStringContainsString('rejecter@mimos.my', $mailContent);
         $this->assertStringContainsString('03-55556666', $mailContent);
     }
+
+    public function test_booking_cancellation_notifies_admins_with_appropriate_status(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create([
+            'email' => 'user@mimos.my',
+        ]);
+
+        $superAdmin = User::factory()->create([
+            'role' => UserRole::SuperAdmin,
+            'email' => 'superadmin@mimos.my',
+        ]);
+
+        $location = Location::create([
+            'name' => 'Kuala Lumpur HQ',
+            'code' => 'KLHQ',
+        ]);
+
+        $locationAdmin = User::factory()->create([
+            'role' => UserRole::LocationAdmin,
+            'location_id' => $location->id,
+            'email' => 'locadmin@mimos.my',
+        ]);
+
+        $room = Room::create([
+            'location_id' => $location->id,
+            'name' => 'Auditorium Alpha',
+            'capacity' => 50,
+            'is_active' => true,
+        ]);
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'room_id' => $room->id,
+            'title' => 'Test Booking',
+            'start_time' => now()->addDays(2)->setTime(10, 0, 0),
+            'end_time' => now()->addDays(2)->setTime(11, 0, 0),
+            'attendees' => 20,
+            'phone' => '+60123456789',
+            'status' => \App\Enums\BookingStatus::Pending,
+        ]);
+
+        $bookingService = app(BookingService::class);
+
+        // 1. Cancel pending booking (Withdrawal)
+        $bookingService->cancel($booking, $user);
+
+        Notification::assertSentTo(
+            [$superAdmin, $locationAdmin],
+            \App\Notifications\AdminBookingCancelledNotification::class,
+            function ($notification) {
+                return $notification->toMail(User::first())->subject === '[Withdrawn] Booking Request: Auditorium Alpha (Kuala Lumpur HQ)';
+            }
+        );
+
+        // Reset status to Approved for next test
+        $booking->update(['status' => \App\Enums\BookingStatus::Approved]);
+
+        // 2. Cancel approved booking (Cancellation)
+        $bookingService->cancel($booking, $user);
+
+        Notification::assertSentTo(
+            [$superAdmin, $locationAdmin],
+            \App\Notifications\AdminBookingCancelledNotification::class,
+            function ($notification) {
+                return $notification->toMail(User::first())->subject === '[Cancelled] Approved Booking: Auditorium Alpha (Kuala Lumpur HQ)';
+            }
+        );
+    }
 }

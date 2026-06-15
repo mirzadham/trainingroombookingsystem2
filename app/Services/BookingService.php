@@ -191,7 +191,7 @@ class BookingService
             'before' => ['status' => $oldStatus->value],
             'after' => ['status' => BookingStatus::Cancelled->value],
         ]);
-        $this->notificationService->sendBookingNotification($booking, 'cancelled');
+        $this->notificationService->sendBookingNotification($booking, 'cancelled', $oldStatus);
 
         return $booking->fresh(['room.location', 'user']);
     }
