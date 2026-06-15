@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, AlertCircle, History } from 'lucide-react';
+import { CalendarCheck, AlertCircle, History, Plus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 import EditBookingModal from '../components/EditBookingModal';
@@ -138,9 +138,18 @@ export default function MyBookings() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Bookings</h1>
-                <p className="text-sm text-slate-500 mt-1">Track and manage all your room reservations</p>
+            <div className="flex items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Bookings</h1>
+                    <p className="text-sm text-slate-500 mt-1">Track and manage all your room reservations</p>
+                </div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 bg-mimos-500 hover:bg-mimos-600 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                >
+                    <Plus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                    <span className="hidden sm:inline">Book a Room</span>
+                </button>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
