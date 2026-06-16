@@ -35,17 +35,17 @@ export default function ConfirmationStep({ form }) {
                 <div className="space-y-4 relative z-10">
                     <div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1">
-                            <Hash className="w-3 h-3" /> Booking ID{totalDays > 1 ? `s (${totalDays} days)` : ''}
+                            <Hash className="w-3 h-3" /> Booking Reference{totalDays > 1 ? 's' : ''}
                         </div>
-                        <div className="text-xl font-mono font-bold text-slate-900">
-                            {String(bookings.map(b => b.id).join(', '))}
+                        <div className="text-xl font-mono font-bold text-slate-900 break-words">
+                            {bookings.map(b => b.reference_no || `#${b.id}`).join(', ')}
                         </div>
 
                         {totalDays > 1 && (
                             <>
                                 <div className="h-px bg-slate-200 mt-3 mb-1" />
                                 <div className="text-[10px] font-medium text-mimos-600">
-                                    {totalDays} separate records linked under group {String(primary?.group_id || '').substring(0, 8)}
+                                    {totalDays} days linked under series prefix: {String(primary?.reference_no || '').split('-').slice(0, 2).join('-')}
                                 </div>
                             </>
                         )}

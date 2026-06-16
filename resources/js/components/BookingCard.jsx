@@ -58,6 +58,14 @@ export default function BookingCard({
     // Retrieve location name or code
     const locationName = booking.room?.location?.name || booking.room?.location?.code || 'LOCATION';
 
+    const getBaseReference = () => {
+        const ref = booking.isGroup 
+            ? (booking.occurrences?.[0]?.reference_no || '')
+            : (booking.reference_no || '');
+        if (!ref) return `#${booking.id}`;
+        return ref.split('-').slice(0, 2).join('-');
+    };
+
     return (
         <div
             className={`bg-white border rounded-3xl p-5 md:p-6 transition-all duration-300 flex flex-col w-full relative ${
@@ -81,7 +89,7 @@ export default function BookingCard({
                             />
                         </div>
                     )}
-
+ 
                     {/* Left date column */}
                     <div className="flex flex-col items-center justify-center w-14 flex-shrink-0 text-center select-none pr-2 pt-1">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-none">{weekday}</span>
@@ -93,10 +101,10 @@ export default function BookingCard({
                             </span>
                         )}
                     </div>
-
+ 
                     {/* Divider Line */}
                     <div className="w-px bg-slate-200/80 self-stretch my-1 flex-shrink-0 hidden md:block" />
-
+ 
                     {/* Middle Section: Badges, Title, Time, Room */}
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start min-w-0 pl-1 md:pl-2">
                         {/* Column 1: Badges & Title */}
@@ -119,11 +127,9 @@ export default function BookingCard({
                                         {booking.isRecurring ? 'Weekly Series' : 'Consecutive'}
                                     </span>
                                 )}
-                                {isAdmin && !booking.isGroup && (
-                                    <span className="text-[10px] text-slate-400 font-mono">
-                                        #{booking.id}
-                                    </span>
-                                )}
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-mono font-bold tracking-wider bg-slate-55 text-slate-500 border border-slate-200/80 select-all">
+                                    {getBaseReference()}{booking.isGroup && '-*'}
+                                </span>
                             </div>
                             
                             <h3 className="text-base font-extrabold text-slate-900 leading-snug tracking-tight truncate max-w-full" title={booking.title}>

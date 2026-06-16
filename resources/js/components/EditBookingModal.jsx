@@ -101,7 +101,7 @@ export default function EditBookingModal({ booking, onClose, onSave, isSaving })
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">Edit Booking</h2>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Modify details for booking #{booking.id}
+                                Modify details for booking {booking.reference_no || `#${booking.id}`}
                             </p>
                         </div>
                     </div>

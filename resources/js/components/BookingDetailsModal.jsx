@@ -129,9 +129,9 @@ export default function BookingDetailsModal({
                             </h2>
                             <p className="text-xs text-slate-500 mt-0.5">
                                 {booking.isGroup ? (
-                                    booking.isRecurring ? 'Weekly Series Booking' : 'Consecutive Multi-Day Booking'
+                                    `${booking.isRecurring ? 'Weekly Series Booking' : 'Consecutive Multi-Day Booking'} | Ref: ${(booking.occurrences?.[0]?.reference_no || '').split('-').slice(0, 2).join('-')}-*`
                                 ) : (
-                                    `Reference Reservation #${booking.id}`
+                                    `Reference Reservation ${booking.reference_no || `#${booking.id}`}`
                                 )}
                             </p>
                         </div>
@@ -298,7 +298,7 @@ export default function BookingDetailsModal({
                                                 >
                                                     <div className="flex items-center justify-between gap-2">
                                                         <div className="text-xs font-bold text-slate-800">
-                                                            {formattedDate}
+                                                            {formattedDate} <span className="text-[10px] text-slate-400 font-mono ml-1.5 font-normal">({occ.reference_no || `#${occ.id}`})</span>
                                                         </div>
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-black tracking-wider border ${occStatusInfo.className} select-none`}>
                                                             {occStatusInfo.text}

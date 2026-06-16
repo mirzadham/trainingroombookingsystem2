@@ -362,34 +362,42 @@ export default function BookingForm() {
                 </div>
             )}
 
-            {/* Step 3: Confirmation */}
-            {step === 3 && bookingResult && (
-                <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 text-center">
-                    <div className="inline-flex p-3 rounded-full bg-emerald-500/10 mb-4">
-                        <CalendarCheck className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <h2 className="text-xl font-bold text-slate-900 mb-2">Booking Submitted!</h2>
-                    <p className="text-sm text-slate-500 mb-6">
-                        Your booking is <span className="text-amber-500 font-medium">pending approval</span>. You'll be notified once an admin reviews it.
-                    </p>
+            {step === 3 && bookingResult && (() => {
+                const bookings = Array.isArray(bookingResult) ? bookingResult : [bookingResult];
+                const primary = bookings[0];
+                return (
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-8 text-center">
+                        <div className="inline-flex p-3 rounded-full bg-emerald-500/10 mb-4">
+                            <CalendarCheck className="w-8 h-8 text-emerald-500" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-900 mb-2">Booking Submitted!</h2>
+                        <p className="text-sm text-slate-500 mb-6">
+                            Your booking is <span className="text-amber-500 font-medium">pending approval</span>. You'll be notified once an admin reviews it.
+                        </p>
 
-                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 text-left space-y-2 text-sm">
-                         <div className="flex justify-between"><span className="text-slate-500">Booking ID</span><span className="text-slate-900 font-mono">#{bookingResult.id}</span></div>
-                         <div className="flex justify-between"><span className="text-slate-500">Room</span><span className="text-slate-900">{bookingResult.room?.name}</span></div>
-                         <div className="flex justify-between"><span className="text-slate-500">Contact Phone</span><span className="text-slate-900">{bookingResult.phone}</span></div>
-                         <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-amber-500 font-medium uppercase text-xs">{bookingResult.status}</span></div>
-                     </div>
+                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 text-left space-y-2 text-sm">
+                             <div className="flex justify-between">
+                                 <span className="text-slate-500">Booking Reference{bookings.length > 1 ? 's' : ''}</span>
+                                 <span className="text-slate-900 font-mono break-all text-right max-w-[60%]">
+                                     {bookings.map(b => b.reference_no || `#${b.id}`).join(', ')}
+                                 </span>
+                             </div>
+                             <div className="flex justify-between"><span className="text-slate-500">Room</span><span className="text-slate-900">{primary?.room?.name}</span></div>
+                             <div className="flex justify-between"><span className="text-slate-500">Contact Phone</span><span className="text-slate-900">{primary?.phone}</span></div>
+                             <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="text-amber-500 font-medium uppercase text-xs">{primary?.status}</span></div>
+                         </div>
 
-                    <div className="flex gap-3">
-                        <button onClick={() => navigate('/my-bookings')} className="flex-1 px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition cursor-pointer">
-                            My Bookings
-                        </button>
-                        <button onClick={() => navigate('/')} className="flex-1 px-6 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl transition cursor-pointer">
-                            Book Another
-                        </button>
+                        <div className="flex gap-3">
+                            <button onClick={() => navigate('/my-bookings')} className="flex-1 px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-xl transition cursor-pointer">
+                                My Bookings
+                            </button>
+                            <button onClick={() => navigate('/')} className="flex-1 px-6 py-3 bg-mimos-500 hover:bg-mimos-600 text-white font-semibold rounded-xl transition cursor-pointer">
+                                Book Another
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 }
