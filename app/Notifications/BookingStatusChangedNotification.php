@@ -39,6 +39,7 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
         $locationName = $this->booking->room->location->name;
         $startTime = $this->booking->start_time->format('d M Y, h:i A');
         $endTime = $this->booking->end_time->format('d M Y, h:i A');
+        $dateStr = $this->booking->start_time->format('d M Y');
 
         $mail = (new MailMessage)->salutation("Regards,  \nMIMOS Academy");
         
@@ -47,10 +48,11 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
 
         switch ($this->type) {
             case 'submitted':
-                $mail->subject('Booking Request Submitted — MIMOS Academy Booking')
+                $mail->subject("Booking Request Submitted — MIMOS Academy Booking | Ref: {$this->booking->reference_no}")
                     ->greeting('Hello ' . $notifiable->name . ',')
                     ->line('Thank you for your submission. Your booking request has been successfully received and is currently pending review by our administrative team. We will notify you via email once a decision has been made.')
                     ->line('### Booking Details')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
                     ->line("- **Room:** {$roomName} ({$locationName})")
                     ->line("- **Time:** {$startTime} to {$endTime} MYT")
                     ->line($picLine)
@@ -58,10 +60,11 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                 break;
 
             case 'approved':
-                $mail->subject('Booking Approved — MIMOS Academy Booking')
+                $mail->subject("✅ Booking Approved – {$roomName} | {$dateStr} | {$this->booking->reference_no}")
                     ->greeting('Hello ' . $notifiable->name . ',')
                     ->line('Great news! Your booking request has been officially approved. Below are the details of your upcoming reservation.')
                     ->line('### Booking Details')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
                     ->line("- **Room:** {$roomName} ({$locationName})")
                     ->line("- **Time:** {$startTime} to {$endTime} MYT")
                     ->line($picLine)
@@ -74,7 +77,7 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     $icsContent = $icsService->generateIcs($this->booking);
                     $mail->attachData(
                         $icsContent,
-                        'booking-' . $this->booking->id . '.ics',
+                        'booking-' . $this->booking->reference_no . '.ics',
                         ['mime' => 'text/calendar; charset=UTF-8; method=PUBLISH']
                     );
                 } catch (\Exception $e) {
@@ -87,12 +90,13 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
 
             case 'rejected':
                 $reason = $this->booking->rejection_reason ?? 'No reason provided';
-                $mail->subject('Booking Request Rejected — MIMOS Academy Booking')
+                $mail->subject("❌ Booking Request Unsuccessful – {$roomName} | {$dateStr} | {$this->booking->reference_no}")
                     ->greeting('Hello ' . $notifiable->name . ',')
                     ->line('Thank you for submitting your booking request. We regret to inform you that your reservation request has been rejected.')
                     ->line('**Reason for Rejection:**')
                     ->line('> ' . $reason)
                     ->line('### Booking Details')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
                     ->line("- **Room:** {$roomName} ({$locationName})")
                     ->line("- **Time:** {$startTime} to {$endTime} MYT")
                     ->line($picLine)
@@ -100,10 +104,11 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                 break;
 
             case 'cancelled':
-                $mail->subject('Booking Cancelled — MIMOS Academy Booking')
+                $mail->subject("🚫 Booking Cancellation Notice – {$roomName} | {$dateStr} | {$this->booking->reference_no}")
                     ->greeting('Hello ' . $notifiable->name . ',')
                     ->line('This email confirms that your booking request has been successfully cancelled at your request.')
                     ->line('### Booking Details')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
                     ->line("- **Room:** {$roomName} ({$locationName})")
                     ->line("- **Time:** {$startTime} to {$endTime} MYT")
                     ->line($picLine)
@@ -112,12 +117,13 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
 
             case 'admin_cancelled':
                 $reason = $this->booking->cancellation_reason ?? 'No reason provided';
-                $mail->subject('Booking Cancelled by Administrator — MIMOS Academy Booking')
+                $mail->subject("🚫 Booking Cancellation Notice – {$roomName} | {$dateStr} | {$this->booking->reference_no}")
                     ->greeting('Hello ' . $notifiable->name . ',')
                     ->line('Please be informed that your training room booking has been cancelled by the system administrator.')
                     ->line('**Reason for Cancellation:**')
                     ->line('> ' . $reason)
                     ->line('### Booking Details')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
                     ->line("- **Room:** {$roomName} ({$locationName})")
                     ->line("- **Time:** {$startTime} to {$endTime} MYT")
                     ->line($picLine)
