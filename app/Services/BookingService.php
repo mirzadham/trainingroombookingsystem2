@@ -46,7 +46,10 @@ class BookingService
         $unavailableDates = collect();
         $maxMultidayDuration = (int) config('booking.max_multiday_duration_minutes', 1140);
 
-        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration) {
+        $baseRef = Booking::generateUniqueReference();
+        $index = 1;
+
+        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration, $baseRef, &$index) {
             // Iterate inclusive from start_date to end_date
             for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
                 // Build MYT datetimes (local time = clock-face hours from booking config)
@@ -72,8 +75,11 @@ class BookingService
                     'attendees'  => $data['attendees'],
                 ], $maxMultidayDuration);
 
+                $seq = str_pad($index++, 2, '0', STR_PAD_LEFT);
+
                 // 3) Store using local Asia/Kuala_Lumpur times directly.
                 $booking = Booking::create([
+                    'reference_no'         => "{$baseRef}-{$seq}",
                     'user_id'              => $user->id,
                     'room_id'              => $data['room_id'],
                     'title'                => $data['title'],
@@ -305,13 +311,19 @@ class BookingService
             }
         }
 
+        $baseRef = Booking::generateUniqueReference();
+        $index = 1;
+
         // All validations passed — create all bookings
-        DB::transaction(function () use ($data, $user, $weeks, $groupId, $bookings, $startTime, $endTime) {
+        DB::transaction(function () use ($data, $user, $weeks, $groupId, $bookings, $startTime, $endTime, $baseRef, &$index) {
             for ($i = 0; $i < $weeks; $i++) {
                 $weekStart = $startTime->copy()->addWeeks($i);
                 $weekEnd = $endTime->copy()->addWeeks($i);
 
+                $seq = str_pad($index++, 2, '0', STR_PAD_LEFT);
+
                 $booking = Booking::create([
+                    'reference_no' => "{$baseRef}-{$seq}",
                     'user_id' => $user->id,
                     'room_id' => $data['room_id'],
                     'title' => $data['title'],

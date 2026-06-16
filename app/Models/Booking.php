@@ -11,7 +11,33 @@ class Booking extends Model
 {
     use HasFactory;
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($booking) {
+            if (empty($booking->reference_no)) {
+                $booking->reference_no = self::generateUniqueReference();
+            }
+        });
+    }
+
+    public static function generateUniqueReference(): string
+    {
+        $pool = 'ABCDEFGHJKMNPQRSTUVWXYZ2346789';
+        do {
+            $code = '';
+            for ($i = 0; $i < 6; $i++) {
+                $code .= $pool[random_int(0, strlen($pool) - 1)];
+            }
+            $ref = 'MA-' . $code;
+        } while (self::where('reference_no', $ref)->exists());
+
+        return $ref;
+    }
+
     protected $fillable = [
+        'reference_no',
         'user_id',
         'room_id',
         'title',

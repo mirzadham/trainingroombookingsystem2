@@ -77,6 +77,7 @@ class AdminController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhere('reference_no', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('name', 'like', "%{$search}%")
                          ->orWhere('email', 'like', "%{$search}%");
@@ -330,7 +331,8 @@ class AdminController extends Controller
                          ->orWhere('email', 'like', "%{$request->search}%");
                   })
                   ->orWhereHas('booking', function ($bq) use ($request) {
-                      $bq->where('title', 'like', "%{$request->search}%");
+                      $bq->where('title', 'like', "%{$request->search}%")
+                        ->orWhere('reference_no', 'like', "%{$request->search}%");
                   });
             });
         }
