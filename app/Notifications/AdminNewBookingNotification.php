@@ -25,24 +25,29 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
     {
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
-        $startTime = $this->booking->start_time->format('d M Y, h:i A');
-        $endTime = $this->booking->end_time->format('d M Y, h:i A');
+        $dateFormatted = $this->booking->start_time->format('l, d F Y');
+        $timeFormatted = $this->booking->start_time->format('h:i A') . ' – ' . $this->booking->end_time->format('h:i A');
+        
         $requesterName = $this->booking->user->name;
         $requesterEmail = $this->booking->user->email;
         $requesterDept = $this->booking->user->department ?? 'N/A';
 
         return (new MailMessage)
-            ->subject("[Action Required] New Booking Request: {$roomName} ({$locationName})")
-            ->greeting("Hello {$notifiable->name},")
+            ->subject("[Action Required] New Booking Request – {$roomName} | {$dateFormatted} | {$this->booking->reference_no}")
+            ->greeting("Dear {$notifiable->name},")
             ->line("A new booking request has been submitted and requires your administrative review and approval.")
-            ->line("### Booking Details")
+            ->line("")
+            ->line("**Booking Request Details:**")
+            ->line("- **Booking Reference:** {$this->booking->reference_no}")
             ->line("- **Requested By:** {$requesterName} ({$requesterEmail} | Dept: {$requesterDept})")
-            ->line("- **Room:** {$roomName} ({$locationName})")
-            ->line("- **Time:** {$startTime} to {$endTime} MYT")
-            ->line("- **Purpose:** {$this->booking->title}")
-            ->line("- **Attendees:** {$this->booking->attendees} people")
+            ->line("- **Room Requested:** {$roomName} / {$locationName}")
+            ->line("- **Date Requested:** {$dateFormatted}")
+            ->line("- **Time Requested:** {$timeFormatted}")
+            ->line("- **Programme / Purpose:** {$this->booking->title}")
+            ->line("- **Number of Participants:** {$this->booking->attendees} pax")
+            ->line("")
+            ->line("Please log in to the administrator portal to review and process this booking request.")
             ->action('Review Pending Request', url('/admin'))
-            ->line('Please log in to the administrator portal to approve or reject this booking request.')
-            ->salutation("Regards,  \nMIMOS Academy");
+            ->salutation("Regards,  \n**MIMOS Academy Administration Team**  \nMIMOS Berhad");
     }
 }

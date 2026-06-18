@@ -27,8 +27,9 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
     {
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
-        $startTime = $this->booking->start_time->format('d M Y, h:i A');
-        $endTime = $this->booking->end_time->format('d M Y, h:i A');
+        $dateFormatted = $this->booking->start_time->format('l, d F Y');
+        $timeFormatted = $this->booking->start_time->format('h:i A') . ' – ' . $this->booking->end_time->format('h:i A');
+        
         $userName = $this->booking->user->name;
         $userEmail = $this->booking->user->email;
 
@@ -36,8 +37,8 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
         $isApproved = $this->oldStatus === BookingStatus::Approved;
 
         $subject = $isApproved
-            ? "[Cancelled] Approved Booking: {$roomName} ({$locationName})"
-            : "[Withdrawn] Booking Request: {$roomName} ({$locationName})";
+            ? "[Cancelled] Approved Booking – {$roomName} | {$dateFormatted} | {$this->booking->reference_no}"
+            : "[Withdrawn] Booking Request – {$roomName} | {$dateFormatted} | {$this->booking->reference_no}";
 
         $headline = $isApproved
             ? "An approved training room reservation has been cancelled by the user."
@@ -45,21 +46,26 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
 
         $mail = (new MailMessage)
             ->subject($subject)
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting("Dear {$notifiable->name},")
             ->line($headline)
-            ->line("### Booking Details")
+            ->line("")
+            ->line("**Cancelled Booking Details:**")
+            ->line("- **Booking Reference:** {$this->booking->reference_no}")
             ->line("- **User:** {$userName} ({$userEmail})")
-            ->line("- **Room:** {$roomName} ({$locationName})")
-            ->line("- **Time:** {$startTime} to {$endTime} MYT")
-            ->line("- **Purpose:** {$this->booking->title}");
+            ->line("- **Room:** {$roomName} / {$locationName}")
+            ->line("- **Date:** {$dateFormatted}")
+            ->line("- **Time:** {$timeFormatted}")
+            ->line("- **Programme / Purpose:** {$this->booking->title}");
 
         if ($isApproved) {
-            $mail->line("⚠️ **Action Required:** Please release any room logistics, keys, AV setups, or other preparation plans for this slot as the room is now available for other bookings.");
+            $mail->line("")
+                ->line("⚠️ **Action Required:** Please release any room logistics, keys, AV setups, or other preparation plans for this slot as the room is now available for other bookings.");
         } else {
-            $mail->line("No further administrative action is required for this request.");
+            $mail->line("")
+                ->line("No further administrative action is required for this request.");
         }
 
         return $mail->action('Go to Admin Portal', url('/admin'))
-            ->salutation("Regards,  \nMIMOS Academy");
+            ->salutation("Regards,  \n**MIMOS Academy Administration Team**  \nMIMOS Berhad");
     }
 }
