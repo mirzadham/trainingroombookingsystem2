@@ -14,8 +14,7 @@ export default function Home() {
                     {/* Badge */}
                     <div className="flex justify-center mb-8">
                         <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-mimos-500/5 border border-mimos-500/20 text-mimos-500 text-sm font-semibold tracking-wide backdrop-blur-md shadow-sm hover:scale-[1.02] transition-transform duration-300">
-                            <Sparkles className="w-4 h-4 text-mimos-500 animate-pulse" />
-                            Smart Room Booking for MIMOS Academy
+                            Training Room Booking for MIMOS Academy
                         </div>
                     </div>
 
@@ -31,7 +30,7 @@ export default function Home() {
                             </span>
                         </h1>
                         <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-                            Book modern, fully equipped training rooms across TPM and KHTP locations instantly.
+                            Book training rooms across TPM and KHTP locations instantly.
                             Smart availability engine finds the perfect match for your session.
                         </p>
                     </div>
@@ -48,11 +47,11 @@ export default function Home() {
                             <div className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 uppercase tracking-wider">Locations</div>
                         </div>
                         <div className="group border-x border-slate-200/50">
-                            <div className="text-3xl sm:text-4xl font-extrabold text-pink-600 group-hover:scale-110 transition-transform duration-300 inline-block">8+</div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-mimos-600 group-hover:scale-110 transition-transform duration-300 inline-block">8+</div>
                             <div className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 uppercase tracking-wider">Training Rooms</div>
                         </div>
                         <div className="group">
-                            <div className="text-3xl sm:text-4xl font-extrabold text-indigo-600 group-hover:scale-110 transition-transform duration-300 inline-block">24/7</div>
+                            <div className="text-3xl sm:text-4xl font-extrabold text-mimos-600 group-hover:scale-110 transition-transform duration-300 inline-block">24/7</div>
                             <div className="text-xs sm:text-sm font-semibold text-slate-500 mt-1 uppercase tracking-wider">Online Booking</div>
                         </div>
                     </div>
