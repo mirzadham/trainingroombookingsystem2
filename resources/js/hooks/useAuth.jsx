@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
         const promises = [];
 
         if (userToken && savedUser) {
-            try { setUser(JSON.parse(savedUser)); } catch {}
+            try { setUser(JSON.parse(savedUser)); } catch { /* ignore corrupted JSON */ }
             promises.push(
                 api.getUser()
                     .then(data => {
@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
         }
 
         if (adminToken && savedAdmin) {
-            try { setAdminUser(JSON.parse(savedAdmin)); } catch {}
+            try { setAdminUser(JSON.parse(savedAdmin)); } catch { /* ignore corrupted JSON */ }
             // Reuse getUser with admin token — interceptor picks it up per-request
             promises.push(
                 api.getAdminUser()
@@ -93,7 +93,7 @@ export function AuthProvider({ children }) {
 
     // User logout — clears ONLY user keys
     const logout = useCallback(async () => {
-        try { await api.logout(); } catch {}
+        try { await api.logout(); } catch { /* ignore network error on logout */ }
         localStorage.removeItem(USER_TOKEN_KEY);
         localStorage.removeItem(USER_DATA_KEY);
         queryClient.clear();
@@ -122,7 +122,7 @@ export function AuthProvider({ children }) {
 
     // Admin logout — clears ONLY admin keys
     const adminLogout = useCallback(async () => {
-        try { await api.adminLogout(); } catch {}
+        try { await api.adminLogout(); } catch { /* ignore network error on logout */ }
         localStorage.removeItem(ADMIN_TOKEN_KEY);
         localStorage.removeItem(ADMIN_DATA_KEY);
         queryClient.clear();

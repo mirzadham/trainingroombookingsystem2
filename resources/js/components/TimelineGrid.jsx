@@ -17,17 +17,17 @@ const AMENITY_ICONS = {
  *   onSlotSelect: (roomId, start, end) => void
  */
 export default function TimelineGrid({ gridData, searchStart, searchEnd, onSlotSelect }) {
-    if (!gridData || !gridData.grid?.length) {
-        return null;
-    }
-
-    const { time_slots, grid } = gridData;
-
     // Determine which slots fall within the search range for highlighting
     const searchRange = useMemo(() => {
         if (!searchStart || !searchEnd) return null;
         return { start: searchStart, end: searchEnd };
     }, [searchStart, searchEnd]);
+
+    if (!gridData || !gridData.grid?.length) {
+        return null;
+    }
+
+    const { time_slots, grid } = gridData;
 
     return (
         <div className="w-full overflow-x-auto">

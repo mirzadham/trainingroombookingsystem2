@@ -114,7 +114,7 @@ export default function AdminBookings() {
 
     const approveMutation = useMutation({
         mutationFn: (id) => api.approveBooking(id),
-        onSuccess: () => {
+        onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
             setSelectedIds((prev) => prev.filter(x => x !== id));
         },

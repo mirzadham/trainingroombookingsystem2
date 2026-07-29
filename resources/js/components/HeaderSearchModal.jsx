@@ -11,16 +11,17 @@ export default function HeaderSearchModal({
     initialAttendees = '',
     onSearch,
 }) {
-    if (!isOpen) return null;
-
     // Close on Escape key
     useEffect(() => {
+        if (!isOpen) return;
         const handleEscape = (e) => {
             if (e.key === 'Escape') onClose();
         };
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [onClose]);
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
 
     const handleSearch = (filters) => {
         if (onSearch) {
