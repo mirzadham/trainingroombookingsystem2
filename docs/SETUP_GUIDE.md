@@ -16,10 +16,10 @@ Before you begin, ensure your local development machine has the following tools 
 | **Node.js** | 18.x / 20.x+ | JavaScript Runtime Environment | `node -v` |
 | **NPM** | 9.x / 10.x+ | Node Package Manager | `npm -v` |
 | **Git** | 2.x+ | Version Control System | `git --version` |
-| **Database** | SQLite or MySQL 8.0+ | Relational Database (SQLite is zero-config) | — |
+| **Database** | MySQL 8.0+ | Relational Database (via Laragon, XAMPP, or standalone MySQL server) | `mysql --version` |
 
 > **PHP Extension Requirements**:  
-> Ensure your `php.ini` has the following extensions enabled: `mbstring`, `pdo_sqlite`, `pdo_mysql`, `bcmath`, `ctype`, `fileinfo`, `json`, `openssl`, `tokenizer`, `xml`, `gd`.
+> Ensure your `php.ini` has the following extensions enabled: `mbstring`, `pdo_mysql`, `bcmath`, `ctype`, `fileinfo`, `json`, `openssl`, `tokenizer`, `xml`, `gd`.
 
 ---
 
@@ -53,19 +53,18 @@ Generate the Laravel Application Key:
 php artisan key:generate
 ```
 
-> **Database Configuration**:  
-> By default, `.env` uses **SQLite** in memory/local database file for zero-config startup.  
-> If you prefer using **MySQL** (e.g., via Laragon or XAMPP):
-> 1. Open `.env` and set:
+> **MySQL Database Configuration**:  
+> `.env` comes preconfigured for MySQL. Ensure your local MySQL server (Laragon / XAMPP) is running:
+> 1. Verify your `.env` database settings:
 >    ```ini
 >    DB_CONNECTION=mysql
 >    DB_HOST=127.0.0.1
 >    DB_PORT=3306
->    DB_DATABASE=trainingroombooking
+>    DB_DATABASE=training_room_booking
 >    DB_USERNAME=root
 >    DB_PASSWORD=
 >    ```
-> 2. Create an empty database named `trainingroombooking` in MySQL.
+> 2. Create an empty database named `training_room_booking` in your MySQL server.
 
 ### Step 4: Install Frontend Dependencies
 Install all JavaScript dependencies for React, Vite, Tailwind CSS v4, and React Query:
@@ -200,5 +199,5 @@ Please adhere to our structured Git branching strategy:
   If room images do not display, ensure you ran `php artisan storage:link`.
 - **CORS / Sanctum 401 Unauthorized**:  
   Ensure `SANCTUM_STATEFUL_DOMAINS` in `.env` includes your local development port (e.g. `localhost:5173,127.0.0.1:5173`).
-- **Database Locked (SQLite)**:  
-  If SQLite throws a file lock error during tests, ensure no other background `php artisan serve` process is holding active locks during `migrate:fresh`.
+- **Database Connection Refused (MySQL)**:  
+  Ensure your MySQL service is started (e.g. Start All in Laragon or MySQL module in XAMPP) and the database `training_room_booking` has been created.
