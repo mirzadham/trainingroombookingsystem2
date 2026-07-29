@@ -35,6 +35,9 @@ A premium, Airbnb-inspired single-page application (SPA) for booking training ro
 
 ## 🚀 Getting Started
 
+> **🆕 Full Collaborator Setup Guide**:  
+> For complete step-by-step instructions, seeded user credentials, testing commands, and troubleshooting, please read our dedicated [**Developer Setup Guide**](docs/SETUP_GUIDE.md).
+
 Follow these steps to set up the project locally for development.
 
 ### Prerequisites
