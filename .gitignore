@@ -1,35 +1,54 @@
 *.log
 .DS_Store
+
+# Environment & Secret Files
 .env
+.env.*
+!.env.example
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.codex
-/.cursor/
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
 /auth.json
+
+# Dependencies & Build Output
 /node_modules
+/vendor
 /public/build
 /public/hot
 /public/storage
+
+# Storage & Uploads
 /storage/*.key
 /storage/pail
-/vendor
+/public/images/rooms/uploads
+/roomimages/
+
+# Databases & Cache
+/database/database.sqlite
+.phpunit.result.cache
+/.phpunit.cache
+
+# Security Keys & SSL Certs
+*.pem
+*.crt
+*.key
+
+# Temporary & Scratch Files
+*.pdf
+/scratch/
+refactorprompt.md
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/database/database.sqlite
+
+# IDEs & Editor Configuration
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.vscode
+/.zed
 .kilo
-refactorprompt.md
-/roomimages/
-/scratch/
-/public/images/rooms/uploads
-*.pdf
-
-
+.phpactor.json
+.claude/
+.gemini/
