@@ -1,0 +1,6 @@
+vendor/
+public/
+storage/
+node_modules/
+dist/
+.phpunit.result.cache
