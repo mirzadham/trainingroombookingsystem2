@@ -10,37 +10,43 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds for LOCAL DEVELOPMENT ONLY.
+     * Passwords default to 'password' or env('SEED_ADMIN_PASSWORD').
+     */
     public function run(): void
     {
         $tpm = Location::where('code', 'TPM')->first();
         $khtp = Location::where('code', 'KHTP')->first();
 
-        // Super Admin
+        $defaultPassword = Hash::make(env('SEED_ADMIN_PASSWORD', 'password'));
+
+        // Super Admin (Mock Local Account)
         User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@mimos.my',
-            'password' => Hash::make('password'),
+            'name' => 'Super Admin (Dev)',
+            'email' => 'superadmin@mimos.test',
+            'password' => $defaultPassword,
             'role' => UserRole::SuperAdmin,
             'user_type' => 'internal',
             'department' => 'IT Administration',
         ]);
 
-        // TPM Location Admin
+        // TPM Location Admin (Mock Local Account)
         User::create([
-            'name' => 'TPM Admin',
-            'email' => 'tpm.admin@mimos.my',
-            'password' => Hash::make('password'),
+            'name' => 'TPM Admin (Dev)',
+            'email' => 'tpm.admin@mimos.test',
+            'password' => $defaultPassword,
             'role' => UserRole::LocationAdmin,
             'user_type' => 'internal',
             'location_id' => $tpm->id,
             'department' => 'Facility Management',
         ]);
 
-        // KHTP Location Admin
+        // KHTP Location Admin (Mock Local Account)
         User::create([
-            'name' => 'KHTP Admin',
-            'email' => 'khtp.admin@mimos.my',
-            'password' => Hash::make('password'),
+            'name' => 'KHTP Admin (Dev)',
+            'email' => 'khtp.admin@mimos.test',
+            'password' => $defaultPassword,
             'role' => UserRole::LocationAdmin,
             'user_type' => 'internal',
             'location_id' => $khtp->id,
@@ -49,9 +55,9 @@ class UserSeeder extends Seeder
 
         // Sample internal user
         User::create([
-            'name' => 'Ahmad Razak',
-            'email' => 'ahmad.razak@mimos.my',
-            'password' => Hash::make('password'),
+            'name' => 'Ahmad Razak (Dev User)',
+            'email' => 'ahmad.razak@mimos.test',
+            'password' => $defaultPassword,
             'role' => UserRole::User,
             'user_type' => 'internal',
             'department' => 'Research & Development',
@@ -60,9 +66,9 @@ class UserSeeder extends Seeder
 
         // Sample internal user
         User::create([
-            'name' => 'Siti Nurhaliza',
-            'email' => 'siti.nurhaliza@mimos.my',
-            'password' => Hash::make('password'),
+            'name' => 'Siti Nurhaliza (Dev User)',
+            'email' => 'siti.nurhaliza@mimos.test',
+            'password' => $defaultPassword,
             'role' => UserRole::User,
             'user_type' => 'internal',
             'department' => 'Academy',
@@ -71,9 +77,9 @@ class UserSeeder extends Seeder
 
         // Sample external user
         User::create([
-            'name' => 'John Doe',
-            'email' => 'john.doe@external.com',
-            'password' => Hash::make('password'),
+            'name' => 'John Doe (Dev Guest)',
+            'email' => 'john.doe@example.com',
+            'password' => $defaultPassword,
             'role' => UserRole::User,
             'user_type' => 'external',
             'phone' => '+60112233445',

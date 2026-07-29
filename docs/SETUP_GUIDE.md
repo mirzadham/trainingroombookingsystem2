@@ -86,17 +86,20 @@ php artisan storage:link
 
 ---
 
-## 🔑 3. Seeded Accounts & Credentials
+## 🔑 3. Mock Development Accounts & Seed Credentials
 
-The seeders automatically create the following test accounts in your local database (all passwords are set to `password`):
+> ⚠️ **SECURITY DISCLAIMER FOR LOCAL DEVELOPMENT ONLY**:  
+> The accounts listed below are **dummy mock seeds** generated exclusively for local development and offline testing via `php artisan db:seed`.  
+> - **NEVER** use or seed these dummy accounts in staging or production environments.  
+> - Passwords default to `password` locally, or can be customized in `.env` via `SEED_ADMIN_PASSWORD`.
 
-| Role | Email | Password | Access Level |
+| Role | Mock Email | Default Password | Environment |
 |---|---|---|---|
-| **Super Admin** | `superadmin@mimos.my` | `password` | Complete access to system settings, room inventory, users, and audit logs. |
-| **TPM Location Admin** | `tpm.admin@mimos.my` | `password` | Manages bookings and room inventory for Technology Park Malaysia. |
-| **KHTP Location Admin** | `khtp.admin@mimos.my` | `password` | Manages bookings and room inventory for Kulim Hi-Tech Park. |
-| **Internal User** | `ahmad.razak@mimos.my` | `password` | Standard MIMOS employee booking training rooms. |
-| **External User** | `john.doe@external.com` | `password` | External guest submitting room requests. |
+| **Super Admin** | `superadmin@mimos.test` | `password` | Local Dev Only |
+| **TPM Location Admin** | `tpm.admin@mimos.test` | `password` | Local Dev Only |
+| **KHTP Location Admin** | `khtp.admin@mimos.test` | `password` | Local Dev Only |
+| **Internal User** | `ahmad.razak@mimos.test` | `password` | Local Dev Only |
+| **External User** | `john.doe@example.com` | `password` | Local Dev Only |
 
 ---
 
