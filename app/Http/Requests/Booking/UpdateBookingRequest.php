@@ -9,6 +9,7 @@ class UpdateBookingRequest extends FormRequest
     public function authorize(): bool
     {
         $booking = $this->route('booking');
+
         return $this->user() && $booking && $booking->user_id === $this->user()->id;
     }
 

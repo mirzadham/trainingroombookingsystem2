@@ -3,9 +3,9 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class ResetPasswordNotification extends Notification implements ShouldQueue
 {
@@ -23,16 +23,16 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $resetUrl = config('app.url') . '/reset-password?token=' . urlencode($this->token) . '&email=' . urlencode($this->email);
+        $resetUrl = config('app.url').'/reset-password?token='.urlencode($this->token).'&email='.urlencode($this->email);
 
         return (new MailMessage)
             ->subject('Reset Your Password – MIMOS Academy Booking')
-            ->greeting('Dear ' . $notifiable->name . ',')
+            ->greeting('Dear '.$notifiable->name.',')
             ->line('We received a request to reset the password for your MIMOS Academy Training Room Booking System account.')
-            ->line("")
+            ->line('')
             ->line('If you initiated this request, please click the button below to establish a new password for your account:')
             ->action('Reset Password', $resetUrl)
-            ->line("")
+            ->line('')
             ->line('For security reasons, this password reset link is only valid for the next **60 minutes**.')
             ->line('If you did not request a password reset, no further action is required. Your account remains secure and your password will not be changed.')
             ->salutation("Regards,  \n**MIMOS Academy Administration Team**  \nMIMOS Berhad");

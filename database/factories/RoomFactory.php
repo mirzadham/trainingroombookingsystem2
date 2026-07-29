@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Room;
 use App\Models\Location;
+use App\Models\Room;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class RoomFactory extends Factory
@@ -14,7 +14,7 @@ class RoomFactory extends Factory
     {
         return [
             'location_id' => Location::factory(),
-            'name' => 'Training Room ' . $this->faker->unique()->numberBetween(100, 999),
+            'name' => 'Training Room '.$this->faker->unique()->numberBetween(100, 999),
             'capacity' => $this->faker->numberBetween(10, 100),
             'amenities' => ['Projector', 'Whiteboard', 'Wifi'],
             'description' => $this->faker->sentence(),

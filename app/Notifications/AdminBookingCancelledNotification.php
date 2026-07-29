@@ -5,9 +5,9 @@ namespace App\Notifications;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class AdminBookingCancelledNotification extends Notification implements ShouldQueue
 {
@@ -28,8 +28,8 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
         $dateFormatted = $this->booking->start_time->format('l, d F Y');
-        $timeFormatted = $this->booking->start_time->format('h:i A') . ' – ' . $this->booking->end_time->format('h:i A');
-        
+        $timeFormatted = $this->booking->start_time->format('h:i A').' – '.$this->booking->end_time->format('h:i A');
+
         $userName = $this->booking->user->name;
         $userEmail = $this->booking->user->email;
 
@@ -41,15 +41,15 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
             : "[Withdrawn] Booking Request – {$roomName} | {$dateFormatted} | {$this->booking->reference_no}";
 
         $headline = $isApproved
-            ? "An approved training room reservation has been cancelled by the user."
-            : "A pending training room booking request has been withdrawn by the user.";
+            ? 'An approved training room reservation has been cancelled by the user.'
+            : 'A pending training room booking request has been withdrawn by the user.';
 
         $mail = (new MailMessage)
             ->subject($subject)
             ->greeting("Dear {$notifiable->name},")
             ->line($headline)
-            ->line("")
-            ->line("**Cancelled Booking Details:**")
+            ->line('')
+            ->line('**Cancelled Booking Details:**')
             ->line("- **Booking Reference:** {$this->booking->reference_no}")
             ->line("- **User:** {$userName} ({$userEmail})")
             ->line("- **Room:** {$roomName} / {$locationName}")
@@ -58,11 +58,11 @@ class AdminBookingCancelledNotification extends Notification implements ShouldQu
             ->line("- **Programme / Purpose:** {$this->booking->title}");
 
         if ($isApproved) {
-            $mail->line("")
-                ->line("⚠️ **Action Required:** Please release any room logistics, keys, AV setups, or other preparation plans for this slot as the room is now available for other bookings.");
+            $mail->line('')
+                ->line('⚠️ **Action Required:** Please release any room logistics, keys, AV setups, or other preparation plans for this slot as the room is now available for other bookings.');
         } else {
-            $mail->line("")
-                ->line("No further administrative action is required for this request.");
+            $mail->line('')
+                ->line('No further administrative action is required for this request.');
         }
 
         return $mail->action('Go to Admin Portal', url('/admin'))

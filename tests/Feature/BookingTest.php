@@ -2,22 +2,23 @@
 
 namespace Tests\Feature;
 
-use App\Models\Location;
-use App\Models\Room;
-use App\Models\User;
-use App\Models\Booking;
-use App\Models\RoomBlackout;
 use App\Enums\BookingStatus;
 use App\Enums\UserRole;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Booking;
+use App\Models\Location;
+use App\Models\Room;
+use App\Models\RoomBlackout;
+use App\Models\User;
 use App\Notifications\BookingStatusChangedNotification;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class BookingTest extends TestCase
 {
     private User $user;
+
     private Room $room;
+
     private Location $location;
 
     protected function setUp(): void
@@ -377,11 +378,11 @@ class BookingTest extends TestCase
             ]);
 
         $response->assertStatus(201);
-        
+
         $this->assertDatabaseCount('bookings', 3);
         $bookings = Booking::all();
         $groupIds = $bookings->pluck('group_id')->unique();
-        
+
         $this->assertCount(1, $groupIds); // Shared group_id
         $this->assertNotNull($groupIds->first());
     }
@@ -466,7 +467,7 @@ class BookingTest extends TestCase
     {
         $start = now()->addDays(2)->setTime(14, 0, 0);
         $end = $start->copy()->addHours(2);
-        
+
         $blackoutWeek = $start->copy()->addWeeks(2); // Clashes on week 3
 
         RoomBlackout::create([

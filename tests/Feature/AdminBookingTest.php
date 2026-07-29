@@ -2,27 +2,31 @@
 
 namespace Tests\Feature;
 
-use App\Models\Location;
-use App\Models\Room;
-use App\Models\User;
-use App\Models\Booking;
-use App\Models\RoomBlackout;
-use App\Models\AuditLog;
 use App\Enums\BookingStatus;
 use App\Enums\UserRole;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Booking;
+use App\Models\Location;
+use App\Models\Room;
+use App\Models\RoomBlackout;
+use App\Models\User;
 use App\Notifications\BookingStatusChangedNotification;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminBookingTest extends TestCase
 {
     private User $superAdmin;
+
     private User $tpmAdmin;
+
     private User $khtpAdmin;
+
     private Location $tpm;
+
     private Location $khtp;
+
     private Room $tpmRoom;
+
     private Room $khtpRoom;
 
     protected function setUp(): void
@@ -226,11 +230,11 @@ class AdminBookingTest extends TestCase
     public function test_batch_approval(): void
     {
         $booking1 = Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Pending]);
-        
+
         $start2 = now()->addDays(2)->setTime(13, 0, 0);
         $end2 = $start2->copy()->addHours(2);
         $booking2 = Booking::factory()->create([
-            'room_id' => $this->tpmRoom->id, 
+            'room_id' => $this->tpmRoom->id,
             'status' => BookingStatus::Pending,
             'start_time' => $start2,
             'end_time' => $end2,
@@ -297,7 +301,7 @@ class AdminBookingTest extends TestCase
     {
         // Operating hours are 7 AM to 7 PM.
         // We create a booking at 11:00 PM (normally invalid operating hours, and past)
-        $start = now()->addDays(2)->setTime(23, 0, 0); 
+        $start = now()->addDays(2)->setTime(23, 0, 0);
         $end = $start->copy()->addHours(1);
 
         // 1. Without bypass -> fails
@@ -340,7 +344,7 @@ class AdminBookingTest extends TestCase
     {
         Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Pending]);
         Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Approved, 'start_time' => today()->setTime(10, 0, 0)]);
-        
+
         $response = $this->actingAs($this->tpmAdmin)
             ->getJson('/api/admin/dashboard');
 
@@ -373,7 +377,7 @@ class AdminBookingTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->tpmAdmin)
-            ->getJson("/api/admin/calendar?start_date=" . now()->toDateString() . "&end_date=" . now()->addDays(5)->toDateString());
+            ->getJson('/api/admin/calendar?start_date='.now()->toDateString().'&end_date='.now()->addDays(5)->toDateString());
 
         $response->assertStatus(200)
             ->assertJsonCount(2); // 1 booking and 1 blackout

@@ -28,7 +28,7 @@ class RoomPolicy
      */
     public function update(User $user, Room $room): bool
     {
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return false;
         }
 
@@ -52,7 +52,7 @@ class RoomPolicy
      */
     public function view(User $user, Room $room): bool
     {
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return false;
         }
 

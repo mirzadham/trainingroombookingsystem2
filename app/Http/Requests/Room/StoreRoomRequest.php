@@ -9,7 +9,7 @@ class StoreRoomRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        if (!$user?->isAdmin()) {
+        if (! $user?->isAdmin()) {
             return false;
         }
 

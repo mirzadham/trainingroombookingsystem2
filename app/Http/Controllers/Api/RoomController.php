@@ -37,9 +37,10 @@ class RoomController extends Controller
      */
     public function publicShow(Request $request, Room $room): JsonResponse
     {
-        if (!$room->is_active) {
+        if (! $room->is_active) {
             abort(404, 'Room not found.');
         }
+
         return (new RoomResource($room->load('location')))->response();
     }
 
@@ -80,6 +81,7 @@ class RoomController extends Controller
     public function show(Request $request, Room $room): JsonResponse
     {
         $this->authorize('view', $room);
+
         return (new RoomResource($room->load('location')))->response();
     }
 
@@ -116,7 +118,7 @@ class RoomController extends Controller
     {
         $this->authorize('update', $room);
 
-        $room->update(['is_active' => !$room->is_active]);
+        $room->update(['is_active' => ! $room->is_active]);
 
         $status = $room->is_active ? 'activated' : 'deactivated';
 
@@ -147,20 +149,20 @@ class RoomController extends Controller
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $cleanName = preg_replace('/[^a-zA-Z0-9_]/', '_', $originalName);
             $extension = $file->getClientOriginalExtension();
-            $filename = time() . '_' . uniqid() . '_' . $cleanName . '.' . $extension;
+            $filename = time().'_'.uniqid().'_'.$cleanName.'.'.$extension;
 
             $path = "rooms/{$room->id}/{$filename}";
-            
+
             // Put file onto the configured disk (S3/R2 or local public)
             $disk->put($path, file_get_contents($file), 'public');
-            
+
             // Store the full URL to the database
             $uploadedImages[] = $disk->url($path);
         }
 
         // Set cover image automatically if the room doesn't have a custom one
-        if (empty($room->image_url) || !preg_match('/\/rooms\/\d+\//', $room->image_url)) {
-            if (!empty($uploadedImages)) {
+        if (empty($room->image_url) || ! preg_match('/\/rooms\/\d+\//', $room->image_url)) {
+            if (! empty($uploadedImages)) {
                 $room->update(['image_url' => $uploadedImages[0]]);
             }
         }
@@ -187,7 +189,7 @@ class RoomController extends Controller
         ]);
 
         $imagePath = $request->input('image_path');
-        
+
         $diskName = config('filesystems.default');
         $disk = Storage::disk($diskName);
         $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
@@ -199,7 +201,7 @@ class RoomController extends Controller
         }
 
         // Security check: ensure the image path belongs to this room
-        if (!str_starts_with($relativeKey, "rooms/{$room->id}/")) {
+        if (! str_starts_with($relativeKey, "rooms/{$room->id}/")) {
             return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
         }
 
@@ -210,11 +212,11 @@ class RoomController extends Controller
         // Re-assign cover photo if the deleted image was primary
         if ($room->image_url === $imagePath) {
             $remaining = $room->images;
-            $remaining = array_values(array_filter($remaining, function($img) use ($imagePath) {
+            $remaining = array_values(array_filter($remaining, function ($img) use ($imagePath) {
                 return $img !== $imagePath;
             }));
 
-            if (!empty($remaining)) {
+            if (! empty($remaining)) {
                 $room->update(['image_url' => $remaining[0]]);
             } else {
                 $room->update(['image_url' => '/images/rooms/default.png']);
@@ -243,7 +245,7 @@ class RoomController extends Controller
         ]);
 
         $imagePath = $request->input('image_path');
-        
+
         $diskName = config('filesystems.default');
         $disk = Storage::disk($diskName);
         $parsedUrl = parse_url($imagePath, PHP_URL_PATH);
@@ -255,11 +257,11 @@ class RoomController extends Controller
         }
 
         // Security check: ensure the image path belongs to this room
-        if (!str_starts_with($relativeKey, "rooms/{$room->id}/")) {
+        if (! str_starts_with($relativeKey, "rooms/{$room->id}/")) {
             return response()->json(['message' => 'Unauthorized action. Invalid image path.'], 403);
         }
 
-        if (!$disk->exists($relativeKey)) {
+        if (! $disk->exists($relativeKey)) {
             return response()->json(['message' => 'Image file not found on server.'], 404);
         }
 

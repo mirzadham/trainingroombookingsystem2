@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\User;
-use Illuminate\Http\Request;
 
 class AuditService
 {

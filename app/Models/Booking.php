@@ -30,7 +30,7 @@ class Booking extends Model
             for ($i = 0; $i < 6; $i++) {
                 $code .= $pool[random_int(0, strlen($pool) - 1)];
             }
-            $ref = 'MA-' . $code;
+            $ref = 'MA-'.$code;
         } while (self::where('reference_no', $ref)->exists());
 
         return $ref;
@@ -121,7 +121,7 @@ class Booking extends Model
     public function scopeOverlapping($query, $startTime, $endTime)
     {
         return $query->where('start_time', '<', $endTime)
-                     ->where('end_time', '>', $startTime);
+            ->where('end_time', '>', $startTime);
     }
 
     /**
@@ -137,6 +137,6 @@ class Booking extends Model
      */
     public function isRecurring(): bool
     {
-        return !is_null($this->recurrence_group_id);
+        return ! is_null($this->recurrence_group_id);
     }
 }

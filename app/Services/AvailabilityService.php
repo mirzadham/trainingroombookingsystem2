@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\RoomBlackout;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -28,12 +29,12 @@ class AvailabilityService
         }
 
         // Check for any overlapping room blackouts
-        $hasBlackout = \App\Models\RoomBlackout::where('room_id', $roomId)
+        $hasBlackout = RoomBlackout::where('room_id', $roomId)
             ->where('start_time', '<', $end)
             ->where('end_time', '>', $start)
             ->exists();
 
-        return !$hasBlackout;
+        return ! $hasBlackout;
     }
 
     /**
@@ -42,7 +43,7 @@ class AvailabilityService
      */
     public function hasConflict(int $roomId, Carbon $start, Carbon $end, ?int $excludeBookingId = null): bool
     {
-        return !$this->isAvailable($roomId, $start, $end, $excludeBookingId);
+        return ! $this->isAvailable($roomId, $start, $end, $excludeBookingId);
     }
 
     /**
@@ -81,7 +82,7 @@ class AvailabilityService
             ->toArray();
 
         // Batch fetch overlapping blackouts for all candidate rooms
-        $overlappingBlackouts = \App\Models\RoomBlackout::whereIn('room_id', $roomIds)
+        $overlappingBlackouts = RoomBlackout::whereIn('room_id', $roomIds)
             ->where('start_time', '<', $end)
             ->where('end_time', '>', $start)
             ->pluck('room_id')
@@ -91,7 +92,8 @@ class AvailabilityService
 
         // Filter rooms that are available for the requested time
         return $rooms->map(function ($room) use ($occupiedRoomIds) {
-            $room->is_available = !in_array($room->id, $occupiedRoomIds);
+            $room->is_available = ! in_array($room->id, $occupiedRoomIds);
+
             return $room;
         });
     }
@@ -126,7 +128,7 @@ class AvailabilityService
             ->get();
 
         // Get all overlapping blackouts for these rooms in the range
-        $blackouts = \App\Models\RoomBlackout::whereIn('room_id', $rooms->pluck('id'))
+        $blackouts = RoomBlackout::whereIn('room_id', $rooms->pluck('id'))
             ->where('start_time', '<', $dayEnd)
             ->where('end_time', '>', $dayStart)
             ->get();
@@ -182,7 +184,7 @@ class AvailabilityService
                         return Carbon::parse($bo->start_time) < $slotEnd && Carbon::parse($bo->end_time) > $slotStart;
                     });
 
-                    $isOccupied = (bool)($overlappingBooking || $overlappingBlackout);
+                    $isOccupied = (bool) ($overlappingBooking || $overlappingBlackout);
                 }
 
                 $status = 'available';
@@ -191,7 +193,7 @@ class AvailabilityService
 
                 if ($overlappingBlackout) {
                     $status = 'occupied';
-                    $bookingTitle = 'Maintenance / Blackout: ' . $overlappingBlackout->title;
+                    $bookingTitle = 'Maintenance / Blackout: '.$overlappingBlackout->title;
                 } elseif ($overlappingBooking) {
                     $status = 'occupied';
                     $bookingId = $overlappingBooking->id;
@@ -228,7 +230,7 @@ class AvailabilityService
         return [
             'date' => $date->toDateString(),
             'end_date' => $endDate ? $endDate->toDateString() : null,
-            'time_slots' => array_map(fn($s) => $s['label'], $slots),
+            'time_slots' => array_map(fn ($s) => $s['label'], $slots),
             'grid' => $grid,
         ];
     }
@@ -304,8 +306,12 @@ class AvailabilityService
         $closeHour = config('booking.operating_hours.close');
 
         $query = Room::active();
-        if ($locationId) $query->where('location_id', $locationId);
-        if ($attendees) $query->minCapacity($attendees);
+        if ($locationId) {
+            $query->where('location_id', $locationId);
+        }
+        if ($attendees) {
+            $query->minCapacity($attendees);
+        }
         $rooms = $query->with('location')->get();
 
         // Try shifting by 30-min increments, up to ±2 hours
@@ -359,7 +365,7 @@ class AvailabilityService
         $query = Room::active()->with('location');
         if ($attendees) {
             // Allow rooms with slightly less capacity (80%)
-            $query->where('capacity', '>=', max(1, (int)($attendees * 0.8)));
+            $query->where('capacity', '>=', max(1, (int) ($attendees * 0.8)));
         }
         $rooms = $query->get();
 

@@ -11,8 +11,8 @@ use App\Models\Booking;
 use App\Services\BookingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
@@ -54,10 +54,10 @@ class BookingController extends Controller
      */
     public function store(StoreBookingRequest $request): JsonResponse
     {
-        $lockKey = 'booking_lock_' . $request->user()->id;
+        $lockKey = 'booking_lock_'.$request->user()->id;
         $lock = Cache::lock($lockKey, 10);
 
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             throw ValidationException::withMessages([
                 'duplicate' => 'Your booking is already being processed. Please wait.',
             ]);
@@ -67,10 +67,10 @@ class BookingController extends Controller
             $validated = $request->validated();
 
             // Multi-day booking: end_date present and differs from start_date
-            if (!empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date']) {
+            if (! empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date']) {
                 $bookings = $this->bookingService->createMultiDayBookings($validated, $request->user());
 
-                return (BookingResource::collection($bookings))
+                return BookingResource::collection($bookings)
                     ->response()
                     ->setStatusCode(201);
             }
@@ -129,10 +129,10 @@ class BookingController extends Controller
      */
     public function storeRecurring(StoreRecurringBookingRequest $request): JsonResponse
     {
-        $lockKey = 'booking_lock_' . $request->user()->id;
+        $lockKey = 'booking_lock_'.$request->user()->id;
         $lock = Cache::lock($lockKey, 10);
 
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             throw ValidationException::withMessages([
                 'duplicate' => 'Your booking is already being processed. Please wait.',
             ]);

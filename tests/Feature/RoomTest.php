@@ -2,18 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
 use App\Models\Location;
 use App\Models\Room;
 use App\Models\User;
-use App\Enums\UserRole;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class RoomTest extends TestCase
 {
     private Location $tpmLocation;
+
     private Location $khtpLocation;
 
     protected function setUp(): void

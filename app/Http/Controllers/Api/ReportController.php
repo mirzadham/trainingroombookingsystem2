@@ -20,7 +20,7 @@ class ReportController extends Controller
         ]);
 
         $user = $request->user();
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
@@ -56,7 +56,7 @@ class ReportController extends Controller
 
         foreach ($rooms as $room) {
             $roomBookings = $bookingsByRoom->get($room->id, collect());
-            $bookedHours = $roomBookings->sum(fn($b) => $b->start_time->diffInMinutes($b->end_time) / 60);
+            $bookedHours = $roomBookings->sum(fn ($b) => $b->start_time->diffInMinutes($b->end_time) / 60);
 
             $utilization[] = [
                 'room' => $room->name,
@@ -83,7 +83,7 @@ class ReportController extends Controller
         ]);
 
         $user = $request->user();
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
@@ -96,9 +96,9 @@ class ReportController extends Controller
 
         if ($user->isLocationAdmin()) {
             $locId = $user->location_id;
-            $query->whereHas('room', fn($q) => $q->where('location_id', $locId));
+            $query->whereHas('room', fn ($q) => $q->where('location_id', $locId));
         } elseif ($request->location_id) {
-            $query->whereHas('room', fn($q) => $q->where('location_id', $request->location_id));
+            $query->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
         }
 
         $hourCounts = array_fill($openHour, $closeHour - $openHour, 0);

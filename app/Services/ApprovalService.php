@@ -7,7 +7,6 @@ use App\Models\Booking;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Services\NotificationService;
 use Illuminate\Validation\ValidationException;
 
 class ApprovalService
@@ -26,7 +25,7 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        if (!$booking->canTransitionTo(BookingStatus::Approved)) {
+        if (! $booking->canTransitionTo(BookingStatus::Approved)) {
             throw ValidationException::withMessages([
                 'status' => "Cannot approve a booking with status '{$booking->status->value}'.",
             ]);
@@ -78,7 +77,7 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        if (!$booking->canTransitionTo(BookingStatus::Rejected)) {
+        if (! $booking->canTransitionTo(BookingStatus::Rejected)) {
             throw ValidationException::withMessages([
                 'status' => "Cannot reject a booking with status '{$booking->status->value}'.",
             ]);
@@ -135,7 +134,7 @@ class ApprovalService
             'end_time' => $data['end_time'] ?? null,
             'attendees' => $data['attendees'] ?? null,
             'phone' => $data['phone'] ?? null,
-        ], fn($v) => !is_null($v)));
+        ], fn ($v) => ! is_null($v)));
 
         $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
@@ -155,7 +154,7 @@ class ApprovalService
     {
         $this->validateAdminAccess($booking, $admin);
 
-        if (!$booking->canTransitionTo(BookingStatus::Cancelled)) {
+        if (! $booking->canTransitionTo(BookingStatus::Cancelled)) {
             throw ValidationException::withMessages([
                 'status' => "Cannot cancel a booking with status '{$booking->status->value}'.",
             ]);
@@ -190,7 +189,7 @@ class ApprovalService
      */
     private function validateAdminAccess(Booking $booking, User $admin): void
     {
-        if (!$admin->isAdmin()) {
+        if (! $admin->isAdmin()) {
             throw ValidationException::withMessages([
                 'authorization' => 'You do not have admin privileges.',
             ]);
@@ -200,7 +199,7 @@ class ApprovalService
         $booking->loadMissing('room.location');
         $locationId = $booking->room->location_id;
 
-        if (!$admin->hasLocationAccess($locationId)) {
+        if (! $admin->hasLocationAccess($locationId)) {
             throw ValidationException::withMessages([
                 'authorization' => 'You do not have access to bookings at this location.',
             ]);

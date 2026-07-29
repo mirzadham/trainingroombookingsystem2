@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Enums\UserRole;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -29,7 +29,7 @@ class AuthTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'user' => ['id', 'name', 'email', 'role', 'user_type'],
-                'token'
+                'token',
             ]);
 
         $this->assertDatabaseHas('users', [
@@ -98,7 +98,7 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email'])
             ->assertJsonFragment([
-                'email' => ['Please use the admin login portal.']
+                'email' => ['Please use the admin login portal.'],
             ]);
     }
 
@@ -143,7 +143,7 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email'])
             ->assertJsonFragment([
-                'email' => ['This account does not have admin privileges.']
+                'email' => ['This account does not have admin privileges.'],
             ]);
     }
 
@@ -167,7 +167,7 @@ class AuthTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email'])
             ->assertJsonFragment([
-                'email' => ['Your account has been suspended. Please contact a Super Admin.']
+                'email' => ['Your account has been suspended. Please contact a Super Admin.'],
             ]);
     }
 

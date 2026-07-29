@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\AdminInvitation;
 use App\Models\AuditLog;
-use App\Enums\UserRole;
+use App\Models\User;
 use App\Notifications\AdminInvitationNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,9 +42,9 @@ class UserManagementController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -85,19 +85,19 @@ class UserManagementController extends Controller
                     if ($existingAdmin) {
                         $fail('A user with administrative privileges already exists with this email address.');
                     }
-                }
+                },
             ],
             'role' => ['required', Rule::in(['super_admin', 'location_admin'])],
             'location_id' => [
                 Rule::requiredIf($request->role === 'location_admin'),
                 'nullable',
-                'exists:locations,id'
+                'exists:locations,id',
             ],
         ]);
 
         // Generate invitation
         $token = Str::random(60);
-        
+
         $invitation = DB::transaction(function () use ($validated, $token, $request) {
             // Delete old pending invites for the same email to avoid duplicates
             AdminInvitation::where('email', $validated['email'])
@@ -125,14 +125,14 @@ class UserManagementController extends Controller
             'changes' => [
                 'email' => $invitation->email,
                 'role' => $invitation->role,
-                'location_id' => $invitation->location_id
+                'location_id' => $invitation->location_id,
             ],
             'ip_address' => $request->ip(),
         ]);
 
         return response()->json([
             'message' => 'Invitation sent successfully.',
-            'invitation' => $invitation->load('location')
+            'invitation' => $invitation->load('location'),
         ], 201);
     }
 
@@ -167,7 +167,7 @@ class UserManagementController extends Controller
 
         return response()->json([
             'message' => 'Invitation resent and renewed successfully.',
-            'invitation' => $invitation->load('location')
+            'invitation' => $invitation->load('location'),
         ]);
     }
 
@@ -193,7 +193,7 @@ class UserManagementController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Invitation revoked successfully.'
+            'message' => 'Invitation revoked successfully.',
         ]);
     }
 
@@ -205,13 +205,13 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'role' => ['required', Rule::in(['user', 'location_admin', 'super_admin'])],
             'user_type' => ['required', Rule::in(['internal', 'external'])],
             'location_id' => [
                 Rule::requiredIf($request->role === 'location_admin'),
                 'nullable',
-                'exists:locations,id'
+                'exists:locations,id',
             ],
             'phone' => ['nullable', 'string', 'max:20'],
             'department' => ['nullable', 'string', 'max:255'],
@@ -219,19 +219,19 @@ class UserManagementController extends Controller
 
         // Capture changes for audit
         $original = $user->only(['name', 'email', 'role', 'location_id', 'phone', 'department', 'user_type']);
-        
+
         $user->update($validated);
 
         $changes = $user->getChanges();
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             AuditLog::create([
                 'user_id' => $request->user()->id,
                 'action' => 'updated_user',
                 'changes' => [
                     'user_id' => $user->id,
                     'before' => array_intersect_key($original, $changes),
-                    'after' => $changes
+                    'after' => $changes,
                 ],
                 'ip_address' => $request->ip(),
             ]);
@@ -239,7 +239,7 @@ class UserManagementController extends Controller
 
         return response()->json([
             'message' => 'User details updated successfully.',
-            'user' => $user->load('location')
+            'user' => $user->load('location'),
         ]);
     }
 
@@ -252,12 +252,12 @@ class UserManagementController extends Controller
         // Safe check: cannot suspend oneself
         if ($user->id === $request->user()->id) {
             return response()->json([
-                'message' => 'Operation Denied. You cannot suspend your own administrative account.'
+                'message' => 'Operation Denied. You cannot suspend your own administrative account.',
             ], 422);
         }
 
         $newStatus = $user->status === 'suspended' ? 'active' : 'suspended';
-        
+
         $user->update(['status' => $newStatus]);
 
         // Revoke active sessions if suspended
@@ -271,16 +271,16 @@ class UserManagementController extends Controller
             'action' => $newStatus === 'suspended' ? 'suspended_user' : 'reactivated_user',
             'changes' => [
                 'target_user_id' => $user->id,
-                'target_email' => $user->email
+                'target_email' => $user->email,
             ],
             'ip_address' => $request->ip(),
         ]);
 
         return response()->json([
-            'message' => $newStatus === 'suspended' 
-                ? 'User account has been suspended. All active sessions terminated.' 
+            'message' => $newStatus === 'suspended'
+                ? 'User account has been suspended. All active sessions terminated.'
                 : 'User account has been reactivated.',
-            'user' => $user->load('location')
+            'user' => $user->load('location'),
         ]);
     }
 
@@ -299,8 +299,8 @@ class UserManagementController extends Controller
         $users = User::where('status', '!=', 'suspended')
             ->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             })
             ->limit(15)
             ->get(['id', 'name', 'email', 'phone', 'department']);

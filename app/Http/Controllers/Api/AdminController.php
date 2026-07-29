@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\BookingStatus;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminUpdateBookingRequest;
 use App\Http\Requests\Admin\RejectBookingRequest;
 use App\Http\Resources\BookingResource;
+use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\RoomBlackout;
 use App\Models\User;
-use App\Enums\BookingStatus;
-use App\Enums\UserRole;
 use App\Services\ApprovalService;
+use App\Services\AuditService;
+use App\Services\AvailabilityService;
+use App\Services\BookingService;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
@@ -76,12 +81,12 @@ class AdminController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%")
-                  ->orWhere('reference_no', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($uq) use ($search) {
-                      $uq->where('name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-                  });
+                    ->orWhere('id', 'like', "%{$search}%")
+                    ->orWhere('reference_no', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -185,12 +190,12 @@ class AdminController extends Controller
             'this_month_bookings' => (clone $baseQuery)
                 ->whereBetween('start_time', [
                     now()->startOfMonth()->toDateTimeString(),
-                    now()->endOfMonth()->toDateTimeString()
+                    now()->endOfMonth()->toDateTimeString(),
                 ])
                 ->count(),
             'total_rooms' => $user->isSuperAdmin()
-                ? \App\Models\Room::active()->count()
-                : \App\Models\Room::active()->where('location_id', $user->location_id)->count(),
+                ? Room::active()->count()
+                : Room::active()->where('location_id', $user->location_id)->count(),
         ];
 
         // Recent bookings
@@ -310,7 +315,7 @@ class AdminController extends Controller
     {
         $user = $request->user();
 
-        $query = \App\Models\AuditLog::with(['user', 'booking.room.location']);
+        $query = AuditLog::with(['user', 'booking.room.location']);
 
         if ($user->isLocationAdmin()) {
             $query->whereHas('booking.room', function ($q) use ($user) {
@@ -326,14 +331,14 @@ class AdminController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('ip_address', 'like', "%{$request->search}%")
-                  ->orWhereHas('user', function ($uq) use ($request) {
-                      $uq->where('name', 'like', "%{$request->search}%")
-                         ->orWhere('email', 'like', "%{$request->search}%");
-                  })
-                  ->orWhereHas('booking', function ($bq) use ($request) {
-                      $bq->where('title', 'like', "%{$request->search}%")
-                        ->orWhere('reference_no', 'like', "%{$request->search}%");
-                  });
+                    ->orWhereHas('user', function ($uq) use ($request) {
+                        $uq->where('name', 'like', "%{$request->search}%")
+                            ->orWhere('email', 'like', "%{$request->search}%");
+                    })
+                    ->orWhereHas('booking', function ($bq) use ($request) {
+                        $bq->where('title', 'like', "%{$request->search}%")
+                            ->orWhere('reference_no', 'like', "%{$request->search}%");
+                    });
             });
         }
 
@@ -347,10 +352,10 @@ class AdminController extends Controller
      * Create a booking as an admin (auto-approved, option to bypass validations).
      */
     public function storeBooking(
-        Request $request, 
-        \App\Services\BookingService $bookingService, 
-        \App\Services\AvailabilityService $availabilityService,
-        \App\Services\AuditService $auditService
+        Request $request,
+        BookingService $bookingService,
+        AvailabilityService $availabilityService,
+        AuditService $auditService
     ): JsonResponse {
         $admin = $request->user();
 
@@ -363,23 +368,23 @@ class AdminController extends Controller
             'start_time' => 'required|string',
             'end_time' => 'required|string',
             'attendees' => 'required|integer|min:1',
-            
+
             // Booker details
             'booker_type' => 'required|in:registered,guest',
             'user_id' => 'required_if:booker_type,registered|nullable|exists:users,id',
             'guest_name' => 'required_if:booker_type,guest|nullable|string|max:255',
             'guest_email' => 'required_if:booker_type,guest|nullable|email|max:255',
             'guest_phone' => 'nullable|string|max:20',
-            
+
             // Bypass validations toggle
             'bypass_validation' => 'nullable|boolean',
         ]);
 
-        $roomId = (int)$validated['room_id'];
+        $roomId = (int) $validated['room_id'];
         $room = Room::findOrFail($roomId);
 
         // 1. Authorize: check if admin has access to this room's location
-        if (!$admin->hasLocationAccess($room->location_id)) {
+        if (! $admin->hasLocationAccess($room->location_id)) {
             throw ValidationException::withMessages([
                 'authorization' => 'You do not have access to bookings at this location.',
             ]);
@@ -391,7 +396,7 @@ class AdminController extends Controller
             $email = $validated['guest_email'];
             $targetUser = User::where('email', $email)->first();
 
-            if (!$targetUser) {
+            if (! $targetUser) {
                 // Auto-create standard external user account
                 $targetUser = User::create([
                     'name' => $validated['guest_name'],
@@ -403,7 +408,7 @@ class AdminController extends Controller
                     'status' => 'active',
                 ]);
             } else {
-                if (!empty($validated['guest_phone']) && empty($targetUser->phone)) {
+                if (! empty($validated['guest_phone']) && empty($targetUser->phone)) {
                     $targetUser->update(['phone' => $validated['guest_phone']]);
                 }
             }
@@ -411,23 +416,23 @@ class AdminController extends Controller
             $targetUser = User::findOrFail($validated['user_id']);
         }
 
-        $phone = $validated['booker_type'] === 'guest' 
-            ? ($validated['guest_phone'] ?? '') 
+        $phone = $validated['booker_type'] === 'guest'
+            ? ($validated['guest_phone'] ?? '')
             : ($validated['guest_phone'] ?? $targetUser->phone ?? '');
 
         // 3. Determine if it is a multi-day booking
-        $isMultiDay = !empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date'];
-        
-        $bypass = !empty($validated['bypass_validation']);
+        $isMultiDay = ! empty($validated['end_date']) && $validated['end_date'] !== $validated['start_date'];
+
+        $bypass = ! empty($validated['bypass_validation']);
 
         $createdBookings = collect();
 
         DB::transaction(function () use ($validated, $targetUser, $room, $isMultiDay, $bypass, $availabilityService, $auditService, $admin, $phone, &$createdBookings) {
             $startDate = Carbon::parse($validated['start_date']);
-            $endDate   = $isMultiDay ? Carbon::parse($validated['end_date']) : $startDate;
+            $endDate = $isMultiDay ? Carbon::parse($validated['end_date']) : $startDate;
 
             $startTimeRaw = Carbon::parse($validated['start_time']);
-            $endTimeRaw   = Carbon::parse($validated['end_time']);
+            $endTimeRaw = Carbon::parse($validated['end_time']);
 
             // End time must be after start time
             if ($endTimeRaw->lte($startTimeRaw)) {
@@ -447,24 +452,24 @@ class AdminController extends Controller
                 }
 
                 $timeStart = $startTimeRaw->format('H:i:s');
-                $timeEnd   = $endTimeRaw->format('H:i:s');
+                $timeEnd = $endTimeRaw->format('H:i:s');
                 $groupId = Str::uuid()->toString();
 
                 for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
                     $dayStart = Carbon::createFromTimeString($timeStart, 'Asia/Kuala_Lumpur')
                         ->setDate($current->year, $current->month, $current->day);
-                    $dayEnd   = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
+                    $dayEnd = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
                         ->setDate($current->year, $current->month, $current->day);
 
                     // A. Check for double booking (Overlap) - ALWAYS enforced
                     if ($availabilityService->hasConflict($room->id, $dayStart, $dayEnd)) {
                         throw ValidationException::withMessages([
-                            'time' => 'The selected room is unavailable on ' . $current->format('Y-m-d') . ' due to another approved booking or blackout.',
+                            'time' => 'The selected room is unavailable on '.$current->format('Y-m-d').' due to another approved booking or blackout.',
                         ]);
                     }
 
                     // B. Validate minor rules if bypass is false
-                    if (!$bypass) {
+                    if (! $bypass) {
                         $this->runStrictValidationRules($dayStart, $dayEnd, $room, $validated['attendees']);
                     }
 
@@ -498,7 +503,7 @@ class AdminController extends Controller
                 // Single-day booking
                 $start = Carbon::createFromTimeString($startTimeRaw->format('H:i:s'), 'Asia/Kuala_Lumpur')
                     ->setDate($startDate->year, $startDate->month, $startDate->day);
-                $end   = Carbon::createFromTimeString($endTimeRaw->format('H:i:s'), 'Asia/Kuala_Lumpur')
+                $end = Carbon::createFromTimeString($endTimeRaw->format('H:i:s'), 'Asia/Kuala_Lumpur')
                     ->setDate($startDate->year, $startDate->month, $startDate->day);
 
                 // A. Check for double booking (Overlap) - ALWAYS enforced
@@ -509,7 +514,7 @@ class AdminController extends Controller
                 }
 
                 // B. Validate minor rules if bypass is false
-                if (!$bypass) {
+                if (! $bypass) {
                     $this->runStrictValidationRules($start, $end, $room, $validated['attendees']);
                 }
 
@@ -539,7 +544,7 @@ class AdminController extends Controller
 
         // Send booking notification outside transaction to avoid lock holding
         if ($createdBookings->isNotEmpty()) {
-            $notificationService = app(\App\Services\NotificationService::class);
+            $notificationService = app(NotificationService::class);
             $notificationService->sendBookingNotification($createdBookings->first(), 'approved');
         }
 
@@ -573,11 +578,11 @@ class AdminController extends Controller
             ->where('end_time', '<=', $endDate);
 
         if ($user->isLocationAdmin()) {
-            $bookingQuery->whereHas('room', fn($q) => $q->where('location_id', $user->location_id));
+            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
         }
 
         if ($request->location_id) {
-            $bookingQuery->whereHas('room', fn($q) => $q->where('location_id', $request->location_id));
+            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
         }
         if ($request->room_id) {
             $bookingQuery->where('room_id', $request->room_id);
@@ -591,7 +596,7 @@ class AdminController extends Controller
             $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
         }
 
-        $bookings = $bookingQuery->orderBy('start_time')->get()->map(fn($b) => [
+        $bookings = $bookingQuery->orderBy('start_time')->get()->map(fn ($b) => [
             'id' => $b->id,
             'title' => $b->title,
             'start' => $b->start_time->toIso8601String(),
@@ -605,7 +610,7 @@ class AdminController extends Controller
             'group_id' => $b->group_id,
             'status' => $b->status->value,
             'type' => 'booking',
-            
+
             // Re-map other fields required by BookingDetailsModal
             'description' => $b->description,
             'attendees' => $b->attendees,
@@ -625,33 +630,33 @@ class AdminController extends Controller
                     'code' => $b->room->location->code,
                     'name' => $b->room->location->name,
                     'address' => $b->room->location->address,
-                ]
-            ]
+                ],
+            ],
         ]);
 
         $events = collect($bookings);
 
         // 2. Query Blackouts (if blackout is requested or status is all/default)
-        if (!$request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
+        if (! $request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
             $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name,email'])
                 ->where('start_time', '>=', $startDate)
                 ->where('end_time', '<=', $endDate);
 
             if ($user->isLocationAdmin()) {
-                $blackoutQuery->whereHas('room', fn($q) => $q->where('location_id', $user->location_id));
+                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
             }
 
             if ($request->location_id) {
-                $blackoutQuery->whereHas('room', fn($q) => $q->where('location_id', $request->location_id));
+                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
             }
             if ($request->room_id) {
                 $blackoutQuery->where('room_id', $request->room_id);
             }
 
-            $blackouts = $blackoutQuery->orderBy('start_time')->get()->map(fn($bo) => [
-                'id' => 'blackout-' . $bo->id,
+            $blackouts = $blackoutQuery->orderBy('start_time')->get()->map(fn ($bo) => [
+                'id' => 'blackout-'.$bo->id,
                 'blackout_id' => $bo->id,
-                'title' => '[Blackout] ' . $bo->title,
+                'title' => '[Blackout] '.$bo->title,
                 'start' => $bo->start_time->toIso8601String(),
                 'end' => $bo->end_time->toIso8601String(),
                 'room' => $bo->room->name,
@@ -708,7 +713,7 @@ class AdminController extends Controller
         // Max duration
         if ($durationMinutes > $maxDuration) {
             $maxHours = $maxDuration / 60;
-            $displayHours = floor($maxHours) === $maxHours ? (int)$maxHours : round($maxHours, 1);
+            $displayHours = floor($maxHours) === $maxHours ? (int) $maxHours : round($maxHours, 1);
             throw ValidationException::withMessages([
                 'duration' => "Maximum booking duration is {$displayHours} hours.",
             ]);
@@ -736,4 +741,3 @@ class AdminController extends Controller
         }
     }
 }
-

@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
+use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\BookingNotification;
+use App\Models\User;
+use App\Notifications\AdminBookingCancelledNotification;
+use App\Notifications\AdminNewBookingNotification;
 use App\Notifications\BookingStatusChangedNotification;
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -32,7 +35,7 @@ class NotificationService
             Log::error('Booking email notification dispatch failed', [
                 'booking_id' => $booking->id,
                 'type' => $type,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             $notifRecord->update([
@@ -63,21 +66,21 @@ class NotificationService
             $booking->loadMissing('room.location');
             $locationId = $booking->room->location_id;
 
-            $admins = \App\Models\User::whereIn('role', [\App\Enums\UserRole::SuperAdmin, \App\Enums\UserRole::LocationAdmin])
+            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin])
                 ->where(function ($q) use ($locationId) {
-                    $q->where('role', \App\Enums\UserRole::SuperAdmin)
-                      ->orWhere('location_id', $locationId);
+                    $q->where('role', UserRole::SuperAdmin)
+                        ->orWhere('location_id', $locationId);
                 })
                 ->where('status', '!=', 'suspended')
                 ->get();
 
             foreach ($admins as $admin) {
-                $admin->notify(new \App\Notifications\AdminNewBookingNotification($booking));
+                $admin->notify(new AdminNewBookingNotification($booking));
             }
         } catch (Exception $e) {
             Log::error('Admin new booking notification dispatch failed', [
                 'booking_id' => $booking->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -91,21 +94,21 @@ class NotificationService
             $booking->loadMissing('room.location');
             $locationId = $booking->room->location_id;
 
-            $admins = \App\Models\User::whereIn('role', [\App\Enums\UserRole::SuperAdmin, \App\Enums\UserRole::LocationAdmin])
+            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin])
                 ->where(function ($q) use ($locationId) {
-                    $q->where('role', \App\Enums\UserRole::SuperAdmin)
-                      ->orWhere('location_id', $locationId);
+                    $q->where('role', UserRole::SuperAdmin)
+                        ->orWhere('location_id', $locationId);
                 })
                 ->where('status', '!=', 'suspended')
                 ->get();
 
             foreach ($admins as $admin) {
-                $admin->notify(new \App\Notifications\AdminBookingCancelledNotification($booking, $oldStatus));
+                $admin->notify(new AdminBookingCancelledNotification($booking, $oldStatus));
             }
         } catch (Exception $e) {
             Log::error('Admin booking cancellation notification dispatch failed', [
                 'booking_id' => $booking->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }

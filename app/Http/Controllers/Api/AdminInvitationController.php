@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Resources\UserResource;
 use App\Models\AdminInvitation;
 use App\Models\AuditLog;
-use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class AdminInvitationController extends Controller
 {
@@ -29,7 +28,7 @@ class AdminInvitationController extends Controller
             ->where('token', $request->token)
             ->first();
 
-        if (!$invitation) {
+        if (! $invitation) {
             return response()->json(['message' => 'This invitation token is invalid.'], 404);
         }
 
@@ -64,7 +63,7 @@ class AdminInvitationController extends Controller
 
         $invitation = AdminInvitation::where('token', $validated['token'])->first();
 
-        if (!$invitation) {
+        if (! $invitation) {
             return response()->json(['message' => 'This invitation token is invalid.'], 404);
         }
 
@@ -117,7 +116,7 @@ class AdminInvitationController extends Controller
         return response()->json([
             'user' => new UserResource($user->load('location')),
             'token' => $token,
-            'message' => 'Administrative account provisioned successfully.'
+            'message' => 'Administrative account provisioned successfully.',
         ], 201);
     }
 }

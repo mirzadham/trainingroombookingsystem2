@@ -2,20 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
+use App\Models\AdminInvitation;
 use App\Models\Location;
 use App\Models\User;
-use App\Models\AdminInvitation;
-use App\Models\AuditLog;
-use App\Enums\UserRole;
 use App\Notifications\AdminInvitationNotification;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
 {
     private User $superAdmin;
+
     private User $normalUser;
+
     private Location $location;
 
     protected function setUp(): void
@@ -84,7 +85,7 @@ class UserManagementTest extends TestCase
     public function test_super_admin_can_suspend_user_and_terminate_sessions(): void
     {
         $user = User::factory()->create(['status' => 'active']);
-        
+
         // Give user some tokens
         $user->createToken('test-token-1');
         $user->createToken('test-token-2');
@@ -99,7 +100,7 @@ class UserManagementTest extends TestCase
 
         $user->refresh();
         $this->assertEquals('suspended', $user->status);
-        
+
         // Assert all Sanctum tokens are deleted
         $this->assertCount(0, $user->tokens);
 
@@ -120,7 +121,7 @@ class UserManagementTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonFragment([
-                'message' => 'Operation Denied. You cannot suspend your own administrative account.'
+                'message' => 'Operation Denied. You cannot suspend your own administrative account.',
             ]);
     }
 
@@ -140,7 +141,7 @@ class UserManagementTest extends TestCase
             ]);
 
         $inviteResponse->assertStatus(201);
-        
+
         $this->assertDatabaseHas('admin_invitations', [
             'email' => 'newadmin@mimos.my',
             'role' => 'location_admin',
@@ -149,9 +150,9 @@ class UserManagementTest extends TestCase
 
         $invitation = AdminInvitation::where('email', 'newadmin@mimos.my')->first();
         $this->assertNotNull($invitation->token);
-        
+
         Notification::assertSentTo(
-            new \Illuminate\Notifications\AnonymousNotifiable,
+            new AnonymousNotifiable,
             AdminInvitationNotification::class,
             function ($notification, $channels, $notifiable) {
                 return $notifiable->routes['mail'] === 'newadmin@mimos.my';
@@ -216,12 +217,12 @@ class UserManagementTest extends TestCase
 
         $resendResponse->assertStatus(200);
         $invitation->refresh();
-        
+
         $this->assertNotEquals('old-token', $invitation->token);
         $this->assertTrue(now()->addHours(47)->lt($invitation->expires_at));
 
         Notification::assertSentTo(
-            new \Illuminate\Notifications\AnonymousNotifiable,
+            new AnonymousNotifiable,
             AdminInvitationNotification::class,
             function ($notification, $channels, $notifiable) {
                 return $notifiable->routes['mail'] === 'pending@mimos.my';

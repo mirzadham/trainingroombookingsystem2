@@ -146,7 +146,7 @@ class AvailabilityController extends Controller
         // Filter by capacity if attendees specified
         $rooms = collect($grid['grid']);
         if ($request->attendees) {
-            $rooms = $rooms->filter(fn($row) => $row['room']['capacity'] >= (int)$request->attendees);
+            $rooms = $rooms->filter(fn ($row) => $row['room']['capacity'] >= (int) $request->attendees);
         }
 
         // Enrich room data with availability counts (no extra queries needed)
@@ -170,7 +170,7 @@ class AvailabilityController extends Controller
             'rooms' => $enrichedRooms,
             'meta' => [
                 'total_rooms' => $enrichedRooms->count(),
-                'fully_available' => $enrichedRooms->filter(fn($r) => $r['room']['available_slots'] === $r['room']['total_slots'])->count(),
+                'fully_available' => $enrichedRooms->filter(fn ($r) => $r['room']['available_slots'] === $r['room']['total_slots'])->count(),
             ],
         ]);
     }

@@ -2,22 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
+use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
 use App\Models\User;
-use App\Models\Booking;
-use App\Enums\BookingStatus;
-use App\Enums\UserRole;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
-use App\Notifications\BookingStatusChangedNotification;
 use Tests\TestCase;
 
 class BookingReferenceTest extends TestCase
 {
     private User $user;
+
     private User $admin;
+
     private Room $room;
+
     private Location $location;
 
     protected function setUp(): void

@@ -55,7 +55,7 @@ class CalendarExportService
             'END:VCALENDAR',
         ];
 
-        return implode("\r\n", $lines) . "\r\n";
+        return implode("\r\n", $lines)."\r\n";
     }
 
     /**
@@ -89,11 +89,11 @@ class CalendarExportService
         $endLocal = $booking->end_time->copy()->setTimezone($tz)->format('h:i A');
 
         $lines = [
-            "MIMOS Academy Training Room Booking",
-            "",
+            'MIMOS Academy Training Room Booking',
+            '',
             "Booking ID: #{$booking->id}",
-            "Room: " . ($booking->room->name ?? 'N/A'),
-            "Location: " . ($booking->room->location->name ?? 'N/A'),
+            'Room: '.($booking->room->name ?? 'N/A'),
+            'Location: '.($booking->room->location->name ?? 'N/A'),
             "Date/Time: {$startLocal} - {$endLocal} (MYT)",
             "Attendees: {$booking->attendees} pax",
         ];
@@ -103,14 +103,14 @@ class CalendarExportService
         }
 
         if ($booking->description) {
-            $lines[] = "";
+            $lines[] = '';
             $lines[] = "Notes: {$booking->description}";
         }
 
-        $lines[] = "";
-        $lines[] = "Booked via MIMOS Academy Training Room Booking System";
+        $lines[] = '';
+        $lines[] = 'Booked via MIMOS Academy Training Room Booking System';
 
-        return $this->escapeIcsText(implode("\\n", $lines));
+        return $this->escapeIcsText(implode('\\n', $lines));
     }
 
     /**
@@ -149,7 +149,7 @@ class CalendarExportService
         // Continuation lines have a leading space and max 74 chars of content
         while (strlen($remaining) > 0) {
             $chunk = substr($remaining, 0, $maxLength - 1);
-            $folded .= "\r\n " . $chunk;
+            $folded .= "\r\n ".$chunk;
             $remaining = substr($remaining, $maxLength - 1);
         }
 

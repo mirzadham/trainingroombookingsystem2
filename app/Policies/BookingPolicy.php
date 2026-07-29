@@ -29,6 +29,7 @@ class BookingPolicy
         // Admins with location access can view
         if ($user->isAdmin()) {
             $booking->loadMissing('room');
+
             return $user->hasLocationAccess($booking->room->location_id);
         }
 
@@ -66,6 +67,7 @@ class BookingPolicy
         // Admin with location access can cancel
         if ($user->isAdmin()) {
             $booking->loadMissing('room');
+
             return $user->hasLocationAccess($booking->room->location_id);
         }
 
@@ -77,11 +79,12 @@ class BookingPolicy
      */
     public function approve(User $user, Booking $booking): bool
     {
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             return false;
         }
 
         $booking->loadMissing('room');
+
         return $user->hasLocationAccess($booking->room->location_id);
     }
 

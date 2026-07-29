@@ -38,7 +38,7 @@ class AdminInvitation extends Model
      */
     public function isAccepted(): bool
     {
-        return !is_null($this->accepted_at);
+        return ! is_null($this->accepted_at);
     }
 
     /**

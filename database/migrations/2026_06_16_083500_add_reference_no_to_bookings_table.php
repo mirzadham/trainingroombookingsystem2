@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -40,9 +40,10 @@ return new class extends Migration
                 for ($i = 0; $i < 6; $i++) {
                     $code .= $pool[random_int(0, strlen($pool) - 1)];
                 }
-                $ref = 'MA-' . $code;
+                $ref = 'MA-'.$code;
             } while (in_array($ref, $used));
             $used[] = $ref;
+
             return $ref;
         };
 

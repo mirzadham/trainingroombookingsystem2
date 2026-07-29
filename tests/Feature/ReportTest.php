@@ -2,20 +2,22 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookingStatus;
+use App\Enums\UserRole;
+use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
 use App\Models\User;
-use App\Models\Booking;
-use App\Enums\BookingStatus;
-use App\Enums\UserRole;
-use Carbon\Carbon;
 use Tests\TestCase;
 
 class ReportTest extends TestCase
 {
     private User $superAdmin;
+
     private User $normalUser;
+
     private Location $location;
+
     private Room $room;
 
     protected function setUp(): void
@@ -34,11 +36,11 @@ class ReportTest extends TestCase
     public function test_only_admin_can_access_utilization_report(): void
     {
         $this->actingAs($this->normalUser)
-            ->getJson("/api/admin/reports/utilization?start_date=" . today()->toDateString() . "&end_date=" . today()->toDateString())
+            ->getJson('/api/admin/reports/utilization?start_date='.today()->toDateString().'&end_date='.today()->toDateString())
             ->assertStatus(403);
 
         $this->actingAs($this->superAdmin)
-            ->getJson("/api/admin/reports/utilization?start_date=" . today()->toDateString() . "&end_date=" . today()->toDateString())
+            ->getJson('/api/admin/reports/utilization?start_date='.today()->toDateString().'&end_date='.today()->toDateString())
             ->assertStatus(200);
     }
 
@@ -59,7 +61,7 @@ class ReportTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->superAdmin)
-            ->getJson("/api/admin/reports/utilization?start_date=" . today()->toDateString() . "&end_date=" . today()->toDateString());
+            ->getJson('/api/admin/reports/utilization?start_date='.today()->toDateString().'&end_date='.today()->toDateString());
 
         $response->assertStatus(200)
             ->assertJsonPath('rooms.0.room', 'Testing Room')
@@ -83,12 +85,12 @@ class ReportTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->superAdmin)
-            ->getJson("/api/admin/reports/peak-hours?start_date=" . today()->toDateString() . "&end_date=" . today()->toDateString());
+            ->getJson('/api/admin/reports/peak-hours?start_date='.today()->toDateString().'&end_date='.today()->toDateString());
 
         $response->assertStatus(200);
-        
+
         $data = $response->json();
-        
+
         // Find hour 10:00
         $hour10 = collect($data)->firstWhere('hour', '10:00');
         $this->assertEquals(1, $hour10['booking_count']);

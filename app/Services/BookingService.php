@@ -5,12 +5,12 @@ namespace App\Services;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Room;
+use App\Models\RoomBlackout;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Services\NotificationService;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
@@ -31,15 +31,15 @@ class BookingService
     public function createMultiDayBookings(array $data, User $user): Collection
     {
         $startDate = Carbon::parse($data['start_date']);
-        $endDate   = Carbon::parse($data['end_date']);
+        $endDate = Carbon::parse($data['end_date']);
 
         $this->validateMultiDayRules($data, $startDate, $endDate);
 
         // Extract time-of-day portion from start_time / end_time strings (e.g. "09:00:00" → "09:00")
         $rawStart = Carbon::parse($data['start_time']);
-        $rawEnd   = Carbon::parse($data['end_time']);
+        $rawEnd = Carbon::parse($data['end_time']);
         $timeStart = $rawStart->format('H:i:s');
-        $timeEnd   = $rawEnd->format('H:i:s');
+        $timeEnd = $rawEnd->format('H:i:s');
 
         $groupId = Str::uuid()->toString();
         $bookings = collect();
@@ -55,13 +55,14 @@ class BookingService
                 // Build MYT datetimes (local time = clock-face hours from booking config)
                 $dayStart = Carbon::createFromTimeString($timeStart, 'Asia/Kuala_Lumpur')
                     ->setDate($current->year, $current->month, $current->day);
-                $dayEnd   = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
+                $dayEnd = Carbon::createFromTimeString($timeEnd, 'Asia/Kuala_Lumpur')
                     ->setDate($current->year, $current->month, $current->day);
 
                 // 1) Check availability in MYT — AvailabilityService::hasConflict converts
                 //    to the app DB timezone internally, so MYT is fine here.
                 if ($this->availabilityService->hasConflict($data['room_id'], $dayStart, $dayEnd)) {
                     $unavailableDates->push($current->format('Y-m-d'));
+
                     continue;
                 }
 
@@ -70,32 +71,32 @@ class BookingService
                 //    longer but valid consecutive bookings are accepted.
                 $this->validateBookingRules([
                     'start_time' => $dayStart->toDateTimeString(),
-                    'end_time'   => $dayEnd->toDateTimeString(),
-                    'room_id'    => $data['room_id'],
-                    'attendees'  => $data['attendees'],
+                    'end_time' => $dayEnd->toDateTimeString(),
+                    'room_id' => $data['room_id'],
+                    'attendees' => $data['attendees'],
                 ], $maxMultidayDuration);
 
                 $seq = str_pad($index++, 2, '0', STR_PAD_LEFT);
 
                 // 3) Store using local Asia/Kuala_Lumpur times directly.
                 $booking = Booking::create([
-                    'reference_no'         => "{$baseRef}-{$seq}",
-                    'user_id'              => $user->id,
-                    'room_id'              => $data['room_id'],
-                    'title'                => $data['title'],
-                    'description'          => $data['description'] ?? null,
-                    'start_time'           => $dayStart,
-                    'end_time'             => $dayEnd,
-                    'attendees'            => $data['attendees'],
-                    'phone'                => $data['phone'],
-                    'status'               => BookingStatus::Pending,
-                    'group_id'             => $groupId,
+                    'reference_no' => "{$baseRef}-{$seq}",
+                    'user_id' => $user->id,
+                    'room_id' => $data['room_id'],
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'start_time' => $dayStart,
+                    'end_time' => $dayEnd,
+                    'attendees' => $data['attendees'],
+                    'phone' => $data['phone'],
+                    'status' => BookingStatus::Pending,
+                    'group_id' => $groupId,
                 ]);
 
                 $this->auditService->log($user, $booking, 'created', [
-                    'group_id'            => $groupId,
-                    'booking_date'        => $current->format('Y-m-d'),
-                    'multi_day_booking'   => true,
+                    'group_id' => $groupId,
+                    'booking_date' => $current->format('Y-m-d'),
+                    'multi_day_booking' => true,
                 ]);
 
                 $bookings->push($booking);
@@ -105,8 +106,8 @@ class BookingService
             if ($bookings->isEmpty() && $unavailableDates->isNotEmpty()) {
                 throw ValidationException::withMessages([
                     'end_date' => 'The selected room is unavailable for all dates in the range '
-                        . $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d')
-                        . '. Please select a different room or time slot.',
+                        .$startDate->format('Y-m-d').' to '.$endDate->format('Y-m-d')
+                        .'. Please select a different room or time slot.',
                 ]);
             }
 
@@ -114,7 +115,7 @@ class BookingService
             if ($unavailableDates->isNotEmpty()) {
                 throw ValidationException::withMessages([
                     'end_date' => 'The selected room is unavailable on the following dates: '
-                        . $unavailableDates->join(', ') . '. Please adjust your date range.',
+                        .$unavailableDates->join(', ').'. Please adjust your date range.',
                 ]);
             }
 
@@ -181,7 +182,7 @@ class BookingService
      */
     public function cancel(Booking $booking, User $user): Booking
     {
-        if (!$booking->canTransitionTo(BookingStatus::Cancelled)) {
+        if (! $booking->canTransitionTo(BookingStatus::Cancelled)) {
             throw ValidationException::withMessages([
                 'status' => "Cannot cancel a booking with status '{$booking->status->value}'.",
             ]);
@@ -268,7 +269,7 @@ class BookingService
             ->get();
 
         // Batch fetch blackouts for this room within the outer boundaries
-        $blackouts = \App\Models\RoomBlackout::where('room_id', $data['room_id'])
+        $blackouts = RoomBlackout::where('room_id', $data['room_id'])
             ->where('start_time', '<', $seriesEnd)
             ->where('end_time', '>', $seriesStart)
             ->get();
@@ -403,7 +404,7 @@ class BookingService
         // Max duration
         if ($durationMinutes > $maxDuration) {
             $maxHours = $maxDuration / 60;
-            $displayHours = floor($maxHours) === $maxHours ? (int)$maxHours : round($maxHours, 1);
+            $displayHours = floor($maxHours) === $maxHours ? (int) $maxHours : round($maxHours, 1);
             throw ValidationException::withMessages([
                 'duration' => "Maximum booking duration is {$displayHours} hours.",
             ]);
@@ -425,8 +426,8 @@ class BookingService
 
         // Attendees must not exceed room capacity
         if (isset($data['room_id']) && isset($data['attendees'])) {
-            $roomId = (int)$data['room_id'];
-            if (!isset($this->roomCache[$roomId])) {
+            $roomId = (int) $data['room_id'];
+            if (! isset($this->roomCache[$roomId])) {
                 $this->roomCache[$roomId] = Room::find($roomId);
             }
             $room = $this->roomCache[$roomId];
@@ -464,7 +465,7 @@ class BookingService
         $start = Carbon::parse($data['start_time']);
         $end = Carbon::parse($data['end_time']);
 
-        $blackout = \App\Models\RoomBlackout::where('room_id', $data['room_id'])
+        $blackout = RoomBlackout::where('room_id', $data['room_id'])
             ->where('start_time', '<', $end)
             ->where('end_time', '>', $start)
             ->first();

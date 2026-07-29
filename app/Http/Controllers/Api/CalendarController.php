@@ -25,13 +25,13 @@ class CalendarController extends Controller
             ->where('end_time', '<=', Carbon::parse($request->end_date)->endOfDay());
 
         if ($request->location_id) {
-            $query->whereHas('room', fn($q) => $q->where('location_id', $request->location_id));
+            $query->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
         }
         if ($request->room_id) {
             $query->where('room_id', $request->room_id);
         }
 
-        $events = $query->orderBy('start_time')->get()->map(fn($b) => [
+        $events = $query->orderBy('start_time')->get()->map(fn ($b) => [
             'id' => $b->id,
             'title' => $b->title,
             'start' => $b->start_time->toIso8601String(),

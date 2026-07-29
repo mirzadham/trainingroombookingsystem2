@@ -12,7 +12,7 @@ class LocationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company() . ' Center',
+            'name' => $this->faker->company().' Center',
             'code' => strtoupper($this->faker->lexify('???')),
             'address' => $this->faker->address(),
             'is_active' => true,

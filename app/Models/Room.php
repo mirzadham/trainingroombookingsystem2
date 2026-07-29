@@ -65,12 +65,12 @@ class Room extends Model
      */
     public function getImagesAttribute(): array
     {
-        if (!$this->image_url) {
+        if (! $this->image_url) {
             return [];
         }
 
         // If it's a default static placeholder asset (does not contain a room-specific upload folder like '/rooms/{id}/'), return it alone
-        if (!preg_match('/\/rooms\/\d+\//', $this->image_url)) {
+        if (! preg_match('/\/rooms\/\d+\//', $this->image_url)) {
             return [$this->image_url];
         }
 
@@ -82,13 +82,14 @@ class Room extends Model
 
             if ($disk->exists($directory)) {
                 $files = $disk->files($directory);
-                
+
                 $images = array_map(function ($file) use ($disk) {
                     return $disk->url($file);
                 }, $files);
 
-                if (!empty($images)) {
+                if (! empty($images)) {
                     sort($images);
+
                     return $images;
                 }
             }

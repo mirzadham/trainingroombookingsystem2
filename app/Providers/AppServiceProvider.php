@@ -3,10 +3,16 @@
 namespace App\Providers;
 
 use App\Models\Booking;
+use App\Models\BookingNotification;
 use App\Models\Room;
+use App\Notifications\BookingStatusChangedNotification;
 use App\Policies\BookingPolicy;
 use App\Policies\RoomPolicy;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Notifications\Events\NotificationFailed;
+use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,14 +39,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Room::class, RoomPolicy::class);
 
         // Listen for booking notification delivery attempt
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Notifications\Events\NotificationSending::class,
-            function (\Illuminate\Notifications\Events\NotificationSending $event) {
-                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+        Event::listen(
+            NotificationSending::class,
+            function (NotificationSending $event) {
+                if ($event->notification instanceof BookingStatusChangedNotification) {
                     $booking = $event->notification->getBooking();
                     $type = $event->notification->getType();
 
-                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                    BookingNotification::where('booking_id', $booking->id)
                         ->where('type', $type)
                         ->increment('attempts');
                 }
@@ -48,14 +54,14 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // Listen for booking notification delivery success
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Notifications\Events\NotificationSent::class,
-            function (\Illuminate\Notifications\Events\NotificationSent $event) {
-                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+        Event::listen(
+            NotificationSent::class,
+            function (NotificationSent $event) {
+                if ($event->notification instanceof BookingStatusChangedNotification) {
                     $booking = $event->notification->getBooking();
                     $type = $event->notification->getType();
 
-                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                    BookingNotification::where('booking_id', $booking->id)
                         ->where('type', $type)
                         ->update([
                             'status' => 'sent',
@@ -66,17 +72,17 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // Listen for booking notification delivery failure
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Notifications\Events\NotificationFailed::class,
-            function (\Illuminate\Notifications\Events\NotificationFailed $event) {
-                if ($event->notification instanceof \App\Notifications\BookingStatusChangedNotification) {
+        Event::listen(
+            NotificationFailed::class,
+            function (NotificationFailed $event) {
+                if ($event->notification instanceof BookingStatusChangedNotification) {
                     $booking = $event->notification->getBooking();
                     $type = $event->notification->getType();
-                    
+
                     $exception = $event->data['exception'] ?? null;
                     $errorMessage = $exception ? $exception->getMessage() : 'SMTP mail delivery failed.';
 
-                    \App\Models\BookingNotification::where('booking_id', $booking->id)
+                    BookingNotification::where('booking_id', $booking->id)
                         ->where('type', $type)
                         ->update([
                             'status' => 'failed',

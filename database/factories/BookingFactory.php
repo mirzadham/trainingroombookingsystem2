@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Models\User;
-use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BookingFactory extends Factory

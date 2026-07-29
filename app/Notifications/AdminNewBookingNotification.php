@@ -4,9 +4,9 @@ namespace App\Notifications;
 
 use App\Models\Booking;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class AdminNewBookingNotification extends Notification implements ShouldQueue
 {
@@ -26,8 +26,8 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
         $roomName = $this->booking->room->name;
         $locationName = $this->booking->room->location->name;
         $dateFormatted = $this->booking->start_time->format('l, d F Y');
-        $timeFormatted = $this->booking->start_time->format('h:i A') . ' – ' . $this->booking->end_time->format('h:i A');
-        
+        $timeFormatted = $this->booking->start_time->format('h:i A').' – '.$this->booking->end_time->format('h:i A');
+
         $requesterName = $this->booking->user->name;
         $requesterEmail = $this->booking->user->email;
         $requesterDept = $this->booking->user->department ?? 'N/A';
@@ -35,9 +35,9 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("[Action Required] New Booking Request – {$roomName} | {$dateFormatted} | {$this->booking->reference_no}")
             ->greeting("Dear {$notifiable->name},")
-            ->line("A new booking request has been submitted and requires your administrative review and approval.")
-            ->line("")
-            ->line("**Booking Request Details:**")
+            ->line('A new booking request has been submitted and requires your administrative review and approval.')
+            ->line('')
+            ->line('**Booking Request Details:**')
             ->line("- **Booking Reference:** {$this->booking->reference_no}")
             ->line("- **Requested By:** {$requesterName} ({$requesterEmail} | Dept: {$requesterDept})")
             ->line("- **Room Requested:** {$roomName} / {$locationName}")
@@ -45,8 +45,8 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
             ->line("- **Time Requested:** {$timeFormatted}")
             ->line("- **Programme / Purpose:** {$this->booking->title}")
             ->line("- **Number of Participants:** {$this->booking->attendees} pax")
-            ->line("")
-            ->line("Please log in to the administrator portal to review and process this booking request.")
+            ->line('')
+            ->line('Please log in to the administrator portal to review and process this booking request.')
             ->action('Review Pending Request', url('/admin'))
             ->salutation("Regards,  \n**MIMOS Academy Administration Team**  \nMIMOS Berhad");
     }
