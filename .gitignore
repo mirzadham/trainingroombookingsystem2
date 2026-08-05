@@ -1,5 +1,8 @@
 *.log
 .DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
 
 # Environment & Secret Files
 .env
@@ -22,24 +25,37 @@
 /public/images/rooms/uploads
 /roomimages/
 
-# Databases & Cache
+# Databases, Cache & SQL Dumps
 /database/database.sqlite
+*.sql
 .phpunit.result.cache
 /.phpunit.cache
+
+# Archives & Compressed Files
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.gz
 
 # Security Keys & SSL Certs
 *.pem
 *.crt
 *.key
 
-# Temporary & Scratch Files
+# Temporary, Scratch & Test Files
+*.tmp
+*.bak
+*.swp
 *.pdf
+test.md
+test.*
+temp.*
 /scratch/
 refactorprompt.md
 _ide_helper.php
 Homestead.json
 Homestead.yaml
-Thumbs.db
 
 # IDEs & Editor Configuration
 /.codex
