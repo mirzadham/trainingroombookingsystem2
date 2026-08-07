@@ -69,7 +69,7 @@ export default function AccountStep({ form }) {
         return (
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-xl font-extrabold text-slate-900">Your Details</h2>
+                    <h2 className="text-xl font-semibold text-slate-900">Your Details</h2>
                     <p className="text-sm text-slate-500 mt-1">Please provide your contact details for this booking.</p>
                 </div>
 
@@ -103,7 +103,7 @@ export default function AccountStep({ form }) {
                 <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-100">
                     <button
                         onClick={() => setStep(0)}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-2xl font-bold transition shadow-sm cursor-pointer"
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-2xl font-semibold transition shadow-sm cursor-pointer"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back
@@ -130,7 +130,7 @@ export default function AccountStep({ form }) {
             {/* Step Heading */}
             <div className="flex items-start gap-4">
                 <div>
-                    <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Review your booking</h2>
+                    <h2 className="text-3xl font-semibold text-slate-900 tracking-tight">Review your booking</h2>
                     <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
                         Please verify your meeting schedule and contact details before final submission.
                     </p>
@@ -144,7 +144,7 @@ export default function AccountStep({ form }) {
                 <div className="space-y-6">
                     {/* Schedule Details Card */}
                     <div className="bg-white border border-slate-200/60 rounded-3xl p-6 space-y-5 shadow-sm">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3">
                             <Clock className="w-5 h-5" />
                             <span>Room & Schedule</span>
                         </div>
@@ -160,7 +160,7 @@ export default function AccountStep({ form }) {
                                     />
                                 </div>
                                 <div>
-                                    <h4 className="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">{roomInfo.roomName || 'Unknown Room'}</h4>
+                                    <h4 className="text-base sm:text-lg font-semibold text-slate-900 leading-snug">{roomInfo.roomName || 'Unknown Room'}</h4>
                                     <div className="text-xs text-slate-500 font-semibold mt-1">
                                         {roomInfo.location || 'Unknown Location'}
                                     </div>
@@ -171,8 +171,8 @@ export default function AccountStep({ form }) {
                             
                             <div className="space-y-4">
                                 <div className="space-y-1">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Date</span>
-                                    <span className="text-sm font-bold text-slate-800 block">
+                                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Date</span>
+                                    <span className="text-sm font-semibold text-slate-800 block">
                                         {endDate && endDate !== roomInfo.date
                                             ? `${formatDate(roomInfo.date)} — ${formatDate(endDate)}`
                                             : formatDate(roomInfo.date)
@@ -180,12 +180,12 @@ export default function AccountStep({ form }) {
                                     </span>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Time</span>
-                                    <span className="text-sm font-bold text-slate-800 block">
+                                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Time</span>
+                                    <span className="text-sm font-semibold text-slate-800 block">
                                         {formatTime(roomInfo.startTime)} – {formatTime(roomInfo.endTime)}
                                     </span>
                                     {durationStr && (
-                                        <span className="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold mt-1">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[10px] font-semibold mt-1">
                                             {durationStr}
                                         </span>
                                     )}
@@ -196,14 +196,14 @@ export default function AccountStep({ form }) {
 
                     {/* Meeting Information Card */}
                     <div className="bg-white border border-slate-200/60 rounded-3xl p-6 space-y-5 shadow-sm">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3">
                             <FileText className="w-5 h-5" />
                             <span>Meeting Information</span>
                         </div>
                         
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Purpose / Title</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Purpose / Title</span>
                                 <div className="text-sm font-semibold text-slate-800 bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-slate-100/40">
                                     {title || '-'}
                                 </div>
@@ -211,17 +211,17 @@ export default function AccountStep({ form }) {
                             
                             <div className="flex items-center justify-between gap-4 pt-1">
                                 <div>
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Room Capacity Limit</span>
-                                    <span className="text-xs font-bold text-slate-700 block mt-1">Up to {roomInfo.capacity} pax</span>
+                                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Room Capacity Limit</span>
+                                    <span className="text-xs font-semibold text-slate-700 block mt-1">Up to {roomInfo.capacity} pax</span>
                                 </div>
-                                <div className="bg-white border border-slate-200/60 rounded-full px-4 py-1.5 shadow-sm text-xs font-extrabold text-slate-800 shrink-0">
+                                <div className="bg-white border border-slate-200/60 rounded-full px-4 py-1.5 shadow-sm text-xs font-semibold text-slate-800 shrink-0">
                                     {attendees} Attendees
                                 </div>
                             </div>
                             
                             {description && (
                                 <div className="space-y-1.5 pt-1">
-                                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Description / Notes</span>
+                                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Description / Notes</span>
                                     <p className="text-xs text-slate-600 leading-relaxed bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm shadow-slate-100/40 line-clamp-3">
                                         {description}
                                     </p>
@@ -235,7 +235,7 @@ export default function AccountStep({ form }) {
                 <div className="space-y-6">
                     {/* Contact details card */}
                     <div className="bg-white border border-slate-200/60 rounded-3xl p-6 space-y-5 shadow-sm">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-800 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 border-b border-slate-100 pb-3">
                             <User className="w-5 h-5" />
                             <span>Booking Contact</span>
                         </div>
@@ -243,19 +243,19 @@ export default function AccountStep({ form }) {
                         <div className="space-y-4">
                             {/* Read-Only Booked by block */}
                             <div className="p-4 bg-white border border-slate-200/60 rounded-2xl shadow-sm shadow-slate-100/40">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Booked by</span>
-                                <span className="text-sm font-bold text-slate-800 block mt-1">{guestName}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Booked by</span>
+                                <span className="text-sm font-semibold text-slate-800 block mt-1">{guestName}</span>
                             </div>
 
                             {/* Read-Only Email block */}
                             <div className="p-4 bg-white border border-slate-200/60 rounded-2xl shadow-sm shadow-slate-100/40">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Email address</span>
-                                <span className="text-sm font-bold text-slate-800 block break-all mt-1">{guestEmail}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Email address</span>
+                                <span className="text-sm font-semibold text-slate-800 block break-all mt-1">{guestEmail}</span>
                             </div>
 
                             {/* Coordinator contact phone input */}
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block px-0.5">
+                                <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block px-0.5">
                                     Coordinator contact phone
                                 </label>
                                 <input
@@ -263,7 +263,7 @@ export default function AccountStep({ form }) {
                                     value={phone}
                                     onChange={e => setPhone(e.target.value)}
                                     placeholder="Phone Number"
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 shadow-sm transition"
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 shadow-sm transition"
                                 />
                                 <p className="text-[10px] text-slate-400 leading-normal px-0.5">
                                     Customize this if the coordinator's phone number differs from your profile phone.
@@ -279,7 +279,7 @@ export default function AccountStep({ form }) {
                                     className="w-4.5 h-4.5 mt-0.5 rounded text-mimos-500 focus:ring-mimos-500 border-slate-300 transition cursor-pointer"
                                 />
                                 <div className="text-left">
-                                    <span className="block text-xs font-bold text-slate-700 group-hover:text-slate-900 transition leading-tight">
+                                    <span className="block text-xs font-semibold text-slate-700 group-hover:text-slate-900 transition leading-tight">
                                         Save phone updates to my profile
                                     </span>
                                     <span className="block text-[9px] text-slate-400 mt-1 leading-normal">
@@ -292,7 +292,7 @@ export default function AccountStep({ form }) {
 
                     {/* Verified Banner */}
                     <div className="bg-emerald-50/40 border border-emerald-100 rounded-3xl p-5 shadow-sm shadow-emerald-50/20">
-                        <div className="flex items-center gap-2 text-sm font-bold text-emerald-900 border-b border-emerald-100/50 pb-2.5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900 border-b border-emerald-100/50 pb-2.5">
                             <CheckCircle2 className="w-5 h-5" />
                             <span>Information verified</span>
                         </div>
@@ -308,7 +308,7 @@ export default function AccountStep({ form }) {
             <div className="flex items-center justify-between gap-4 pt-6 border-t border-slate-100">
                 <button
                     onClick={() => setStep(0)}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-55 hover:border-slate-300 rounded-2xl font-bold transition shadow-sm cursor-pointer active:scale-98"
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:bg-slate-55 hover:border-slate-300 rounded-2xl font-semibold transition shadow-sm cursor-pointer active:scale-98"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back

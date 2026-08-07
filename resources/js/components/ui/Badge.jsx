@@ -10,7 +10,7 @@ const statusConfig = {
 export default function Badge({ status, className = '' }) {
     const config = statusConfig[status] || statusConfig.pending;
     return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wide border ${config.bg} ${config.text} ${config.border} ${className}`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-semibold tracking-wide border ${config.bg} ${config.text} ${config.border} ${className}`}>
             {status}
         </span>
     );

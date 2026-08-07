@@ -110,7 +110,7 @@ export default function CalendarPage() {
                 <div className="flex-1">
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                        <h1 className="text-2xl font-bold text-slate-900">Calendar</h1>
+                        <h1 className="text-2xl font-semibold text-slate-900">Calendar</h1>
                         <div className="flex items-center gap-3">
                             <select
                                 value={locationFilter}
@@ -337,7 +337,7 @@ export default function CalendarPage() {
                                     <div key={evt.id} className={`p-4 rounded-xl border ${colorClass} shadow-sm relative overflow-hidden bg-white/50`}>
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-current opacity-40"></div>
                                         <div className="text-slate-900 relative">
-                                            <div className="text-sm font-bold mb-2 pr-4">{evt.title}</div>
+                                            <div className="text-sm font-semibold mb-2 pr-4">{evt.title}</div>
                                             <div className="space-y-2 text-xs opacity-90">
                                                 <div className="flex items-center gap-2">
                                                     <MapPin className="w-3.5 h-3.5" />

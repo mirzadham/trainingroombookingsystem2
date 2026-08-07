@@ -135,7 +135,7 @@ export default function RoomDetails() {
                     <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                         🚨
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900 mb-2">Room not found</h2>
+                    <h2 className="text-xl font-semibold text-slate-900 mb-2">Room not found</h2>
                     <p className="text-slate-500 text-sm mb-6">The room you are looking for does not exist or is currently inactive.</p>
                     <button 
                         onClick={() => navigate('/search')}
@@ -220,7 +220,7 @@ export default function RoomDetails() {
                             setLightboxIndex(0);
                             setIsLightboxOpen(true);
                         }}
-                        className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/95 text-slate-800 text-xs font-bold rounded-xl border border-slate-200 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer z-20"
+                        className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/95 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer z-20"
                     >
                         <LayoutGrid className="w-4 h-4 text-slate-600" />
                         Show all photos
@@ -236,7 +236,7 @@ export default function RoomDetails() {
                     <div className="lg:col-span-2 space-y-8">
                         {/* Title & Core Details */}
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight mb-4">
                                 {room.name}
                             </h1>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
@@ -253,7 +253,7 @@ export default function RoomDetails() {
 
                         {/* Description */}
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">About this room</h3>
+                            <h3 className="text-lg font-semibold text-slate-900 mb-3">About this room</h3>
                             <p className="text-slate-600 leading-relaxed mb-6">
                                 {room.description || 'A premium training room equipped with modern amenities to ensure a productive and comfortable environment for all your meetings and training sessions. Designed with professional acoustics and high-speed connectivity.'}
                             </p>
@@ -264,7 +264,7 @@ export default function RoomDetails() {
                                         <MapPin className="w-5 h-5 text-mimos-500" />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Room Location</div>
+                                        <div className="text-[10px] uppercase font-semibold tracking-wider text-slate-400">Room Location</div>
                                         <div className="text-sm font-semibold text-slate-800">{room.location_legend}</div>
                                     </div>
                                 </div>
@@ -274,7 +274,7 @@ export default function RoomDetails() {
                         {/* Amenities List */}
                         {room.amenities && room.amenities.length > 0 && (
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900 mb-4">Included Amenities</h3>
+                                <h3 className="text-lg font-semibold text-slate-900 mb-4">Included Amenities</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     {room.amenities.map((amenity, idx) => (
                                         <div key={idx} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">

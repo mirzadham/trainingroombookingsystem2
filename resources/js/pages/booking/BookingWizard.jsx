@@ -41,8 +41,8 @@ export default function BookingWizard() {
                     
                     return (
                         <React.Fragment key={label}>
-                            <div className={`flex items-center gap-2.5 text-xs font-bold shrink-0 transition-colors duration-300 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold transition-all duration-300 ${
+                            <div className={`flex items-center gap-2.5 text-xs font-semibold shrink-0 transition-colors duration-300 ${isActive || isCompleted ? 'text-slate-900' : 'text-slate-400'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                                     isCompleted ? 'bg-mimos-500 text-white shadow-md shadow-mimos-500/20' :
                                     isActive ? 'bg-white border-2 border-mimos-500 text-mimos-500 shadow-md shadow-mimos-500/10' :
                                     'bg-slate-50 border border-slate-200/80 text-slate-400'
@@ -82,14 +82,14 @@ export default function BookingWizard() {
                             <div className="bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-2xl shadow-slate-200/60 rounded-3xl overflow-hidden relative">
                                 <div className="absolute top-0 left-0 right-0 h-[3px] bg-mimos-500" />
                                 <div className="bg-slate-50/50 border-b border-slate-200/50 p-6">
-                                    <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-1">Booking Summary</h3>
+                                    <h3 className="text-xs font-semibold text-slate-800 uppercase tracking-widest mb-1">Booking Summary</h3>
                                     <p className="text-[11px] text-slate-500 font-medium">Verify details before confirming</p>
                                 </div>
                                 
                                 <div className="p-6 space-y-6">
                                     {/* Room Details */}
                                     <div>
-                                        <h4 className="text-xl font-bold text-slate-900 mb-1">{roomInfo.roomName || 'Unknown Room'}</h4>
+                                        <h4 className="text-xl font-semibold text-slate-900 mb-1">{roomInfo.roomName || 'Unknown Room'}</h4>
                                         <div className="flex items-center gap-1.5 text-sm text-slate-500 font-medium">
                                             <MapPin className="w-4.5 h-4.5 text-mimos-500" />
                                             {roomInfo.location || 'Unknown Location'}
@@ -105,7 +105,7 @@ export default function BookingWizard() {
                                                 <Calendar className="w-4 h-4" />
                                             </div>
                                             <div>
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5">
                                                     {form.endDate && form.endDate !== roomInfo.date ? 'Dates' : 'Date'}
                                                 </div>
                                                 <div className="text-sm font-semibold text-slate-800">
@@ -122,7 +122,7 @@ export default function BookingWizard() {
                                                 <Clock className="w-4 h-4" />
                                             </div>
                                             <div>
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Time</div>
+                                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Time</div>
                                                 <div className="text-sm font-semibold text-slate-800">
                                                     {formatTime(roomInfo.startTime)} – {formatTime(roomInfo.endTime)}
                                                 </div>
@@ -134,7 +134,7 @@ export default function BookingWizard() {
                                                 <Users className="w-4 h-4" />
                                             </div>
                                             <div>
-                                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Capacity limit</div>
+                                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Capacity limit</div>
                                                 <div className="text-sm font-semibold text-slate-800">Up to {roomInfo.capacity} pax</div>
                                             </div>
                                         </div>
@@ -147,7 +147,7 @@ export default function BookingWizard() {
                                             <div className="bg-slate-50/70 rounded-2xl border border-slate-100 p-4 space-y-4">
                                                 {form.title && (
                                                     <div>
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Purpose</div>
+                                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Purpose</div>
                                                         <div className="text-sm text-slate-700 font-medium line-clamp-2 leading-relaxed">{form.title}</div>
                                                     </div>
                                                 )}
@@ -156,7 +156,7 @@ export default function BookingWizard() {
                                                 
                                                 {form.attendees && (
                                                     <div>
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Attendees</div>
+                                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-0.5">Attendees</div>
                                                         <div className="text-sm text-slate-700 font-semibold">{form.attendees} people</div>
                                                     </div>
                                                 )}

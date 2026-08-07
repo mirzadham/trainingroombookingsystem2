@@ -72,7 +72,7 @@ export default function ResetPassword() {
                     </div>
                     
                     <div className="my-auto">
-                        <h1 className="text-5xl lg:text-7xl font-bold text-white leading-none tracking-tight">
+                        <h1 className="text-5xl lg:text-7xl font-semibold text-white leading-none tracking-tight">
                             SECURE YOUR<br />
                             <span className="text-mimos-400">ACCOUNT</span>
                         </h1>
@@ -101,13 +101,13 @@ export default function ResetPassword() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Password Reset Successful</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">Password Reset Successful</h2>
                                 <p className="text-xs text-slate-500">Your password has been successfully updated. You can now log in with your new credentials.</p>
                             </div>
                             <div className="pt-4">
                                 <Link
                                     to="/login"
-                                    className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-bold uppercase tracking-widest transition-colors duration-300 cursor-pointer flex justify-center items-center h-12 gap-2"
+                                    className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-semibold uppercase tracking-widest transition-colors duration-300 cursor-pointer flex justify-center items-center h-12 gap-2"
                                 >
                                     Go to Sign In
                                     <ArrowRight className="w-4 h-4" />
@@ -117,7 +117,7 @@ export default function ResetPassword() {
                     ) : (
                         <>
                             <div className="mb-12 border-b border-slate-200 pb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Reset Password</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">Reset Password</h2>
                                 <p className="text-xs text-slate-500">Choose a new, secure password for your account.</p>
                             </div>
 
@@ -129,7 +129,7 @@ export default function ResetPassword() {
 
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 <div className="relative border-b border-slate-300">
-                                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Email Address</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Email Address</label>
                                     <input
                                         type="email" value={email} disabled
                                         className="w-full pb-2 bg-transparent text-slate-400 text-sm cursor-not-allowed focus:outline-none"
@@ -137,7 +137,7 @@ export default function ResetPassword() {
                                 </div>
 
                                 <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">New Password</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">New Password</label>
                                     <input
                                         type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
                                         className="w-full pb-2 pr-10 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -152,7 +152,7 @@ export default function ResetPassword() {
                                 </div>
 
                                 <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Confirm Password</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Confirm Password</label>
                                     <input
                                         type={showConfirmPassword ? 'text' : 'password'} value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required
                                         className="w-full pb-2 pr-10 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -169,7 +169,7 @@ export default function ResetPassword() {
                                 <div className="pt-4">
                                     <button
                                         type="submit" disabled={loading}
-                                        className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-bold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
+                                        className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-semibold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
                                     >
                                         {loading ? (
                                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

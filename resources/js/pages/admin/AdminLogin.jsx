@@ -53,7 +53,7 @@ export default function AdminLogin() {
                     </div>
                     
                     <div className="my-auto">
-                        <h1 className="text-5xl lg:text-7xl font-bold text-white leading-none tracking-tight">
+                        <h1 className="text-5xl lg:text-7xl font-semibold text-white leading-none tracking-tight">
                             COMMAND<br />
                             <span className="text-mimos-400">CENTER</span>
                         </h1>
@@ -88,7 +88,7 @@ export default function AdminLogin() {
 
                     <form onSubmit={handleSubmit} className="space-y-8">
                         <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Email Address</label>
+                            <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Email Address</label>
                             <input
                                 id="admin-email"
                                 type="email" value={email} onChange={e => setEmail(e.target.value)} required
@@ -97,7 +97,7 @@ export default function AdminLogin() {
                         </div>
 
                         <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Password</label>
+                            <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Password</label>
                             <input
                                 id="admin-password"
                                 type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
@@ -116,7 +116,7 @@ export default function AdminLogin() {
                             <button
                                 id="admin-login-button"
                                 type="submit" disabled={loading}
-                                className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-bold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
+                                className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-semibold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
                             >
                                 {loading ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -129,7 +129,7 @@ export default function AdminLogin() {
 
                     {/* Back link */}
                     <div className="text-center mt-12">
-                        <a href="/" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
+                        <a href="/" className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
                             ← Back to Booking
                         </a>
                     </div>

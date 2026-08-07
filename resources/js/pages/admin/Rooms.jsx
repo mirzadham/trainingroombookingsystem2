@@ -51,7 +51,7 @@ export default function AdminRooms() {
         <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Manage Rooms</h1>
+                    <h1 className="text-2xl font-semibold text-slate-900">Manage Rooms</h1>
                     <p className="text-sm text-slate-500 mt-1">Add, edit, or deactivate training rooms</p>
                 </div>
                 {!isLoading && (
@@ -135,7 +135,7 @@ export default function AdminRooms() {
                                         </span>
                                     </div>
                                     {!room.is_active && (
-                                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                                        <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
                                             Inactive
                                         </span>
                                     )}
@@ -345,7 +345,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
                     
                     {/* Predefined Quick Select Grid */}
                     <div className="mb-4">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Quick Select</span>
+                        <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block mb-2">Quick Select</span>
                         <div className="flex flex-wrap gap-1.5">
                             {PREDEFINED_AMENITIES.map(item => {
                                 const isSelected = amenities.includes(item.value);
@@ -369,7 +369,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
 
                     {/* Custom Amenity Input */}
                     <div className="mb-4">
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Add Custom Amenity</span>
+                        <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block mb-2">Add Custom Amenity</span>
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -392,7 +392,7 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
                     {/* Currently Selected Badges Tray */}
                     {amenities.length > 0 && (
                         <div className="mt-3">
-                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Selected Amenities ({amenities.length})</span>
+                            <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block mb-2">Selected Amenities ({amenities.length})</span>
                             <div className="flex flex-wrap gap-1.5 p-3.5 bg-slate-100/50 border border-slate-200/80 rounded-2xl">
                                 {amenities.map(a => (
                                     <span key={a} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-white text-slate-700 border border-slate-200/80 font-medium shadow-sm hover:border-red-200 transition-colors group">

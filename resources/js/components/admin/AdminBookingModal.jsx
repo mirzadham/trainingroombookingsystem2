@@ -215,7 +215,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                             <Calendar className="w-5 h-5 text-mimos-600" />
                             Create & Approve Booking
                         </h3>
@@ -243,12 +243,12 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
                     {/* Section 1: Booker details */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">1. Booker Association</h4>
+                            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">1. Booker Association</h4>
                             <div className="flex bg-slate-100/80 p-0.5 rounded-xl border border-slate-200/40">
                                 <button
                                     type="button"
                                     onClick={() => { setBookerType('registered'); setSelectedUser(null); setFormError(''); }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                                         bookerType === 'registered'
                                             ? 'bg-white text-mimos-600 shadow-sm border border-slate-200/50'
                                             : 'text-slate-500 hover:text-slate-700'
@@ -259,7 +259,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
                                 <button
                                     type="button"
                                     onClick={() => { setBookerType('guest'); setFormError(''); }}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                                         bookerType === 'guest'
                                             ? 'bg-white text-mimos-600 shadow-sm border border-slate-200/50'
                                             : 'text-slate-500 hover:text-slate-700'
@@ -315,7 +315,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
                                                 <User className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-bold text-slate-900">{selectedUser.name}</div>
+                                                <div className="text-sm font-semibold text-slate-900">{selectedUser.name}</div>
                                                 <div className="text-xs text-slate-500 font-medium">{selectedUser.email} • {selectedUser.department || 'No Dept'}</div>
                                             </div>
                                         </div>
@@ -371,7 +371,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
 
                     {/* Section 2: Room & Date/Time selection */}
                     <div className="space-y-4">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">2. Room & Schedule</h4>
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">2. Room & Schedule</h4>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Location */}
@@ -478,7 +478,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
 
                     {/* Section 3: Booking details */}
                     <div className="space-y-4">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">3. Booking Information</h4>
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">3. Booking Information</h4>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="sm:col-span-2">
@@ -541,7 +541,7 @@ export default function AdminBookingModal({ onClose, onSuccess, initialDate = ''
                         <div className="flex gap-3">
                             <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                             <div>
-                                <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Bypass standard restrictions</h5>
+                                <h5 className="text-xs font-semibold text-slate-800 uppercase tracking-wide">Bypass standard restrictions</h5>
                                 <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
                                     Check this to bypass minor validation checks (operating hours, maximum booking duration, and room capacity limits).
                                     Room availability conflicts and blackout schedules will still be strictly enforced.

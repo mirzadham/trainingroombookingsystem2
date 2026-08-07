@@ -189,7 +189,7 @@ export default function AdminCalendar() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2 select-none">
+                    <h1 className="text-2xl font-semibold text-slate-900 flex items-center gap-2 select-none">
                         <CalendarCheck className="w-6 h-6 text-mimos-600 animate-pulse" />
                         Admin Calendar
                     </h1>
@@ -218,7 +218,7 @@ export default function AdminCalendar() {
             <div className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-6 shadow-xs flex flex-wrap gap-4 items-center">
                 {/* Location Filter */}
                 <div className="flex-1 min-w-[200px]">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Location</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Location</label>
                     <select
                         value={locationFilter}
                         onChange={e => {
@@ -237,7 +237,7 @@ export default function AdminCalendar() {
 
                 {/* Room Filter */}
                 <div className="flex-1 min-w-[200px]">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Room</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Room</label>
                     <select
                         value={roomFilter}
                         onChange={e => setRoomFilter(e.target.value)}
@@ -252,7 +252,7 @@ export default function AdminCalendar() {
 
                 {/* Status Filter */}
                 <div className="flex-1 min-w-[200px]">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Filter Events</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Filter Events</label>
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
@@ -280,7 +280,7 @@ export default function AdminCalendar() {
                         >
                             <ChevronLeft className="w-5 h-5" />
                         </button>
-                        <h2 className="text-base font-extrabold text-slate-800 uppercase tracking-wider">
+                        <h2 className="text-base font-semibold text-slate-800 uppercase tracking-wider">
                             {format(currentMonth, 'MMMM yyyy')}
                         </h2>
                         <button
@@ -294,7 +294,7 @@ export default function AdminCalendar() {
                     {/* Day Names Header */}
                     <div className="grid grid-cols-7 gap-px mb-2 select-none">
                         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => (
-                            <div key={dayName} className="text-center text-[10px] font-bold text-slate-400 uppercase py-2">
+                            <div key={dayName} className="text-center text-[10px] font-semibold text-slate-400 uppercase py-2">
                                 {dayName}
                             </div>
                         ))}
@@ -383,7 +383,7 @@ export default function AdminCalendar() {
                                                         isSelected ? '!bg-mimos-50/40 ring-2 ring-mimos-500 ring-inset z-10' : 'hover:!bg-slate-50/70'
                                                     } ${!isCurrentMonth ? '!bg-slate-50/30 opacity-70' : ''}`}
                                                 >
-                                                    <div className={`flex items-center justify-center w-6.5 h-6.5 rounded-full text-xs font-bold ${
+                                                    <div className={`flex items-center justify-center w-6.5 h-6.5 rounded-full text-xs font-semibold ${
                                                         isTodayDate 
                                                             ? 'bg-mimos-600 text-white shadow-xs' 
                                                             : isSelected 
@@ -457,7 +457,7 @@ export default function AdminCalendar() {
                                                     }}
                                                 >
                                                     {prefixIcon}
-                                                    <span className="font-bold mr-1 truncate">{evt.title}</span>
+                                                    <span className="font-semibold mr-1 truncate">{evt.title}</span>
                                                     <span className="opacity-80 truncate hidden sm:inline">
                                                         · {evt.room}
                                                     </span>
@@ -475,10 +475,10 @@ export default function AdminCalendar() {
                 <div className="w-full lg:w-80 flex-shrink-0">
                     <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 sticky top-24 w-full">
                         <div className="border-b border-slate-100 pb-3 mb-4 select-none">
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                                 Schedule Overview
                             </h3>
-                            <div className="text-sm font-extrabold text-slate-800 mt-1">
+                            <div className="text-sm font-semibold text-slate-800 mt-1">
                                 {format(selectedDate, 'EEEE, MMM d, yyyy')}
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5 font-medium">
@@ -489,10 +489,10 @@ export default function AdminCalendar() {
                         {selectedEvents.length === 0 && (
                             <div className="text-center py-10 flex flex-col items-center">
                                 <CalendarOff className="w-7 h-7 text-slate-300 mb-2" />
-                                <span className="text-xs text-slate-450 font-bold">No scheduling blocks</span>
+                                <span className="text-xs text-slate-450 font-semibold">No scheduling blocks</span>
                                 <button
                                     onClick={() => setShowBookingModal(true)}
-                                    className="mt-3.5 text-xs font-bold text-mimos-600 hover:text-mimos-700 flex items-center gap-1.5 hover:underline cursor-pointer"
+                                    className="mt-3.5 text-xs font-semibold text-mimos-600 hover:text-mimos-700 flex items-center gap-1.5 hover:underline cursor-pointer"
                                 >
                                     <Plus className="w-3.5 h-3.5" /> Book for this date
                                 </button>
@@ -539,13 +539,13 @@ export default function AdminCalendar() {
                                         className={`p-4.5 rounded-2xl border ${cardStyle} shadow-xs transition duration-200 flex flex-col relative overflow-hidden ${!isBlackout ? 'cursor-pointer hover:shadow-xs' : ''}`}
                                     >
                                         <div className="flex items-center justify-between gap-2 mb-2 select-none">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-black tracking-wider border ${tagStyle}`}>
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-semibold tracking-wider border ${tagStyle}`}>
                                                 {tagText}
                                             </span>
-                                            <span className="text-[10px] text-slate-450 font-bold truncate max-w-[100px]">{evt.location}</span>
+                                            <span className="text-[10px] text-slate-450 font-semibold truncate max-w-[100px]">{evt.location}</span>
                                         </div>
 
-                                        <div className={`text-xs font-bold text-slate-800 leading-tight ${evt.status === 'cancelled' ? 'line-through' : ''}`}>
+                                        <div className={`text-xs font-semibold text-slate-800 leading-tight ${evt.status === 'cancelled' ? 'line-through' : ''}`}>
                                             {evt.title}
                                         </div>
 
@@ -581,7 +581,7 @@ export default function AdminCalendar() {
                                                         }
                                                     }}
                                                     disabled={approveMutation.isPending}
-                                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition border-0 cursor-pointer disabled:opacity-50"
+                                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-semibold shadow-sm transition border-0 cursor-pointer disabled:opacity-50"
                                                 >
                                                     <Check className="w-3 h-3" /> Approve
                                                 </button>
@@ -594,7 +594,7 @@ export default function AdminCalendar() {
                                                         }
                                                     }}
                                                     disabled={rejectMutation.isPending}
-                                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-bold shadow-sm transition border-0 cursor-pointer disabled:opacity-50"
+                                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-semibold shadow-sm transition border-0 cursor-pointer disabled:opacity-50"
                                                 >
                                                     <X className="w-3 h-3" /> Reject
                                                 </button>

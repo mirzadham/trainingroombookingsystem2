@@ -1,4 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Font weight scale (standardized — max 600/semibold):
+ *   600 semibold  → headings, buttons, nav links, labels, badges
+ *   500 medium    → body emphasis, descriptions
+ *   400 normal    → body/meta text
+ * Do NOT use font-bold (700) or above. Differentiate hierarchy with size,
+ * color and letter-spacing instead of weight. */
 @import "tailwindcss";
 
 @theme {
@@ -16,6 +23,17 @@
 
   --font-display: 'Inter', sans-serif;
   --font-sans: 'Inter', sans-serif;
+}
+
+/* Home page shell: exactly viewport minus header (80px) and footer (80px),
+   so header + hero + footer fit in one window with zero scrolling */
+.home-shell {
+    height: calc(100vh - 160px);
+}
+@supports (height: 100dvh) {
+    .home-shell {
+        height: calc(100dvh - 160px);
+    }
 }
 
 /* Base style overrides */

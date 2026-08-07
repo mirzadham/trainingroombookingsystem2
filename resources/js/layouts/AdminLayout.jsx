@@ -218,14 +218,14 @@ export default function AdminLayout() {
                             <Bell className="w-4 h-4 text-white animate-bounce" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-pink-400">New Reservation</h4>
+                            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-pink-400">New Reservation</h4>
                             <p className="text-xs text-slate-200 mt-1 font-semibold leading-relaxed">{toastMsg}</p>
                             <button
                                 onClick={() => {
                                     setShowToast(false);
                                     navigate('/admin/bookings');
                                 }}
-                                className="mt-3 flex items-center gap-1 text-[10px] text-pink-400 hover:text-pink-300 font-bold transition uppercase tracking-wider cursor-pointer"
+                                className="mt-3 flex items-center gap-1 text-[10px] text-pink-400 hover:text-pink-300 font-semibold transition uppercase tracking-wider cursor-pointer"
                             >
                                 Review Requests <ArrowRight className="w-3 h-3" />
                             </button>

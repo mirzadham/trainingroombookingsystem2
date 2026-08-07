@@ -100,7 +100,7 @@ export default function BlackoutsModal({ room, onClose }) {
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                             <CalendarOff className="w-5 h-5 text-pink-600" />
                             Manage Blackouts & Maintenance
                         </h3>

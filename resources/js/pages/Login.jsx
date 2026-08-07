@@ -74,7 +74,7 @@ export default function Login() {
 
                 <div className="relative z-10 h-full flex flex-col justify-center">
                     <div className="text-center md:text-left">
-                        <h1 className="text-5xl lg:text-7xl font-bold text-white leading-none tracking-tight">
+                        <h1 className="text-5xl lg:text-7xl font-semibold text-white leading-none tracking-tight">
                             JOIN THE<br />
                             <span className="text-mimos-400">INNOVATION</span>
                         </h1>
@@ -94,7 +94,7 @@ export default function Login() {
                     {/* Minimal Tab Toggle or Header */}
                     {mode === 'forgot' ? (
                         <div className="mb-12">
-                            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Forgot Password</h2>
+                            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">Forgot Password</h2>
                             <p className="text-xs text-slate-500">Enter your email address and we'll send you a link to reset your password.</p>
                         </div>
                     ) : (
@@ -135,7 +135,7 @@ export default function Login() {
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {mode === 'register' && (
                             <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Full Name</label>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Full Name</label>
                                 <input
                                     type="text" value={name} onChange={e => setName(e.target.value)} required
                                     className="w-full pb-2 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -145,7 +145,7 @@ export default function Login() {
 
                         {mode === 'register' && (
                             <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Phone Number</label>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Phone Number</label>
                                 <input
                                     type="tel" value={phone} onChange={e => setPhone(e.target.value)} required
                                     placeholder="e.g. +60123456789"
@@ -155,7 +155,7 @@ export default function Login() {
                         )}
 
                         <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                            <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Email</label>
+                            <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Email</label>
                             <input
                                 type="email" value={email} onChange={e => setEmail(e.target.value)} required
                                 className="w-full pb-2 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -165,7 +165,7 @@ export default function Login() {
                         {mode !== 'forgot' && (
                             <div>
                                 <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                    <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Password</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Password</label>
                                     <input
                                         type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
                                         className="w-full pb-2 pr-10 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -188,7 +188,7 @@ export default function Login() {
 
                         {mode === 'register' && (
                             <div className="relative border-b border-slate-300 focus-within:border-mimos-500 transition-colors">
-                                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Confirm Password</label>
+                                <label className="block text-[10px] font-semibold text-slate-400 mb-1 uppercase tracking-widest">Confirm Password</label>
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'} value={passwordConfirm} onChange={e => setPasswordConfirm(e.target.value)} required
                                     className="w-full pb-2 pr-10 bg-transparent text-slate-900 text-sm focus:outline-none"
@@ -218,7 +218,7 @@ export default function Login() {
                         <div className="pt-4">
                             <button
                                 type="submit" disabled={loading}
-                                className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-bold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
+                                className="w-full py-4 bg-slate-900 hover:bg-mimos-600 text-white text-xs font-semibold uppercase tracking-widest transition-colors duration-300 disabled:opacity-50 cursor-pointer flex justify-center items-center h-12"
                             >
                                 {loading ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

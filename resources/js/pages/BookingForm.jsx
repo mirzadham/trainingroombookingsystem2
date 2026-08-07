@@ -142,7 +142,7 @@ export default function BookingForm() {
                 {STEPS.map((label, i) => (
                     <div key={label}>
                         <div className={`flex items-center gap-1.5 text-xs font-medium ${i <= step ? 'text-mimos-600' : 'text-slate-500'}`}>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ${
                                 i < step ? 'bg-mimos-500 text-white' :
                                 i === step ? 'bg-mimos-500/20 text-mimos-600 ring-2 ring-mimos-500/50' :
                                 'bg-white border border-slate-200 text-slate-500'
@@ -370,7 +370,7 @@ export default function BookingForm() {
                         <div className="inline-flex p-3 rounded-full bg-emerald-500/10 mb-4">
                             <CalendarCheck className="w-8 h-8 text-emerald-500" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900 mb-2">Booking Submitted!</h2>
+                        <h2 className="text-xl font-semibold text-slate-900 mb-2">Booking Submitted!</h2>
                         <p className="text-sm text-slate-500 mb-6">
                             Your booking is <span className="text-amber-500 font-medium">pending approval</span>. You'll be notified once an admin reviews it.
                         </p>

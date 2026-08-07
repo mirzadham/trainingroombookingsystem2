@@ -33,7 +33,7 @@ export default function DetailsStep({ form }) {
     return (
         <div className='space-y-6'>
             <div>
-                <h2 className='text-xl font-extrabold text-slate-900'>Booking Details</h2>
+                <h2 className='text-xl font-semibold text-slate-900'>Booking Details</h2>
                 <p className='text-sm text-slate-500 mt-1'>What is the purpose of this booking?</p>
             </div>
 
@@ -48,7 +48,7 @@ export default function DetailsStep({ form }) {
                 />
 
                 <div>
-                    <label className='block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider'>Description</label>
+                    <label className='block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider'>Description</label>
                     <textarea
                         value={description}
                         onChange={e => setDescription(e.target.value)}
@@ -78,11 +78,11 @@ export default function DetailsStep({ form }) {
                         <div className='p-4 rounded-xl bg-mimos-50/50 border border-mimos-100'>
                             <div className='flex items-center gap-2 mb-2'>
                                 <CalendarPlus className='w-4 h-4 text-mimos-600' />
-                                <span className='text-xs font-bold text-mimos-700 uppercase tracking-wider'>Multi-day Booking</span>
+                                <span className='text-xs font-semibold text-mimos-700 uppercase tracking-wider'>Multi-day Booking</span>
                             </div>
                             <div className='flex items-center gap-3'>
                                 <div className='flex-1'>
-                                    <label className='block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1'>End Date</label>
+                                    <label className='block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1'>End Date</label>
                                     <DatePicker
                                         value={endDate || roomInfo.date || ''}
                                         onChange={(val) => {

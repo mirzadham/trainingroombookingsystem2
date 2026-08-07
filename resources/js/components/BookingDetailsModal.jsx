@@ -124,7 +124,7 @@ export default function BookingDetailsModal({
                             <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">
+                            <h2 className="text-lg font-semibold text-slate-900">
                                 {booking.isGroup ? 'Series Details' : 'Booking Details'}
                             </h2>
                             <p className="text-xs text-slate-500 mt-0.5">
@@ -161,14 +161,14 @@ export default function BookingDetailsModal({
                             {/* Title & Status Block */}
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider border ${statusInfo.className}`}>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-semibold tracking-wider border ${statusInfo.className}`}>
                                         {statusInfo.text}
                                     </span>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider bg-slate-100 text-slate-700 border border-slate-200/40">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-semibold tracking-wider bg-slate-100 text-slate-700 border border-slate-200/40">
                                         {booking.room?.location?.name || booking.room?.location?.code || 'LOCATION'}
                                     </span>
                                 </div>
-                                <h3 className="text-xl font-extrabold text-slate-900 leading-tight">
+                                <h3 className="text-xl font-semibold text-slate-900 leading-tight">
                                     {booking.title}
                                 </h3>
                             </div>
@@ -178,7 +178,7 @@ export default function BookingDetailsModal({
                                 <div className="flex items-start gap-3">
                                     <Calendar className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                                             {booking.isGroup ? 'Date Range' : 'Date'}
                                         </div>
                                         <div className="text-sm font-semibold text-slate-800 mt-0.5">
@@ -199,7 +199,7 @@ export default function BookingDetailsModal({
                                 <div className="flex items-start gap-3">
                                     <Clock className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Time Duration</div>
+                                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Time Duration</div>
                                         <div className="text-sm font-semibold text-slate-800 mt-0.5">
                                             {formatTime12(booking.start_time)} – {formatTime12(booking.end_time)}
                                         </div>
@@ -209,7 +209,7 @@ export default function BookingDetailsModal({
                                 <div className="flex items-start gap-3">
                                     <MapPin className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" />
                                     <div>
-                                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Room & Location Details</div>
+                                        <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Room & Location Details</div>
                                         <div className="text-sm font-semibold text-slate-800 mt-0.5">
                                             {booking.room?.name || 'Unknown Room'}
                                         </div>
@@ -227,7 +227,7 @@ export default function BookingDetailsModal({
                                 <div className="border border-slate-100 rounded-2xl p-4 flex items-start gap-3">
                                     <Users className="w-4.5 h-4.5 text-slate-400 flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Attendees</div>
+                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Attendees</div>
                                         <div className="text-sm font-semibold text-slate-850 mt-0.5">{booking.attendees} Seats</div>
                                     </div>
                                 </div>
@@ -235,7 +235,7 @@ export default function BookingDetailsModal({
                                 <div className="border border-slate-100 rounded-2xl p-4 flex items-start gap-3">
                                     <Phone className="w-4.5 h-4.5 text-slate-400 flex-shrink-0 mt-0.5" />
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contact Phone</div>
+                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</div>
                                         <div className="text-sm font-semibold text-slate-850 mt-0.5">{booking.phone || 'N/A'}</div>
                                     </div>
                                 </div>
@@ -244,13 +244,13 @@ export default function BookingDetailsModal({
                             {/* Requester Profile Information (for admins) */}
                             {isAdmin && booking.user && (
                                 <div className="border border-slate-100 rounded-2xl p-4">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Requested By</div>
+                                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Requested By</div>
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                                             <User className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-800">{booking.user.name}</div>
+                                            <div className="text-sm font-semibold text-slate-800">{booking.user.name}</div>
                                             <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
                                                 <Mail className="w-3.5 h-3.5" /> {booking.user.email}
                                             </div>
@@ -261,7 +261,7 @@ export default function BookingDetailsModal({
 
                             {/* Description */}
                             <div className="border border-slate-100 rounded-2xl p-4">
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                     <AlignLeft className="w-3.5 h-3.5" /> Purpose Description
                                 </div>
                                 <div className="text-sm text-slate-655 leading-relaxed font-medium">
@@ -272,7 +272,7 @@ export default function BookingDetailsModal({
                             {/* Series Schedule Breakdown */}
                             {booking.isGroup && (
                                 <div className="border border-slate-100 rounded-2xl p-4 space-y-3">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5 select-none">
+                                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5 select-none">
                                         <Calendar className="w-3.5 h-3.5 text-slate-500" /> Series Schedule Details
                                     </div>
                                     <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
@@ -297,10 +297,10 @@ export default function BookingDetailsModal({
                                                     className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl flex flex-col gap-1.5 hover:bg-slate-50 transition"
                                                 >
                                                     <div className="flex items-center justify-between gap-2">
-                                                        <div className="text-xs font-bold text-slate-800">
+                                                        <div className="text-xs font-semibold text-slate-800">
                                                             {formattedDate} <span className="text-[10px] text-slate-400 font-mono ml-1.5 font-normal">({occ.reference_no || `#${occ.id}`})</span>
                                                         </div>
-                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-black tracking-wider border ${occStatusInfo.className} select-none`}>
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[8px] uppercase font-semibold tracking-wider border ${occStatusInfo.className} select-none`}>
                                                             {occStatusInfo.text}
                                                         </span>
                                                     </div>
@@ -327,7 +327,7 @@ export default function BookingDetailsModal({
                             {/* Rejection / Cancellation details */}
                             {booking.rejection_reason && (
                                 <div className="p-4 rounded-2xl bg-red-50/50 border border-red-100 text-xs">
-                                    <div className="font-bold text-red-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <div className="font-semibold text-red-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                                         <AlertTriangle className="w-3.5 h-3.5 text-slate-400" /> Rejection Remarks
                                     </div>
                                     <div className="text-slate-650 font-medium leading-relaxed">
@@ -338,7 +338,7 @@ export default function BookingDetailsModal({
 
                             {booking.cancellation_reason && (
                                 <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-250/60 text-xs">
-                                    <div className="font-bold text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <div className="font-semibold text-amber-800 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                                         <Ban className="w-3.5 h-3.5 text-slate-400" /> Cancellation Remarks
                                     </div>
                                     <div className="text-slate-650 font-medium leading-relaxed">
@@ -351,7 +351,7 @@ export default function BookingDetailsModal({
                         /* Reject Reason / Cancellation Remarks Form */
                         <form onSubmit={handleConfirmAction} className="space-y-4">
                             <div>
-                                <h3 className="text-base font-bold text-slate-850 mb-2">
+                                <h3 className="text-base font-semibold text-slate-850 mb-2">
                                     {actionState === 'rejecting'
                                         ? 'Provide Rejection Reason'
                                         : actionState === 'cancelling'
@@ -428,13 +428,13 @@ export default function BookingDetailsModal({
                                             <button
                                                 onClick={() => onApprove(booking.id)}
                                                 disabled={isActionPending}
-                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250/70 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-250/70 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
                                             >
                                                 <Check className="w-4 h-4" /> Approve
                                             </button>
                                             <button
                                                 onClick={() => setActionState('rejecting')}
-                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
+                                                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
                                             >
                                                 <X className="w-4 h-4" /> Reject
                                             </button>
@@ -444,7 +444,7 @@ export default function BookingDetailsModal({
                                     {isApproved && onCancel && (
                                         <button
                                             onClick={() => setActionState('cancelling')}
-                                            className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-250/70 rounded-xl cursor-pointer transition select-none"
+                                            className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-250/70 rounded-xl cursor-pointer transition select-none"
                                         >
                                             <Ban className="w-4 h-4" /> Cancel Booking (Admin)
                                         </button>
@@ -456,7 +456,7 @@ export default function BookingDetailsModal({
                                     {isPending && onEdit && (
                                         <button
                                             onClick={() => { onEdit(booking); onClose(); }}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-250/70 rounded-xl cursor-pointer transition select-none"
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-250/70 rounded-xl cursor-pointer transition select-none"
                                         >
                                             <Pencil className="w-4 h-4" /> Edit Details
                                         </button>
@@ -465,7 +465,7 @@ export default function BookingDetailsModal({
                                     {(isPending || isApproved) && onCancel && (
                                         <button
                                             onClick={() => setActionState('cancelling_user')}
-                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-250/70 rounded-xl cursor-pointer transition select-none"
                                         >
                                             <Trash2 className="w-4 h-4" /> Cancel Booking
                                         </button>

@@ -23,7 +23,7 @@ export default function Dashboard() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Dashboard Overview</h1>
+                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Dashboard Overview</h1>
                 <p className="text-sm text-slate-500 mt-0.5">Real-time status updates and core metrics</p>
             </div>
 
@@ -38,12 +38,12 @@ export default function Dashboard() {
                         <div className={`absolute -right-4 -bottom-4 w-28 h-28 ${card.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full blur-xl transition-all duration-500`} />
                         
                         <div className="flex items-center justify-between mb-4 relative z-10">
-                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
+                             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{card.label}</span>
                              <div className={`p-2.5 rounded-2xl ${card.color} shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-300`}>
                                 <card.icon className="w-4.5 h-4.5 text-white" />
                             </div>
                         </div>
-                        <div className="text-3xl font-extrabold text-slate-900 tracking-tight relative z-10">
+                        <div className="text-3xl font-semibold text-slate-900 tracking-tight relative z-10">
                             {isLoading ? (
                                 <span className="text-slate-300 animate-pulse">...</span>
                             ) : (
@@ -60,10 +60,10 @@ export default function Dashboard() {
             <div className="mt-8 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 shadow-xs hover:shadow-lg transition-all duration-300">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-slate-900">Recent Bookings</h2>
+                        <h2 className="text-lg font-semibold text-slate-900">Recent Bookings</h2>
                         <p className="text-xs text-slate-500 mt-0.5">Lately submitted reservation activities</p>
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">
                         Latest
                     </span>
                 </div>
@@ -81,7 +81,7 @@ export default function Dashboard() {
                             className="flex items-center justify-between p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all duration-200 hover:scale-[1.01] hover:border-slate-200/50"
                         >
                             <div>
-                                <div className="text-sm font-bold text-slate-855">{b.title}</div>
+                                <div className="text-sm font-semibold text-slate-855">{b.title}</div>
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-1.5 font-medium">
                                     <span className="text-mimos-700 bg-mimos-50 px-2 py-0.5 rounded-md font-semibold">{b.user?.name}</span>
                                     <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-slate-400 animate-pulse" />{b.room?.name}</span>

@@ -99,7 +99,7 @@ export default function EditBookingModal({ booking, onClose, onSave, isSaving })
                             <Pencil className="w-4 h-4 text-mimos-600" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900">Edit Booking</h2>
+                            <h2 className="text-lg font-semibold text-slate-900">Edit Booking</h2>
                             <p className="text-xs text-slate-500 mt-0.5">
                                 Modify details for booking {booking.reference_no || `#${booking.id}`}
                             </p>
@@ -115,7 +115,7 @@ export default function EditBookingModal({ booking, onClose, onSave, isSaving })
 
                 {/* Room info (read-only context) */}
                 <div className="mx-6 mb-5 p-4 bg-slate-50/80 rounded-2xl border border-slate-100">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Room & Schedule (Read Only)</div>
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">Room & Schedule (Read Only)</div>
                     <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-slate-600">
                         <span className="flex items-center gap-1.5">
                             <MapPin className="w-3.5 h-3.5 text-mimos-400" />
