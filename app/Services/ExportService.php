@@ -85,88 +85,30 @@ class ExportService
     }
 
     /**
-     * Reusable query builder for booking exports that mirrors
-     * AdminController::bookings filters.
+     * Reusable query builder for booking exports — shares the exact filter
+     * semantics with the admin bookings list via BookingQueryFilter.
      */
     public function filteredBookingsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
     {
-        $query = Booking::with(['room.location', 'user']);
-
-        if ($isLocationAdmin && $locationId) {
-            $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
-        }
-
-        if (! empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-        if (! empty($filters['location_id'])) {
-            $query->whereHas('room', fn ($q) => $q->where('location_id', $filters['location_id']));
-        }
-        if (! empty($filters['room_id'])) {
-            $query->where('room_id', $filters['room_id']);
-        }
-        if (! empty($filters['date'])) {
-            $query->whereDate('start_time', $filters['date']);
-        }
-        if (! empty($filters['date_from'])) {
-            $query->whereDate('start_time', '>=', $filters['date_from']);
-        }
-        if (! empty($filters['date_to'])) {
-            $query->whereDate('start_time', '<=', $filters['date_to']);
-        }
-        if (! empty($filters['time_filter'])) {
-            if ($filters['time_filter'] === 'past') {
-                $query->where('end_time', '<', now());
-            } elseif ($filters['time_filter'] === 'upcoming') {
-                $query->where('end_time', '>=', now());
-            }
-        }
-        if (! empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%")
-                    ->orWhere('reference_no', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        return $query->orderByDesc('created_at');
+        return BookingQueryFilter::applyBookings(
+            Booking::with(['room.location', 'user']),
+            $filters,
+            $locationId,
+            $isLocationAdmin
+        );
     }
 
     /**
-     * Reusable query builder for audit log exports that mirrors
-     * AdminController::auditLogs filters.
+     * Reusable query builder for audit-log exports — shares the exact filter
+     * semantics with the admin audit-logs list via BookingQueryFilter.
      */
     public function filteredAuditLogsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
     {
-        $query = AuditLog::with(['user', 'booking.room.location']);
-
-        if ($isLocationAdmin && $locationId) {
-            $query->whereHas('booking.room', fn ($q) => $q->where('location_id', $locationId));
-        }
-
-        if (! empty($filters['action'])) {
-            $query->where('action', $filters['action']);
-        }
-
-        if (! empty($filters['search'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('ip_address', 'like', "%{$filters['search']}%")
-                    ->orWhereHas('user', function ($uq) use ($filters) {
-                        $uq->where('name', 'like', "%{$filters['search']}%")
-                            ->orWhere('email', 'like', "%{$filters['search']}%");
-                    })
-                    ->orWhereHas('booking', function ($bq) use ($filters) {
-                        $bq->where('title', 'like', "%{$filters['search']}%")
-                            ->orWhere('reference_no', 'like', "%{$filters['search']}%");
-                    });
-            });
-        }
-
-        return $query->orderByDesc('created_at');
+        return BookingQueryFilter::applyAuditLogs(
+            AuditLog::with(['user', 'booking.room.location']),
+            $filters,
+            $locationId,
+            $isLocationAdmin
+        );
     }
 }

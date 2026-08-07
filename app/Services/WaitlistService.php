@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\WaitlistEntry;
 use App\Notifications\WaitlistAvailableNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -47,27 +48,35 @@ class WaitlistService
             ]);
         }
 
-        $duplicate = WaitlistEntry::where('user_id', $user->id)
-            ->where('room_id', $roomId)
-            ->where('status', WaitlistStatus::Active)
-            ->where('start_time', '<', $end)
-            ->where('end_time', '>', $start)
-            ->exists();
+        // The duplicate check + insert run inside a transaction with the room
+        // row locked, so two concurrent joins for the same slot cannot both
+        // pass the check (no DB constraint can express "no overlapping
+        // active entries").
+        return DB::transaction(function () use ($user, $roomId, $start, $end, $attendees) {
+            DB::table('rooms')->where('id', $roomId)->lockForUpdate()->first();
 
-        if ($duplicate) {
-            throw ValidationException::withMessages([
-                'duplicate' => 'You are already on the waitlist for this room at a similar time.',
+            $duplicate = WaitlistEntry::where('user_id', $user->id)
+                ->where('room_id', $roomId)
+                ->where('status', WaitlistStatus::Active)
+                ->where('start_time', '<', $end)
+                ->where('end_time', '>', $start)
+                ->exists();
+
+            if ($duplicate) {
+                throw ValidationException::withMessages([
+                    'duplicate' => 'You are already on the waitlist for this room at a similar time.',
+                ]);
+            }
+
+            return WaitlistEntry::create([
+                'user_id' => $user->id,
+                'room_id' => $roomId,
+                'start_time' => $start,
+                'end_time' => $end,
+                'attendees' => $attendees,
+                'status' => WaitlistStatus::Active,
             ]);
-        }
-
-        return WaitlistEntry::create([
-            'user_id' => $user->id,
-            'room_id' => $roomId,
-            'start_time' => $start,
-            'end_time' => $end,
-            'attendees' => $attendees,
-            'status' => WaitlistStatus::Active,
-        ]);
+        });
     }
 
     /**

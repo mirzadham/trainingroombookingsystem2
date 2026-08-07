@@ -16,6 +16,7 @@ use App\Rules\WithinRoomCapacity;
 use App\Services\ApprovalService;
 use App\Services\AuditService;
 use App\Services\AvailabilityService;
+use App\Services\BookingQueryFilter;
 use App\Services\BookingService;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -40,57 +41,14 @@ class AdminController extends Controller
     {
         $user = $request->user();
 
-        $query = Booking::with(['room.location', 'user', 'approver']);
+        $query = BookingQueryFilter::applyBookings(
+            Booking::with(['room.location', 'user', 'approver']),
+            $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
+            $user->location_id,
+            $user->isLocationAdmin()
+        );
 
-        // Location admins can only see bookings for their location
-        if ($user->isLocationAdmin()) {
-            $query->whereHas('room', function ($q) use ($user) {
-                $q->where('location_id', $user->location_id);
-            });
-        }
-
-        // Filters
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-        if ($request->location_id) {
-            $query->whereHas('room', function ($q) use ($request) {
-                $q->where('location_id', $request->location_id);
-            });
-        }
-        if ($request->room_id) {
-            $query->where('room_id', $request->room_id);
-        }
-        if ($request->date) {
-            $query->whereDate('start_time', $request->date);
-        }
-        if ($request->date_from) {
-            $query->whereDate('start_time', '>=', $request->date_from);
-        }
-        if ($request->date_to) {
-            $query->whereDate('start_time', '<=', $request->date_to);
-        }
-        if ($request->time_filter) {
-            if ($request->time_filter === 'past') {
-                $query->where('end_time', '<', now());
-            } elseif ($request->time_filter === 'upcoming') {
-                $query->where('end_time', '>=', now());
-            }
-        }
-        if ($request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('id', 'like', "%{$search}%")
-                    ->orWhere('reference_no', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $bookings = $query->orderByDesc('created_at')->paginate(20);
+        $bookings = $query->paginate(20);
 
         return response()->json($bookings);
     }
@@ -393,34 +351,14 @@ class AdminController extends Controller
     {
         $user = $request->user();
 
-        $query = AuditLog::with(['user', 'booking.room.location']);
+        $query = BookingQueryFilter::applyAuditLogs(
+            AuditLog::with(['user', 'booking.room.location']),
+            $request->only(['action', 'search']),
+            $user->location_id,
+            $user->isLocationAdmin()
+        );
 
-        if ($user->isLocationAdmin()) {
-            $query->whereHas('booking.room', function ($q) use ($user) {
-                $q->where('location_id', $user->location_id);
-            });
-        }
-
-        // Filters
-        if ($request->action) {
-            $query->where('action', $request->action);
-        }
-
-        if ($request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('ip_address', 'like', "%{$request->search}%")
-                    ->orWhereHas('user', function ($uq) use ($request) {
-                        $uq->where('name', 'like', "%{$request->search}%")
-                            ->orWhere('email', 'like', "%{$request->search}%");
-                    })
-                    ->orWhereHas('booking', function ($bq) use ($request) {
-                        $bq->where('title', 'like', "%{$request->search}%")
-                            ->orWhere('reference_no', 'like', "%{$request->search}%");
-                    });
-            });
-        }
-
-        $logs = $query->orderByDesc('created_at')->paginate(30);
+        $logs = $query->paginate(30);
 
         return response()->json($logs);
     }
