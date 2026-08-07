@@ -1,0 +1,7 @@
+{
+  "name": "ecc-universal-project-surface",
+  "version": "2.2.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "ECC command/script surface applied to this project (skills in .pi/skills/, commands in .pi/prompts/). Version mirrors the upstream ECC release these files were synced from."
+}

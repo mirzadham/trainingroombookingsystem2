@@ -68,3 +68,6 @@ Homestead.yaml
 .phpactor.json
 .claude/
 .gemini/
+
+# Agent Tooling (pi / ECC) — vendored deps only
+.pi/scripts/node_modules/
