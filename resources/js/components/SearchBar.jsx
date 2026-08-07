@@ -39,7 +39,7 @@ export default function SearchBar({
         if (!date || !location) return;
 
         const filters = {
-            location_id: location || undefined,
+            location_id: location,
             date,
             end_date: endDate || undefined,
             attendees: attendees || undefined,
