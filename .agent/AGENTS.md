@@ -163,28 +163,6 @@ tests/           — Test suite
 
 `commands/` remains in the repo for compatibility, but the long-term direction is skills-first.
 
-## This Project's ECC Layout
-
-This Laravel project uses **two** coding harnesses, so the ECC surface is applied in two places:
-
-**pi — `.pi/`:**
-
-- Skills: `.pi/skills/` (142 curated skills)
-- Slash commands: `.pi/prompts/*.md` (94 commands — `/plan`, `/code-review`, `/build-fix`, `/tdd`-family, etc.)
-- Helper scripts: `.pi/scripts/` (ECC engine, incl. `harness-audit.js`, `skills-health.js`, `sessions-cli.js`; scoped `package.json` forces CommonJS because the app root is `type: module`)
-- Re-sync from upstream: `/auto-update` command or re-clone https://github.com/affaan-m/ECC.git and copy `skills/`, `commands/`, `scripts/` into `.pi/`
-
-**Antigravity — `.agent/` (installed by ECC's installer, not hand-copied):**
-
-- Workflows (slash commands): `.agent/workflows/*.md` (94 commands)
-- Rules: `.agent/rules/` (flattened per-language rule files)
-- Agents: `.agent/skills/` (67 ECC subagents) + `.agent/.agents/` (aux skill/agent files)
-- Install tracking: `.agent/ecc-install-state.json`
-- Re-sync from upstream: `bash /tmp/ecc/install.sh --target antigravity --modules rules-core,agents-core,commands-core` from a fresh clone of https://github.com/affaan-m/ECC.git (run from the repo root). Do not hand-edit these files — re-run the installer instead.
-- Note: upstream workflows reference `.claude/` artifact paths (gitignored here); they work but write plan/review artifacts to a gitignored dir.
-
-When a command file references `.pi/...` artifact paths (plans, reviews, PRDs), those are the project-local equivalents of ECC's `.claude/` conventions.
-
 ## Success Metrics
 
 - All tests pass with 80%+ coverage
