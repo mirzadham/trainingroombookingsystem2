@@ -72,6 +72,7 @@ class OutlookCalendarImportSeeder extends Seeder
             }
 
             $room = Room::where('name', 'LIKE', "%{$roomIdentifier}%")->first();
+
             return $room ? $room->id : null;
         };
 
