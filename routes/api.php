@@ -32,15 +32,23 @@ Route::get('/rooms/available', [AvailabilityController::class, 'roomsWithTimelin
 
 // Auth endpoints
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/admin/login', [AuthController::class, 'adminLogin']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    // Rate limited via named limiters (registered in AppServiceProvider) to
+    // slow down credential stuffing / brute force. Each endpoint has its own
+    // per-IP counter.
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth-register');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth-login');
 
-    // Invitation validation and claiming
-    Route::post('/invitations/validate', [AdminInvitationController::class, 'validateToken']);
-    Route::post('/invitations/claim', [AdminInvitationController::class, 'claimInvite']);
+    // Admin login: tight rate limit (5 attempts/min/IP).
+    Route::post('/admin/login', [AuthController::class, 'adminLogin'])
+        ->middleware('throttle:auth-admin-login');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth-forgot-password');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:auth-reset-password');
+
+    // Invitation validation and claiming (admin onboarding)
+    Route::post('/invitations/validate', [AdminInvitationController::class, 'validateToken'])
+        ->middleware('throttle:auth-invitations');
+    Route::post('/invitations/claim', [AdminInvitationController::class, 'claimInvite'])
+        ->middleware('throttle:auth-invitations');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
