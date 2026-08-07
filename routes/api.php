@@ -32,15 +32,21 @@ Route::get('/rooms/available', [AvailabilityController::class, 'roomsWithTimelin
 
 // Auth endpoints
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/admin/login', [AuthController::class, 'adminLogin']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    // Rate limited to slow down credential stuffing / brute force.
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,1');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
-    // Invitation validation and claiming
-    Route::post('/invitations/validate', [AdminInvitationController::class, 'validateToken']);
-    Route::post('/invitations/claim', [AdminInvitationController::class, 'claimInvite']);
+    // Admin login: tight rate limit (5 attempts/min/IP).
+    Route::post('/admin/login', [AuthController::class, 'adminLogin'])
+        ->middleware('throttle:5,1');
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,10');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,10');
+
+    // Invitation validation and claiming (admin onboarding)
+    Route::post('/invitations/validate', [AdminInvitationController::class, 'validateToken'])
+        ->middleware('throttle:5,10');
+    Route::post('/invitations/claim', [AdminInvitationController::class, 'claimInvite'])
+        ->middleware('throttle:5,10');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
