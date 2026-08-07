@@ -59,8 +59,9 @@ No server configuration needed — this model works out of the box. What you mus
 
 The previous iteration of this project included an IP allowlist
 (`ADMIN_ALLOWED_IPS` env + `EnsureAdminIpAllowed` middleware) that restricted the
-whole admin area to approved networks. It was removed by choice. If you ever want it
-back, it is in the git history, or re-implementable in a few minutes. Alternatives,
+whole admin area to approved networks. It was removed by choice before release.
+If you ever want it back, it can be re-implemented in a few minutes (same
+middleware pattern). Alternatives,
 from most to least practical:
 
 1. **Cloudflare Access (Zero Trust)** — gate `/roombooking/admin*` by `@mimos` email
