@@ -258,7 +258,7 @@ export default function AdminBookings() {
         <div className="pb-24">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Manage Bookings</h1>
+                    <h1 className="text-2xl font-semibold text-slate-900">Manage Bookings</h1>
                     <p className="text-sm text-slate-500 mt-1">Approve, reject, or review booking requests</p>
                 </div>
                 <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
@@ -315,7 +315,7 @@ export default function AdminBookings() {
                     <Filter className="w-4 h-4" />
                     Advanced Filters
                     {activeFilterCount > 0 && (
-                        <span className="bg-mimos-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        <span className="bg-mimos-600 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                             {activeFilterCount}
                         </span>
                     )}
@@ -509,7 +509,7 @@ export default function AdminBookings() {
                 <div className="space-y-8">
                     {[...monthGroups.entries()].map(([key, { label, bookings: groupBookings }]) => (
                         <div key={key} className="space-y-4">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
+                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
                                 <span>{label.toUpperCase()}</span>
                                 <span className="flex-1 h-px bg-slate-200/80" />
                             </div>
@@ -553,7 +553,7 @@ export default function AdminBookings() {
                                         {(rejectingId === booking.id || (booking.isGroup && booking.occurrences.some(o => o.id === rejectingId))) && (
                                             <div className="bg-slate-50 border border-red-200/60 rounded-3xl p-5 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
                                                 {booking.isGroup && (
-                                                    <div className="text-xs font-bold text-slate-500 mb-1">
+                                                    <div className="text-xs font-semibold text-slate-500 mb-1">
                                                         Rejecting booking occurrence for: {new Date(booking.occurrences.find(o => o.id === rejectingId)?.start_time).toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                                                     </div>
                                                 )}
@@ -587,7 +587,7 @@ export default function AdminBookings() {
                                         {(cancellingId === booking.id || (booking.isGroup && booking.occurrences.some(o => o.id === cancellingId))) && (
                                             <div className="bg-slate-50 border border-amber-250/60 rounded-3xl p-5 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
                                                 {booking.isGroup && (
-                                                    <div className="text-xs font-bold text-slate-500 mb-1">
+                                                    <div className="text-xs font-semibold text-slate-500 mb-1">
                                                         Cancelling booking occurrence for: {new Date(booking.occurrences.find(o => o.id === cancellingId)?.start_time).toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                                                     </div>
                                                 )}
@@ -676,9 +676,9 @@ export default function AdminBookings() {
                                                 <button
                                                     key={pNum}
                                                     onClick={() => handlePageChange(pNum)}
-                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-bold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
+                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-semibold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
                                                         pNum === page
-                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-extrabold'
+                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-semibold'
                                                             : 'bg-white text-slate-650 hover:bg-slate-50 hover:text-slate-800'
                                                     }`}
                                                 >
@@ -706,8 +706,8 @@ export default function AdminBookings() {
             {selectedIds.length > 0 && (
                 <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl px-6 py-4 flex items-center gap-4 flex-wrap justify-between min-w-[320px] max-w-[90%] md:w-auto">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Selected</span>
-                        <span className="bg-mimos-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full shadow-md">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Selected</span>
+                        <span className="bg-mimos-600 text-white font-semibold text-xs px-2.5 py-0.5 rounded-full shadow-md">
                             {selectedIds.length}
                         </span>
                     </div>
@@ -741,14 +741,14 @@ export default function AdminBookings() {
                                 <button
                                     onClick={() => setShowBatchApproveConfirm(true)}
                                     disabled={batchApproveMutation.isPending}
-                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer"
                                 >
                                     {batchApproveMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                                     Approve Selected
                                 </button>
                             <button
                                 onClick={() => setShowBatchReject(true)}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer"
                             >
                                 <X className="w-3.5 h-3.5" />
                                 Reject Selected

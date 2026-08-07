@@ -65,7 +65,7 @@ export default function AuthPromptModal({ isOpen, onClose, redirectUrl }) {
                 </button>
 
                 {/* Heading */}
-                <h3 className="text-center text-base sm:text-[17px] font-bold text-slate-800 tracking-tight leading-relaxed max-w-md mx-auto mt-4 mb-8">
+                <h3 className="text-center text-base sm:text-[17px] font-semibold text-slate-800 tracking-tight leading-relaxed max-w-md mx-auto mt-4 mb-8">
                     You need to be logged in to your MIMOS Academy account to book a room.
                 </h3>
 

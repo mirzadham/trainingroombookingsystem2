@@ -20,6 +20,13 @@ export default function SearchBar({
     const [date, setDate] = useState(initialDate);
     const [endDate, setEndDate] = useState(initialEndDate);
     const [attendees, setAttendees] = useState(initialAttendees);
+    const [attempted, setAttempted] = useState(false);
+
+    // Derived error: only shows the first missing required field, and only after
+    // a submit attempt. Clears automatically the moment the field gets a value.
+    const validationError = attempted
+        ? (!date ? 'Please select a date.' : !location ? 'Please select a location.' : '')
+        : '';
 
     const { data: locations } = useQuery({
         queryKey: ['locations'],
@@ -28,10 +35,11 @@ export default function SearchBar({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!date) return;
+        setAttempted(true);
+        if (!date || !location) return;
 
         const filters = {
-            location_id: location || undefined,
+            location_id: location,
             date,
             end_date: endDate || undefined,
             attendees: attendees || undefined,
@@ -57,20 +65,21 @@ export default function SearchBar({
                     {/* Location */}
                     <div className="relative z-30">
                         <label htmlFor="search-location-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
-                            Location
+                            Location <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <LocationPicker
                             id="search-location-min"
                             value={location}
                             onChange={setLocation}
                             locations={locations}
+                            required
                         />
                     </div>
 
                     {/* Date */}
                     <div className="relative z-20">
                         <label htmlFor="search-date-min" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
-                            Date
+                            Date <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <DatePicker
                             id="search-date-min"
@@ -83,6 +92,7 @@ export default function SearchBar({
                             mode="range"
                             showModeToggle={true}
                             min={new Date().toISOString().split('T')[0]}
+                            required
                         />
                     </div>
 
@@ -108,6 +118,9 @@ export default function SearchBar({
                 </div>
 
                 {/* Search Button */}
+                {validationError && (
+                    <p role="alert" className="mt-3 text-xs text-red-500 font-medium">{validationError}</p>
+                )}
                 <div className="mt-3 flex justify-end">
                     <button
                         type="submit"
@@ -125,13 +138,13 @@ export default function SearchBar({
     // Default variant (card-style, used on Home)
     return (
         <form onSubmit={handleSubmit} className={className}>
-            <div className="bg-white/85 backdrop-blur-3xl border border-white/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-mimos-500/5 hover:shadow-xl hover:shadow-mimos-500/10 transition-all duration-300 hover:border-mimos-500/25 relative">
+            <div className="bg-white/85 backdrop-blur-3xl border border-white/60 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-mimos-500/5 hover:shadow-xl hover:shadow-mimos-500/10 transition-all duration-300 hover:border-mimos-500/25 relative">
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
                     {/* Location */}
                     <div className="relative z-30">
-                        <label htmlFor="search-location" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
-                            Location
+                        <label htmlFor="search-location" className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-widest">
+                            Location <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <LocationPicker
                             id="search-location"
@@ -139,13 +152,14 @@ export default function SearchBar({
                             onChange={setLocation}
                             locations={locations}
                             className="py-3.5 rounded-xl border-slate-200/80 focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-colors"
+                            required
                         />
                     </div>
 
                     {/* Date */}
                     <div className="relative z-20">
-                        <label htmlFor="search-date" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
-                            Date
+                        <label htmlFor="search-date" className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-widest">
+                            Date <span aria-hidden="true" className="text-red-500">*</span>
                         </label>
                         <DatePicker
                             id="search-date"
@@ -159,12 +173,13 @@ export default function SearchBar({
                             showModeToggle={true}
                             min={new Date().toISOString().split('T')[0]}
                             className="py-3.5 rounded-xl border-slate-200/80 focus:ring-2 focus:ring-mimos-500/20 focus:border-mimos-500 hover:border-slate-300 transition-colors"
+                            required
                         />
                     </div>
 
                     {/* Attendees */}
                     <div className="relative z-10">
-                        <label htmlFor="search-attendees" className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">
+                        <label htmlFor="search-attendees" className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-widest">
                             People
                         </label>
                         <div className="relative">
@@ -184,10 +199,13 @@ export default function SearchBar({
                 </div>
 
                 {/* Search Button */}
-                <div className="mt-8 flex justify-center">
+                {validationError && (
+                    <p role="alert" className="mt-5 text-sm text-red-500 font-medium">{validationError}</p>
+                )}
+                <div className="mt-6 flex justify-center">
                     <button
                         type="submit"
-                        className="group flex items-center gap-2 px-10 py-4 bg-mimos-500 hover:bg-mimos-600 hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"
+                        className="group flex items-center gap-2 px-10 py-3.5 bg-mimos-500 hover:bg-mimos-600 hover:scale-[1.02] active:scale-[0.98] text-white font-semibold rounded-xl shadow-lg shadow-mimos-500/20 hover:shadow-mimos-500/35 transition-all duration-300 cursor-pointer"
                     >
                         <Search className="w-5 h-5" />
                         <span>Search Available Rooms</span>

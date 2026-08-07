@@ -16,7 +16,7 @@ export default function AuthGateStep({ form }) {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-extrabold text-slate-900">Verify Your Account</h2>
+                <h2 className="text-xl font-semibold text-slate-900">Verify Your Account</h2>
                 <p className="text-sm text-slate-500 mt-1">To secure your booking and easily manage it later.</p>
             </div>
 
@@ -24,13 +24,13 @@ export default function AuthGateStep({ form }) {
             <div className="flex rounded-xl bg-slate-100 p-1">
                 <button
                     onClick={() => { setAuthMode('login'); setAuthError(''); setAuthPassword(''); }}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer ${authMode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all cursor-pointer ${authMode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     Existing User
                 </button>
                 <button
                     onClick={() => { setAuthMode('register'); setAuthError(''); setAuthPassword(''); setAuthPasswordConfirm(''); }}
-                    className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all cursor-pointer ${authMode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all cursor-pointer ${authMode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     New User
                 </button>
@@ -42,7 +42,7 @@ export default function AuthGateStep({ form }) {
                 </div>
                 <div>
                     <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{authMode === 'login' ? 'Logging in as' : 'Registering as'}</div>
-                    <div className="text-sm font-bold text-slate-900">{guestEmail}</div>
+                    <div className="text-sm font-semibold text-slate-900">{guestEmail}</div>
                 </div>
             </div>
 

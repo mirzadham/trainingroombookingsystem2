@@ -140,7 +140,7 @@ export default function MyBookings() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Bookings</h1>
+                    <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">My Bookings</h1>
                     <p className="text-sm text-slate-500 mt-1">Track and manage all your room reservations</p>
                 </div>
                 <button
@@ -157,7 +157,7 @@ export default function MyBookings() {
                 <div className="inline-flex p-1 bg-slate-100/80 rounded-2xl border border-slate-200/50 self-start">
                     <button
                         onClick={() => { setTimeFilter('upcoming'); setPage(1); }}
-                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer select-none ${
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer select-none ${
                             timeFilter === 'upcoming'
                                 ? 'bg-white text-slate-900 shadow-sm border border-slate-200/10'
                                 : 'text-slate-500 hover:text-slate-800'
@@ -168,7 +168,7 @@ export default function MyBookings() {
                     </button>
                     <button
                         onClick={() => { setTimeFilter('past'); setPage(1); }}
-                        className={`flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer select-none ${
+                        className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer select-none ${
                             timeFilter === 'past'
                                 ? 'bg-white text-slate-900 shadow-sm border border-slate-200/10'
                                 : 'text-slate-500 hover:text-slate-800'
@@ -239,7 +239,7 @@ export default function MyBookings() {
                 <div className="space-y-8">
                     {[...monthGroups.entries()].map(([key, { label, bookings: groupBookings }]) => (
                         <div key={key}>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
+                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
                                 <span>{label.toUpperCase()}</span>
                                 <span className="flex-1 h-px bg-slate-200/80" />
                             </div>
@@ -313,9 +313,9 @@ export default function MyBookings() {
                                                 <button
                                                     key={pNum}
                                                     onClick={() => handlePageChange(pNum)}
-                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-bold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
+                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-semibold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
                                                         pNum === page
-                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-extrabold'
+                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-semibold'
                                                             : 'bg-white text-slate-550 hover:bg-slate-50 hover:text-slate-800'
                                                     }`}
                                                 >

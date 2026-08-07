@@ -29,7 +29,8 @@ export default function DatePicker({
     placeholder = 'Select date',
     variant = 'default',
     showModeToggle = false,
-    placement = 'bottom'
+    placement = 'bottom',
+    required = false,
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(value ? parseISO(value) : new Date());
@@ -147,8 +148,8 @@ export default function DatePicker({
     const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
     const baseInputClasses = variant === 'pill'
-        ? `appearance-none bg-transparent border-0 focus:ring-0 text-slate-900 text-sm py-1.5 ${activeMode === 'range' ? 'w-44 sm:w-52' : 'w-28 sm:w-32'} pl-8 pr-2 cursor-pointer hover:text-mimos-600 transition-colors`
-        : "w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition cursor-pointer";
+        ? `appearance-none bg-transparent border-0 focus:ring-0 text-slate-900 text-sm py-1.5 ${activeMode === 'range' ? 'w-44 sm:w-52' : 'w-28 sm:w-32'} pl-8 pr-2 cursor-pointer hover:text-mimos-600 transition-colors placeholder:text-slate-400`
+        : "w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 focus:border-mimos-500/50 transition cursor-pointer placeholder:text-slate-400";
 
     const baseIconClasses = variant === 'pill'
         ? "absolute left-1.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10"
@@ -182,6 +183,8 @@ export default function DatePicker({
                     id={id}
                     type="text"
                     readOnly
+                    required={required}
+                    aria-required={required ? 'true' : undefined}
                     value={getDisplayValue()}
                     placeholder={placeholder}
                     className={baseInputClasses}
@@ -214,7 +217,7 @@ export default function DatePicker({
                                     handleModeChange('single');
                                 }}
                                 className={`relative z-10 w-1/2 text-center py-1.5 transition-colors duration-200 rounded-full cursor-pointer font-semibold ${
-                                    activeMode === 'single' ? 'text-mimos-700 font-bold' : 'text-slate-500 hover:text-slate-850'
+                                    activeMode === 'single' ? 'text-mimos-700 font-semibold' : 'text-slate-500 hover:text-slate-850'
                                 }`}
                             >
                                 Single Day
@@ -226,7 +229,7 @@ export default function DatePicker({
                                     handleModeChange('range');
                                 }}
                                 className={`relative z-10 w-1/2 text-center py-1.5 transition-colors duration-200 rounded-full cursor-pointer font-semibold ${
-                                    activeMode === 'range' ? 'text-mimos-700 font-bold' : 'text-slate-500 hover:text-slate-850'
+                                    activeMode === 'range' ? 'text-mimos-700 font-semibold' : 'text-slate-500 hover:text-slate-850'
                                 }`}
                             >
                                 Consecutive Days

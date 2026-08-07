@@ -142,7 +142,7 @@ export default function ClaimInvite() {
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-semibold uppercase tracking-wider text-mimos-400">
                             <ShieldCheck className="w-3.5 h-3.5" /> Direct Invitation Only
                         </span>
-                        <h1 className="text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight">
+                        <h1 className="text-5xl lg:text-6xl font-semibold text-white leading-[1.1] tracking-tight">
                             WELCOME TO THE<br />
                             <span className="text-mimos-400">
                                 CONTROL TEAM
@@ -155,7 +155,7 @@ export default function ClaimInvite() {
                     
                     <div className="text-xs text-slate-500 flex justify-between items-center border-t border-white/5 pt-6">
                         <span>&copy; {new Date().getFullYear()} MIMOS Academy. All rights reserved.</span>
-                        <span className="text-[10px] tracking-wider uppercase font-bold text-slate-600">v2.1.0</span>
+                        <span className="text-[10px] tracking-wider uppercase font-semibold text-slate-600">v2.1.0</span>
                     </div>
                 </div>
             </div>
@@ -168,7 +168,7 @@ export default function ClaimInvite() {
                         <Link to="/">
                             <img src={assetPath('/images/MIMOS-Academy.png')} alt="MIMOS Logo" className="h-7 w-auto" />
                         </Link>
-                        <span className="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-1 rounded">Admin Access</span>
+                        <span className="text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-1 rounded">Admin Access</span>
                     </div>
 
                     {/* VIEW 1: VALIDATING STATE */}
@@ -181,7 +181,7 @@ export default function ClaimInvite() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-bold text-slate-900">Verifying Invitation</h3>
+                                <h3 className="text-lg font-semibold text-slate-900">Verifying Invitation</h3>
                                 <p className="text-xs text-slate-400 max-w-xs">
                                     Securing connection and checking the cryptographic signature of your invitation link...
                                 </p>
@@ -199,7 +199,7 @@ export default function ClaimInvite() {
                             </div>
                             
                             <div className="space-y-2">
-                                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Verification Failed</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Verification Failed</h2>
                                 <p className="text-xs text-slate-500 leading-relaxed px-2">
                                     {validationError}
                                 </p>
@@ -208,7 +208,7 @@ export default function ClaimInvite() {
                             <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
                                 <Link
                                     to="/"
-                                    className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold uppercase tracking-wider transition rounded-xl flex justify-center items-center h-11"
+                                    className="w-full py-3 bg-slate-950 hover:bg-slate-900 text-white text-xs font-semibold uppercase tracking-wider transition rounded-xl flex justify-center items-center h-11"
                                 >
                                     Return to Booking Portal
                                 </Link>
@@ -231,7 +231,7 @@ export default function ClaimInvite() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-slate-950">Setup Complete!</h3>
+                                <h3 className="text-2xl font-semibold text-slate-950">Setup Complete!</h3>
                                 <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
                                     Administrative account provisioned successfully. You are being securely authenticated and redirected to your command dashboard...
                                 </p>
@@ -243,7 +243,7 @@ export default function ClaimInvite() {
                     {status === 'valid' && invitationData && (
                         <div className="space-y-6 animate-fade-in">
                             <div>
-                                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Activate Administrative Profile</h2>
+                                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-1.5">Activate Administrative Profile</h2>
                                 <p className="text-xs text-slate-400">Complete your details to finish setting up your account.</p>
                             </div>
 
@@ -261,7 +261,7 @@ export default function ClaimInvite() {
                                     <span className="text-slate-400 flex items-center gap-1.5">
                                         <ShieldCheck className="w-3.5 h-3.5 text-slate-400" /> Assigned Privilege
                                     </span>
-                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
                                         invitationData.role === 'super_admin'
                                             ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
                                             : 'bg-pink-50 text-pink-700 border border-pink-100'
@@ -291,7 +291,7 @@ export default function ClaimInvite() {
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 {/* Name Input */}
                                 <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Full Name</label>
                                     <div className="relative flex items-center">
                                         <User className="absolute left-3 w-4 h-4 text-slate-400" />
                                         <input
@@ -307,7 +307,7 @@ export default function ClaimInvite() {
 
                                 {/* Department Input */}
                                 <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Department</label>
                                     <div className="relative flex items-center">
                                         <Briefcase className="absolute left-3 w-4 h-4 text-slate-400" />
                                         <input
@@ -323,7 +323,7 @@ export default function ClaimInvite() {
 
                                 {/* Phone Input */}
                                 <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number (Optional)</label>
+                                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Phone Number (Optional)</label>
                                     <div className="relative flex items-center">
                                         <Phone className="absolute left-3 w-4 h-4 text-slate-400" />
                                         <input
@@ -341,9 +341,9 @@ export default function ClaimInvite() {
                                 {/* Password Input */}
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between items-center">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Create Password</label>
+                                        <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Create Password</label>
                                         {password && password.length < 8 && (
-                                            <span className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">Min. 8 characters</span>
+                                            <span className="text-[9px] text-rose-500 font-semibold uppercase tracking-wider">Min. 8 characters</span>
                                         )}
                                     </div>
                                     <div className="relative flex items-center">
@@ -369,12 +369,12 @@ export default function ClaimInvite() {
                                 {/* Confirm Password Input */}
                                 <div className="space-y-1.5">
                                     <div className="flex justify-between items-center">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirm Password</label>
+                                        <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Confirm Password</label>
                                         {passwordConfirm && password !== passwordConfirm && (
-                                            <span className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">Passwords do not match</span>
+                                            <span className="text-[9px] text-rose-500 font-semibold uppercase tracking-wider">Passwords do not match</span>
                                         )}
                                         {passwordConfirm && password === passwordConfirm && (
-                                            <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-wider">Passwords match</span>
+                                            <span className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider">Passwords match</span>
                                         )}
                                     </div>
                                     <div className="relative flex items-center">
@@ -401,7 +401,7 @@ export default function ClaimInvite() {
                                     <button
                                         type="submit"
                                         disabled={formLoading || password.length < 8 || password !== passwordConfirm}
-                                        className="w-full py-3.5 bg-slate-950 hover:bg-mimos-600 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-widest transition duration-300 rounded-xl flex justify-center items-center h-12 shadow-lg shadow-slate-950/15 cursor-pointer disabled:cursor-not-allowed"
+                                        className="w-full py-3.5 bg-slate-950 hover:bg-mimos-600 disabled:bg-slate-300 text-white text-xs font-semibold uppercase tracking-widest transition duration-300 rounded-xl flex justify-center items-center h-12 shadow-lg shadow-slate-950/15 cursor-pointer disabled:cursor-not-allowed"
                                     >
                                         {formLoading ? (
                                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

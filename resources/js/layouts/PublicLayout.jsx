@@ -42,7 +42,7 @@ export default function PublicLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+        <div className="min-h-dvh bg-slate-50 text-slate-900 flex flex-col font-sans">
             {/* Header Navigation — Single Row */}
             <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/75 border-b border-slate-200/40 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -127,7 +127,7 @@ export default function PublicLayout() {
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                                         className="flex items-center gap-1.5 sm:gap-2 px-3 py-2 bg-white/95 border border-slate-200/60 rounded-xl text-slate-700 hover:text-mimos-500 hover:border-mimos-500/30 hover:scale-[1.02] shadow-sm hover:shadow transition-all duration-300 cursor-pointer"
                                     >
-                                        <div className="w-6 h-6 rounded-full bg-mimos-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                        <div className="w-6 h-6 rounded-full bg-mimos-500 flex items-center justify-center text-white text-xs font-semibold shadow-sm">
                                             {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-3 h-3" />}
                                         </div>
                                         <span className="hidden sm:inline text-sm font-semibold max-w-[100px] truncate">{user?.name}</span>
@@ -139,7 +139,7 @@ export default function PublicLayout() {
                                             <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
                                             <div className="absolute right-0 mt-2 w-52 bg-white/95 backdrop-blur-md border border-slate-200/50 rounded-2xl shadow-xl shadow-slate-200/80 z-50 py-1.5">
                                                 <div className="px-4 py-2.5 border-b border-slate-100">
-                                                    <div className="text-sm font-bold text-slate-900 truncate">{user?.name}</div>
+                                                    <div className="text-sm font-semibold text-slate-900 truncate">{user?.name}</div>
                                                     <div className="text-[11px] text-slate-500 truncate">{user?.email}</div>
                                                 </div>
                                                 <Link
@@ -170,7 +170,7 @@ export default function PublicLayout() {
                                                     <Link
                                                         to="/admin"
                                                         onClick={() => { setUserMenuOpen(false); setMobileNavOpen(false); }}
-                                                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mimos-500 font-bold bg-mimos-50/50 hover:bg-mimos-50 transition-colors border-t border-slate-100/60"
+                                                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-mimos-500 font-semibold bg-mimos-50/50 hover:bg-mimos-50 transition-colors border-t border-slate-100/60"
                                                     >
                                                         Admin Panel
                                                     </Link>
@@ -248,13 +248,13 @@ export default function PublicLayout() {
             />
 
             {/* Main Content */}
-            <main className="flex-grow relative">
+            <main className="flex-grow relative flex flex-col min-h-0">
                 <Outlet />
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-slate-200/50 py-10 mt-auto bg-white/60 backdrop-blur-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <footer className="border-t border-slate-200/50 bg-white/60 backdrop-blur-md h-20 flex items-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
                     <div>
                         © 2026 <span className="font-semibold text-slate-700">MIMOS Academy</span> — Training Room Booking System
                     </div>

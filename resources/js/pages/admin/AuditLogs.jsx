@@ -152,7 +152,7 @@ export default function AuditLogs() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <h1 className="text-2xl font-semibold text-slate-900 flex items-center gap-2">
                         <History className="w-6 h-6 text-pink-600" />
                         Audit Logs Timeline
                     </h1>
@@ -220,7 +220,7 @@ export default function AuditLogs() {
             ) : logs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm px-6">
                     <History className="w-12 h-12 text-slate-300 mb-3" />
-                    <h3 className="text-lg font-bold text-slate-700">No logs found</h3>
+                    <h3 className="text-lg font-semibold text-slate-700">No logs found</h3>
                     <p className="text-sm text-slate-500 mt-1 max-w-sm">No operational records were found matching your current filter criteria.</p>
                 </div>
             ) : (
@@ -252,7 +252,7 @@ export default function AuditLogs() {
                                         {/* Meta Header */}
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 border rounded-full ${config.color}`}>
+                                                <span className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 border rounded-full ${config.color}`}>
                                                     {config.label}
                                                 </span>
                                                 <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -280,7 +280,7 @@ export default function AuditLogs() {
                                             <div className="flex-1 min-w-0">
                                                 {log.booking ? (
                                                     <div>
-                                                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                                        <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5 flex-wrap">
                                                             Booking: <span className="text-pink-600 hover:underline cursor-pointer">{log.booking.title}</span>
                                                             <span className="text-xs font-normal text-slate-400">({log.booking.room?.name || 'Unknown Room'})</span>
                                                         </h3>
@@ -298,7 +298,7 @@ export default function AuditLogs() {
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        <h3 className="text-sm font-bold text-slate-400 italic">Booking Ref #ID {log.booking_id} (Deleted / Unavailable)</h3>
+                                                        <h3 className="text-sm font-semibold text-slate-400 italic">Booking Ref #ID {log.booking_id} (Deleted / Unavailable)</h3>
                                                         <p className="text-xs text-slate-500 mt-0.5">{config.desc}</p>
                                                     </div>
                                                 )}
@@ -321,17 +321,17 @@ export default function AuditLogs() {
                                             <div className="mt-4 pt-4 border-t border-slate-100 animate-slide-down">
                                                 {log.action === 'rejected' && log.changes.rejection_reason && (
                                                     <div className="bg-rose-50/50 border-l-4 border-rose-500 p-4 rounded-r-xl">
-                                                        <span className="block text-[10px] uppercase font-bold tracking-wider text-rose-700">Rejection Reason Provided:</span>
+                                                        <span className="block text-[10px] uppercase font-semibold tracking-wider text-rose-700">Rejection Reason Provided:</span>
                                                         <p className="text-sm text-rose-950 mt-1 italic font-medium">"{log.changes.rejection_reason}"</p>
                                                     </div>
                                                 )}
 
                                                 {(log.action === 'admin_updated' || log.action === 'updated') && log.changes.before && log.changes.after && (
                                                     <div>
-                                                        <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">Visual Property Audit Diff</span>
+                                                        <span className="block text-[10px] uppercase font-semibold tracking-wider text-slate-400 mb-2">Visual Property Audit Diff</span>
                                                         <div className="overflow-x-auto border border-slate-200 rounded-xl bg-slate-50/50">
                                                             <table className="min-w-full divide-y divide-slate-200 text-xs">
-                                                                <thead className="bg-slate-100 font-bold text-slate-700">
+                                                                <thead className="bg-slate-100 font-semibold text-slate-700">
                                                                     <tr>
                                                                         <th scope="col" className="px-4 py-2 text-left">Property Field</th>
                                                                         <th scope="col" className="px-4 py-2 text-left w-1/2">Before Value (Old)</th>
@@ -435,9 +435,9 @@ export default function AuditLogs() {
                                                 <button
                                                     key={pNum}
                                                     onClick={() => handlePageChange(pNum)}
-                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-bold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
+                                                    className={`relative inline-flex items-center px-4 py-2 text-xs font-semibold focus:z-20 cursor-pointer transition select-none border-r border-slate-200 last:border-r-0 ${
                                                         pNum === page
-                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-extrabold'
+                                                            ? 'z-10 bg-mimos-50 text-mimos-700 font-semibold'
                                                             : 'bg-white text-slate-650 hover:bg-slate-50 hover:text-slate-800'
                                                     }`}
                                                 >

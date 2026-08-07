@@ -135,7 +135,7 @@ export default function AdminUsers() {
             {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <h1 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                         <Users className="w-7 h-7 text-mimos-500" /> Administrative User Directory
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
@@ -240,7 +240,7 @@ export default function AdminUsers() {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-slate-50/70 border-b border-slate-200/85 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <tr className="bg-slate-50/70 border-b border-slate-200/85 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                                             <th className="px-6 py-4">User Details</th>
                                             <th className="px-6 py-4">Role Privileges</th>
                                             <th className="px-6 py-4">Department & Phone</th>
@@ -257,7 +257,7 @@ export default function AdminUsers() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold w-fit border ${
+                                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit border ${
                                                             user.role === 'super_admin'
                                                                 ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
                                                                 : user.role === 'location_admin'
@@ -279,7 +279,7 @@ export default function AdminUsers() {
                                                     <div className="text-xs text-slate-500 mt-0.5">{user.phone || '—'}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                                                         user.status === 'suspended'
                                                             ? 'bg-red-50 border-red-200 text-red-700 animate-pulse'
                                                             : 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -368,7 +368,7 @@ export default function AdminUsers() {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-slate-50/70 border-b border-slate-200/85 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        <tr className="bg-slate-50/70 border-b border-slate-200/85 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                                             <th className="px-6 py-4">Invited Email</th>
                                             <th className="px-6 py-4">Assigned Role</th>
                                             <th className="px-6 py-4">Token Expiration</th>
@@ -389,7 +389,7 @@ export default function AdminUsers() {
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex flex-col gap-1">
-                                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold w-fit border ${
+                                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit border ${
                                                                 invite.role === 'super_admin'
                                                                     ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
                                                                     : 'bg-cyan-50 border-cyan-200 text-cyan-700'
@@ -409,7 +409,7 @@ export default function AdminUsers() {
                                                             <span className="font-semibold text-slate-800">
                                                                 {new Date(invite.expires_at).toLocaleDateString()} at {new Date(invite.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
-                                                            <span className={`text-[10px] uppercase font-bold mt-0.5 w-fit ${isExpired ? 'text-red-600' : 'text-slate-400'}`}>
+                                                            <span className={`text-[10px] uppercase font-semibold mt-0.5 w-fit ${isExpired ? 'text-red-600' : 'text-slate-400'}`}>
                                                                 {isExpired ? 'Expired' : 'Pending Redemption'}
                                                             </span>
                                                         </div>
@@ -507,7 +507,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                 {/* Modal Header */}
                 <div className="p-6 border-b border-slate-200/70 flex items-center justify-between bg-slate-50/50">
                     <div>
-                        <h3 className="text-base font-bold text-slate-900">Invite Administrator</h3>
+                        <h3 className="text-base font-semibold text-slate-900">Invite Administrator</h3>
                         <p className="text-xs text-slate-500 mt-0.5">Send a claim invitation to a staff colleague</p>
                     </div>
                     <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer">
@@ -518,7 +518,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                 {/* Form Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
+                        <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
                         <input
                             type="email"
                             required
@@ -530,12 +530,12 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Role Scope</label>
+                        <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Role Scope</label>
                         <div className="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setRole('location_admin')}
-                                className={`px-4 py-3 border text-xs font-bold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                                className={`px-4 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                                     role === 'location_admin'
                                         ? 'bg-cyan-50/40 border-cyan-400 text-cyan-700 shadow-xs'
                                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -547,7 +547,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                             <button
                                 type="button"
                                 onClick={() => setRole('super_admin')}
-                                className={`px-4 py-3 border text-xs font-bold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                                className={`px-4 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                                     role === 'super_admin'
                                         ? 'bg-indigo-50/40 border-indigo-400 text-indigo-700 shadow-xs'
                                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -561,7 +561,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
 
                     {role === 'location_admin' && (
                         <div className="animate-slide-down">
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
                             <select
                                 value={locationId}
                                 onChange={e => setLocationId(e.target.value)}
@@ -630,7 +630,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                 {/* Header */}
                 <div className="p-6 border-b border-slate-200/70 flex items-center justify-between bg-slate-50/50">
                     <div>
-                        <h3 className="text-base font-bold text-slate-900">Modify User Account</h3>
+                        <h3 className="text-base font-semibold text-slate-900">Modify User Account</h3>
                         <p className="text-xs text-slate-500 mt-0.5">Edit privileges, locations, or corporate details</p>
                     </div>
                     <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer">
@@ -642,7 +642,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                 <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Full Name</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Full Name</label>
                             <input
                                 type="text"
                                 required
@@ -653,7 +653,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
                             <input
                                 type="email"
                                 required
@@ -664,7 +664,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">User Type</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">User Type</label>
                             <select
                                 value={userType}
                                 onChange={e => setUserType(e.target.value)}
@@ -676,7 +676,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Role Scope</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Role Scope</label>
                             <select
                                 value={role}
                                 onChange={e => setRole(e.target.value)}
@@ -690,7 +690,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
 
                         {role === 'location_admin' && (
                             <div className="sm:col-span-2">
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
+                                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
                                 <select
                                     value={locationId}
                                     onChange={e => setLocationId(e.target.value)}
@@ -706,7 +706,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         )}
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Department</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Department</label>
                             <input
                                 type="text"
                                 placeholder="e.g. IT, R&D"
@@ -717,7 +717,7 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Phone Number</label>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Phone Number</label>
                             <input
                                 type="text"
                                 placeholder="e.g. +6012345678"

@@ -90,7 +90,7 @@ export default function ConfirmationModal({
                 </div>
 
                 {/* Content Title */}
-                <h3 className="text-lg font-extrabold text-slate-900 leading-snug tracking-tight mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 leading-snug tracking-tight mb-2">
                     {title}
                 </h3>
 

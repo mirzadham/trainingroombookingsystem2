@@ -93,10 +93,10 @@ export default function BookingCard({
                     {/* Left date column */}
                     <div className="flex flex-col items-center justify-center w-14 flex-shrink-0 text-center select-none pr-2 pt-1">
                         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-none">{weekday}</span>
-                        <span className="text-3xl font-extrabold text-blue-600 my-1 tracking-tight leading-none">{dayNum}</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-none">{monthName}</span>
+                        <span className="text-3xl font-semibold text-blue-600 my-1 tracking-tight leading-none">{dayNum}</span>
+                        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider leading-none">{monthName}</span>
                         {booking.isGroup && (
-                            <span className="mt-2.5 px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-black uppercase tracking-wider select-none border border-blue-100">
+                            <span className="mt-2.5 px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-semibold uppercase tracking-wider select-none border border-blue-100">
                                 {booking.occurrences.length} Days
                             </span>
                         )}
@@ -111,15 +111,15 @@ export default function BookingCard({
                         <div className="space-y-2.5 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap select-none">
                                 {/* Location badge in soft lavender/slate */}
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider bg-slate-100 text-slate-700 border border-slate-200/40">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-semibold tracking-wider bg-slate-100 text-slate-700 border border-slate-200/40">
                                     {locationName}
                                 </span>
                                 {/* Custom status badge */}
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider border ${statusInfo.className}`}>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] uppercase font-semibold tracking-wider border ${statusInfo.className}`}>
                                     {statusInfo.text}
                                 </span>
                                 {booking.isGroup && (
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] uppercase font-bold tracking-wider ${
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] uppercase font-semibold tracking-wider ${
                                         booking.isRecurring
                                             ? 'bg-violet-50 text-violet-750 border border-violet-200/40'
                                             : 'bg-cyan-50 text-cyan-750 border border-cyan-200/40'
@@ -127,12 +127,12 @@ export default function BookingCard({
                                         {booking.isRecurring ? 'Weekly Series' : 'Consecutive'}
                                     </span>
                                 )}
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-mono font-bold tracking-wider bg-slate-55 text-slate-500 border border-slate-200/80 select-all">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-mono font-semibold tracking-wider bg-slate-55 text-slate-500 border border-slate-200/80 select-all">
                                     {getBaseReference()}{booking.isGroup && '-*'}
                                 </span>
                             </div>
                             
-                            <h3 className="text-base font-extrabold text-slate-900 leading-snug tracking-tight truncate max-w-full" title={booking.title}>
+                            <h3 className="text-base font-semibold text-slate-900 leading-snug tracking-tight truncate max-w-full" title={booking.title}>
                                 {booking.title}
                             </h3>
 
@@ -152,13 +152,13 @@ export default function BookingCard({
                         {/* Column 2: Time, Room, View more */}
                         <div className="space-y-1.5 md:pt-0.5">
                             {/* Time duration */}
-                            <div className="text-sm font-bold text-slate-800 tracking-tight leading-none">
+                            <div className="text-sm font-semibold text-slate-800 tracking-tight leading-none">
                                 {timeRange}
                             </div>
 
                             {/* Group Date Range Display */}
                             {booking.isGroup && (
-                                <div className="text-[11px] font-bold text-slate-500 tracking-tight leading-none mt-1">
+                                <div className="text-[11px] font-semibold text-slate-500 tracking-tight leading-none mt-1">
                                     {new Date(booking.group_start_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })} – {new Date(booking.group_end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 </div>
                             )}
@@ -174,7 +174,7 @@ export default function BookingCard({
                                     <>
                                         <button
                                             onClick={() => setIsExpanded(!isExpanded)}
-                                            className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none select-none"
+                                            className="text-[13px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none select-none"
                                         >
                                             {isExpanded ? 'Hide schedule' : `View schedule (${booking.occurrences.length} days)`}
                                             {isExpanded ? <ChevronUp className="w-3.5 h-3.5 ml-0.5" /> : <ChevronDown className="w-3.5 h-3.5 ml-0.5" />}
@@ -184,7 +184,7 @@ export default function BookingCard({
                                                 <span className="text-slate-350 text-xs select-none">|</span>
                                                 <button
                                                     onClick={() => onViewDetails(booking)}
-                                                    className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none"
+                                                    className="text-[13px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none"
                                                 >
                                                     View details <span className="text-xs">→</span>
                                                 </button>
@@ -195,7 +195,7 @@ export default function BookingCard({
                                     onViewDetails && (
                                         <button
                                             onClick={() => onViewDetails(booking)}
-                                            className="text-[13px] font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none"
+                                            className="text-[13px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 transition duration-150 bg-transparent border-0 cursor-pointer p-0 hover:underline leading-none"
                                         >
                                             View more <span className="text-xs">→</span>
                                         </button>
@@ -218,7 +218,7 @@ export default function BookingCard({
                                             <button
                                                 onClick={() => onApprove(booking.id)}
                                                 disabled={isActionPending}
-                                                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
+                                                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
                                             >
                                                 {isLoadingThis ? (
                                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -230,7 +230,7 @@ export default function BookingCard({
                                             <button
                                                 onClick={() => onReject(booking.id)}
                                                 disabled={isActionPending}
-                                                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
+                                                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
                                             >
                                                 <X className="w-3.5 h-3.5" />
                                                 Reject
@@ -243,7 +243,7 @@ export default function BookingCard({
                                         <button
                                             onClick={() => onCancel(booking.id)}
                                             disabled={isActionPending}
-                                            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
+                                            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
                                         >
                                             <Ban className="w-3.5 h-3.5" />
                                             Cancel
@@ -257,7 +257,7 @@ export default function BookingCard({
                                         <button
                                             onClick={() => onEdit(booking)}
                                             disabled={isActionPending}
-                                            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
+                                            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
                                         >
                                             <Pencil className="w-3.5 h-3.5" />
                                             Edit
@@ -267,7 +267,7 @@ export default function BookingCard({
                                         <button
                                             onClick={() => onCancel(booking.id)}
                                             disabled={isActionPending}
-                                            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
+                                            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all cursor-pointer disabled:opacity-50 select-none min-w-[80px]"
                                         >
                                             <Trash2 className="w-3.5 h-3.5" />
                                             Cancel
@@ -283,7 +283,7 @@ export default function BookingCard({
             {/* Expanded Occurrences Section */}
             {isExpanded && booking.isGroup && (
                 <div className="w-full mt-5 border-t border-slate-100 pt-5 animate-in fade-in duration-300">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 select-none">
+                    <h4 className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3 select-none">
                         Series Schedule Details
                     </h4>
                     <div className="space-y-2">
@@ -325,7 +325,7 @@ export default function BookingCard({
                                             />
                                         )}
                                         <div>
-                                            <div className="text-[13px] font-bold text-slate-800 tracking-tight leading-snug">
+                                            <div className="text-[13px] font-semibold text-slate-800 tracking-tight leading-snug">
                                                 {formattedDate}
                                             </div>
                                             <div className="text-[11px] text-slate-500 font-semibold mt-0.5">
@@ -348,7 +348,7 @@ export default function BookingCard({
                                     {/* Right Status & Actions */}
                                     <div className="flex items-center gap-3 self-end sm:self-auto">
                                         {/* Status Badge */}
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] uppercase font-black tracking-wider border ${occStatusInfo.className} select-none`}>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] uppercase font-semibold tracking-wider border ${occStatusInfo.className} select-none`}>
                                             {occStatusInfo.text}
                                         </span>
                                          

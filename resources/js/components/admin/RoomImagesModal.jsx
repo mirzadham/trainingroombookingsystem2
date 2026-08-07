@@ -132,7 +132,7 @@ export default function RoomImagesModal({ room, onClose }) {
                 {/* Modal Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                     <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                             <ImageIcon className="w-5 h-5 text-mimos-500" />
                             Manage Room Gallery
                         </h3>
@@ -209,7 +209,7 @@ export default function RoomImagesModal({ room, onClose }) {
 
                     {/* Image Grid Gallery */}
                     <div>
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+                        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
                             Current Photos ({room.images?.length || 0})
                         </h4>
 
@@ -243,7 +243,7 @@ export default function RoomImagesModal({ room, onClose }) {
 
                                             {/* Primary Cover Badge */}
                                             {primary && (
-                                                <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] uppercase font-bold tracking-wider shadow-sm flex items-center gap-1">
+                                                <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-amber-500 text-white text-[10px] uppercase font-semibold tracking-wider shadow-sm flex items-center gap-1">
                                                     <Star className="w-3 h-3 fill-white" /> Cover Photo
                                                 </div>
                                             )}

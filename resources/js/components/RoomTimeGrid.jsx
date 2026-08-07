@@ -156,7 +156,7 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
                         {step === 1 ? 'Choose when your meeting begins' : `Starting at ${ALL_SLOTS.find(s => s.time === startTime)?.label}`}
                     </p>
                     {endDate && (
-                        <p className="text-[10px] text-mimos-600 font-bold mt-0.5 animate-pulse">
+                        <p className="text-[10px] text-mimos-600 font-semibold mt-0.5 animate-pulse">
                             📅 Booking range: {date} to {endDate}
                         </p>
                     )}

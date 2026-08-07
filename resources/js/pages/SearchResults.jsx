@@ -54,7 +54,7 @@ export default function SearchResults() {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Available Rooms</h1>
+                    <h1 className="text-2xl font-semibold text-slate-900">Available Rooms</h1>
                 </div>
             </div>
 
@@ -62,11 +62,11 @@ export default function SearchResults() {
             {data && (
                 <div className="flex items-center gap-4 mb-8">
                     <div className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <span className="text-2xl font-bold text-slate-900">{data.meta.total_rooms}</span>
+                        <span className="text-2xl font-semibold text-slate-900">{data.meta.total_rooms}</span>
                         <span className="text-sm text-slate-500 ml-2">rooms found</span>
                     </div>
                     <div className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                        <span className="text-2xl font-bold text-emerald-600">{data.meta.fully_available}</span>
+                        <span className="text-2xl font-semibold text-emerald-600">{data.meta.fully_available}</span>
                         <span className="text-sm text-slate-500 ml-2">fully available</span>
                     </div>
                 </div>
@@ -250,14 +250,14 @@ function RoomCard({ room, onClick, formatAmenity }) {
                 )}
 
                 {/* Availability badge overlay */}
-                <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-bold border backdrop-blur-md shadow-sm tracking-wide ${availabilityColor}`}>
+                <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-semibold border backdrop-blur-md shadow-sm tracking-wide ${availabilityColor}`}>
                     {availabilityText}
                 </div>
             </div>
 
             {/* Details */}
             <div className="p-6">
-                <h3 className="text-lg font-bold text-slate-900 mb-0.5 group-hover/card:text-mimos-500 transition-colors">
+                <h3 className="text-lg font-semibold text-slate-900 mb-0.5 group-hover/card:text-mimos-500 transition-colors">
                     {room.name}
                 </h3>
                 {room.location_legend && room.location_legend.toLowerCase() !== 'tbc' && (
@@ -284,7 +284,7 @@ function RoomCard({ room, onClick, formatAmenity }) {
                         {room.amenities.map(formatAmenity).map((amenity, idx) => (
                             <span
                                 key={idx}
-                                className="px-2 py-1 rounded-md bg-mimos-500/5 text-[9px] text-mimos-500 font-bold uppercase tracking-wider"
+                                className="px-2 py-1 rounded-md bg-mimos-500/5 text-[9px] text-mimos-500 font-semibold uppercase tracking-wider"
                             >
                                 {amenity}
                             </span>

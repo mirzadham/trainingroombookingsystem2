@@ -121,7 +121,7 @@ export default function ProfilePage() {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[calc(100vh-20rem)]">
             <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Account Settings</h1>
+                <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Account Settings</h1>
                 <p className="text-sm text-slate-500 mt-1">Manage your personal profile details and security settings</p>
             </div>
 
@@ -145,7 +145,7 @@ export default function ProfilePage() {
                 <div className="w-full md:w-64 shrink-0 space-y-2">
                     <button
                         onClick={() => { setActiveTab('personal'); setSuccessMessage(''); setErrorMessage(''); setValidationErrors({}); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                             activeTab === 'personal'
                                 ? 'bg-mimos-50 text-mimos-700 shadow-sm border border-mimos-100/50'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                     </button>
                     <button
                         onClick={() => { setActiveTab('security'); setSuccessMessage(''); setErrorMessage(''); setValidationErrors({}); }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
                             activeTab === 'security'
                                 ? 'bg-mimos-50 text-mimos-700 shadow-sm border border-mimos-100/50'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 border border-transparent'
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                     {activeTab === 'personal' && (
                         <form onSubmit={handleProfileSubmit} className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-slate-950 flex items-center gap-2">
                                     <User className="w-5 h-5 text-slate-400" />
                                     Personal Information
                                 </h3>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
                     {activeTab === 'security' && (
                         <form onSubmit={handlePasswordSubmit} className="space-y-6">
                             <div>
-                                <h3 className="text-lg font-bold text-slate-950 flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-slate-950 flex items-center gap-2">
                                     <ShieldCheck className="w-5 h-5 text-slate-400" />
                                     Change Password
                                 </h3>

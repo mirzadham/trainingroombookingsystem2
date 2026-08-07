@@ -85,14 +85,14 @@ export default function Reports() {
     return (
         <div>
             <div className="mb-8">
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Reports & Analytics</h1>
+                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Reports & Analytics</h1>
                 <p className="text-sm text-slate-500 mt-0.5">Comprehensive insight into room utilization, peak slots, and activity metrics</p>
             </div>
 
             {/* Filters */}
             <div className="flex flex-wrap gap-4 mb-8 p-5 bg-white/70 backdrop-blur-xl border border-slate-200/60 shadow-xs rounded-3xl items-end relative z-10">
                 <div className="flex-1 min-w-[200px] relative z-30">
-                    <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Start Date</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">Start Date</label>
                     <DatePicker
                         id="start-date"
                         value={startDate}
@@ -102,7 +102,7 @@ export default function Reports() {
                     />
                 </div>
                 <div className="flex-1 min-w-[200px] relative z-20">
-                    <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">End Date</label>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">End Date</label>
                     <DatePicker
                         id="end-date"
                         value={endDate}
@@ -113,7 +113,7 @@ export default function Reports() {
                 </div>
                 {!isLocationAdmin && (
                     <div className="flex-1 min-w-[200px]">
-                        <label className="block text-[10px] font-extrabold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
+                        <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
                         <div className="relative">
                             <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-white/85 border border-slate-200 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-500 hover:border-slate-300 transition-all cursor-pointer appearance-none shadow-inner">
@@ -143,7 +143,7 @@ export default function Reports() {
                                 <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-100 shadow-xs">
                                     <TrendingUp className="w-4.5 h-4.5 text-emerald-600" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900">Room Utilization</h2>
+                                <h2 className="text-lg font-semibold text-slate-900">Room Utilization</h2>
                             </div>
                             {utilization?.rooms?.length > 0 && (
                                 <button
@@ -166,7 +166,7 @@ export default function Reports() {
                                         <span className="text-slate-800 font-semibold group-hover/item:text-mimos-600 transition-colors">{room.room}
                                             <span className="text-xs text-slate-400 ml-1.5 font-normal">({room.location})</span>
                                         </span>
-                                        <span className="text-slate-900 font-bold">{room.utilization_pct}%</span>
+                                        <span className="text-slate-900 font-semibold">{room.utilization_pct}%</span>
                                     </div>
                                     <div className="w-full h-3 bg-slate-100/80 rounded-full overflow-hidden border border-slate-200/30">
                                         <div
@@ -197,7 +197,7 @@ export default function Reports() {
                                 <div className="p-2 bg-blue-50 rounded-xl border border-blue-100 shadow-xs">
                                     <Clock className="w-4.5 h-4.5 text-blue-655" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900">Peak Hours</h2>
+                                <h2 className="text-lg font-semibold text-slate-900">Peak Hours</h2>
                             </div>
                             {peakHours?.length > 0 && (
                                 <button
@@ -220,10 +220,10 @@ export default function Reports() {
                                     <div key={hour.hour} className="flex-1 flex flex-col items-center justify-end h-full group/bar cursor-pointer">
                                         <div className="relative w-full flex flex-col items-center group-hover/bar:-translate-y-1 transition-transform duration-300">
                                             {/* Tooltip on Hover */}
-                                            <span className="absolute -top-7 text-[10px] font-bold bg-slate-800 text-white px-2 py-0.5 rounded-md opacity-0 group-hover/bar:opacity-100 transition-opacity duration-200 shadow-sm pointer-events-none whitespace-nowrap">
+                                            <span className="absolute -top-7 text-[10px] font-semibold bg-slate-800 text-white px-2 py-0.5 rounded-md opacity-0 group-hover/bar:opacity-100 transition-opacity duration-200 shadow-sm pointer-events-none whitespace-nowrap">
                                                 {hour.booking_count} bookings
                                             </span>
-                                            <span className="text-[10px] font-bold text-slate-600 mb-1.5 transition-colors group-hover/bar:text-mimos-600">
+                                            <span className="text-[10px] font-semibold text-slate-600 mb-1.5 transition-colors group-hover/bar:text-mimos-600">
                                                 {hour.booking_count}
                                             </span>
                                             <div
@@ -236,7 +236,7 @@ export default function Reports() {
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-[9px] font-bold text-slate-400 mt-2.5 tracking-wider uppercase group-hover/bar:text-slate-600 transition-colors">
+                                        <span className="text-[9px] font-semibold text-slate-400 mt-2.5 tracking-wider uppercase group-hover/bar:text-slate-600 transition-colors">
                                             {hour.label}
                                         </span>
                                     </div>
