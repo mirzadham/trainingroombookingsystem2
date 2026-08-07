@@ -3,6 +3,12 @@ import api from './apiClient';
 export const getAdminBookings = (params) =>
     api.get('/admin/bookings', { params }).then(r => r.data);
 
+export const exportAdminBookings = (params) =>
+    api.get('/admin/bookings/export', { params, responseType: 'blob' }).then(r => r.data);
+
+export const exportAdminAuditLogs = (params) =>
+    api.get('/admin/audit-logs/export', { params, responseType: 'blob' }).then(r => r.data);
+
 export const approveBooking = (id) =>
     api.post(`/admin/bookings/${id}/approve`).then(r => r.data);
 
@@ -14,6 +20,15 @@ export const adminUpdateBooking = (id, data) =>
 
 export const adminCancelBooking = (id, remarks) =>
     api.post(`/admin/bookings/${id}/cancel`, { remarks }).then(r => r.data);
+
+export const markBookingAttendance = (id, status) =>
+    api.post(`/admin/bookings/${id}/attendance`, { status }).then(r => r.data);
+
+export const adminCancelBookingSeries = (id, futureOnly = true, remarks = null) =>
+    api.post(`/admin/bookings/${id}/cancel-series`, {
+        future_only: futureOnly,
+        remarks: remarks || undefined,
+    }).then(r => r.data);
 
 export const getAdminDashboard = () =>
     api.get('/admin/dashboard').then(r => r.data);

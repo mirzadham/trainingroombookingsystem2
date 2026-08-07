@@ -11,6 +11,7 @@ const BookingWizard = lazy(() => import('./pages/booking/BookingWizard'));
 const MyBookings = lazy(() => import('./pages/MyBookings'));
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const Login = lazy(() => import('./pages/Login'));
+const Favorites = lazy(() => import('./pages/Favorites'));
 const RoomDetails = lazy(() => import('./pages/RoomDetails'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -59,6 +60,7 @@ export default function AppRouter() {
                     <Route path="/rooms/:id" element={<RoomDetails />} />
                     <Route path="/book" element={<BookingWizard />} />
                     <Route path="/my-bookings" element={<MyBookings />} />
+                    <Route path="/favorites" element={<Favorites />} />
                     <Route path="/calendar" element={<CalendarPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/login" element={<Login />} />

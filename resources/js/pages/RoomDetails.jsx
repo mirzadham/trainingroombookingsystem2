@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, Users, Loader2, Monitor, Wifi, Coffee, Maximize, ChevronLeft, ChevronRight, LayoutGrid, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import * as api from '../services/api';
+import FavoriteButton from '../components/FavoriteButton';
 import RoomTimeGrid from '../components/RoomTimeGrid';
 import { assetPath } from '../utils/basePath';
 
@@ -236,9 +237,12 @@ export default function RoomDetails() {
                     <div className="lg:col-span-2 space-y-8">
                         {/* Title & Core Details */}
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight mb-4">
-                                {room.name}
-                            </h1>
+                            <div className="flex items-start justify-between gap-4">
+                                <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 tracking-tight mb-4">
+                                    {room.name}
+                                </h1>
+                                <FavoriteButton roomId={room.id} className="mt-1 flex-shrink-0" />
+                            </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm">
                                     <MapPin className="w-4 h-4 text-slate-400" />

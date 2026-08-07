@@ -124,6 +124,30 @@ class BookingController extends Controller
     }
 
     /**
+     * POST /api/bookings/{booking}/cancel-series
+     * Cancel a recurring series (this instance + future ones by default).
+     */
+    public function cancelSeries(Request $request, Booking $booking): JsonResponse
+    {
+        Gate::authorize('cancel', $booking);
+
+        $request->validate([
+            'future_only' => 'nullable|boolean',
+        ]);
+
+        $futureOnly = $request->boolean('future_only', true);
+
+        $cancelled = $this->bookingService->cancelSeries($booking, $request->user(), $futureOnly);
+
+        return response()->json([
+            'message' => $cancelled->isEmpty()
+                ? 'No cancellable bookings found in this series.'
+                : "Cancelled {$cancelled->count()} booking(s) in the series.",
+            'cancelled' => BookingResource::collection($cancelled),
+        ]);
+    }
+
+    /**
      * POST /api/bookings/recurring
      * Create a recurring weekly booking series.
      */

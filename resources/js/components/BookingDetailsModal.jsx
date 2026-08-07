@@ -17,6 +17,8 @@ export default function BookingDetailsModal({
     onReject = null,
     onCancel = null,
     onEdit = null,
+    onCancelSeries = null,
+    onMarkAttendance = null,
     isActionPending = false,
 }) {
     const [actionState, setActionState] = useState('none'); // 'none' | 'rejecting' | 'cancelling' | 'cancelling_user'
@@ -472,6 +474,56 @@ export default function BookingDetailsModal({
                                     )}
                                 </>
                             )
+                        )}
+
+                        {/* Recurring series cancellation — available for both users and admins */}
+                        {onCancelSeries && (booking.recurrence_group_id || (booking.isGroup && booking.isRecurring)) && (
+                            (booking.isGroup
+                                ? booking.occurrences.some(o => o.status === 'pending' || o.status === 'approved')
+                                : (booking.status === 'pending' || booking.status === 'approved')
+                            ) && (
+                                <button
+                                    onClick={() => onCancelSeries(booking)}
+                                    disabled={isActionPending}
+                                    className="w-full flex items-center justify-center gap-1.5 py-3 text-sm font-semibold uppercase tracking-wider text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-250/70 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                >
+                                    <Ban className="w-4 h-4" /> Cancel Entire Series
+                                </button>
+                            )
+                        )}
+
+                        {/* Attendance marking — admin only, approved standalone bookings that have started */}
+                        {isAdmin && onMarkAttendance && !booking.isGroup && booking.status === 'approved' && new Date(booking.start_time) <= new Date() && (
+                                <div className="w-full rounded-xl border border-slate-200 bg-white p-3">
+                                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2 flex items-center justify-between">
+                                        <span>Attendance</span>
+                                        {booking.attendance_status && (
+                                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border ${
+                                                booking.attendance_status === 'attended'
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                    : 'bg-red-50 text-red-700 border-red-200'
+                                            }`}>
+                                                {booking.attendance_status === 'attended' ? '✓ Attended' : '✗ No-show'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => onMarkAttendance(booking, 'attended')}
+                                            disabled={isActionPending}
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                        >
+                                            <Check className="w-3.5 h-3.5" /> Mark Attended
+                                        </button>
+                                        <button
+                                            onClick={() => onMarkAttendance(booking, 'no_show')}
+                                            disabled={isActionPending}
+                                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl cursor-pointer transition disabled:opacity-50 select-none"
+                                        >
+                                            <X className="w-3.5 h-3.5" /> Mark No-show
+                                        </button>
+                                    </div>
+                                </div>
                         )}
 
                         {/* Standard Close button */}

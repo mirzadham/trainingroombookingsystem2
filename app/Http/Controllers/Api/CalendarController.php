@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,5 +46,44 @@ class CalendarController extends Controller
         ]);
 
         return response()->json($events);
+    }
+
+    /**
+     * GET /api/calendar/subscription
+     * Returns the user's private iCal subscription URL (webcal + https).
+     */
+    public function subscription(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $token = $user->getOrCreateCalendarToken();
+
+        return response()->json([
+            'feed_url' => $this->feedUrl($token, 'webcal'),
+            'https_url' => $this->feedUrl($token, 'https'),
+        ]);
+    }
+
+    /**
+     * POST /api/calendar/subscription/regenerate
+     * Rotates the feed token (old links stop working immediately).
+     */
+    public function regenerate(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $token = $user->regenerateCalendarToken();
+
+        return response()->json([
+            'feed_url' => $this->feedUrl($token, 'webcal'),
+            'https_url' => $this->feedUrl($token, 'https'),
+        ]);
+    }
+
+    private function feedUrl(string $token, string $scheme): string
+    {
+        // getHttpHost() keeps the port (unlike getHost()) so links work on
+        // non-standard ports (e.g. localhost:8000 during development).
+        $host = request()->getHttpHost() ?? 'localhost';
+
+        return "{$scheme}://{$host}/calendar/feed/{$token}.ics";
     }
 }

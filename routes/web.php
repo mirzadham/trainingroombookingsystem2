@@ -1,6 +1,19 @@
 <?php
 
+use App\Http\Controllers\Api\CalendarFeedController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| SPA + Public Feed Routes
+|--------------------------------------------------------------------------
+|
+| The calendar feed is a public web resource (not a JSON API endpoint),
+| so it must be defined BEFORE the SPA catch-all below.
+|
+*/
+
+Route::get('/calendar/feed/{token}.ics', [CalendarFeedController::class, 'userFeed']);
 
 /*
 |--------------------------------------------------------------------------

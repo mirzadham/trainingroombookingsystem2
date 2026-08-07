@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, MapPin, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as api from '../services/api';
+import FavoriteButton from '../components/FavoriteButton';
 import { assetPath } from '../utils/basePath';
 
 export default function SearchResults() {
@@ -167,7 +168,6 @@ function getRoomImages(room) {
 function RoomCard({ room, onClick, formatAmenity }) {
     const images = getRoomImages(room);
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-
     const handlePrev = (e) => {
         e.stopPropagation();
         setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -248,6 +248,11 @@ function RoomCard({ room, onClick, formatAmenity }) {
                         ))}
                     </div>
                 )}
+
+                {/* Favorite heart — top left corner */}
+                <div className="absolute top-4 left-4 z-20">
+                    <FavoriteButton roomId={room.id} size="sm" />
+                </div>
 
                 {/* Availability badge overlay */}
                 <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-[10px] font-semibold border backdrop-blur-md shadow-sm tracking-wide ${availabilityColor}`}>

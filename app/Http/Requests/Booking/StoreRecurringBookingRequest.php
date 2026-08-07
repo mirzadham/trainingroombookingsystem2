@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Booking;
 
+use App\Rules\WithinRoomCapacity;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRecurringBookingRequest extends FormRequest
@@ -21,7 +22,7 @@ class StoreRecurringBookingRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
-            'attendees' => 'required|integer|min:1',
+            'attendees' => ['required', 'integer', 'min:1', new WithinRoomCapacity],
             'phone' => 'required|string|max:20',
             'weeks' => "required|integer|min:2|max:{$maxWeeks}",
         ];

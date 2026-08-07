@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\RoomBlackout;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -37,7 +38,7 @@ class BlackoutController extends Controller
 
     /**
      * POST /api/admin/blackouts
-     * Create a new blackout period for a room.
+     * Create a new blackout period for a room (one-off or recurring).
      */
     public function store(Request $request): JsonResponse
     {
@@ -47,6 +48,10 @@ class BlackoutController extends Controller
             'description' => 'nullable|string|max:1000',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'recurrence' => 'nullable|in:none,daily,weekly,monthly',
+            'recurrence_end_date' => 'required_if:recurrence,weekly|required_if:recurrence,daily|required_if:recurrence,monthly|nullable|date|after_or_equal:start_time',
+            'recurrence_weekdays' => 'nullable|array',
+            'recurrence_weekdays.*' => 'in:mon,tue,wed,thu,fri,sat,sun',
         ]);
 
         $user = $request->user();
@@ -59,6 +64,21 @@ class BlackoutController extends Controller
             ]);
         }
 
+        $recurrence = $validated['recurrence'] ?? 'none';
+
+        // A recurring blackout must have an end date
+        if ($recurrence !== 'none' && empty($validated['recurrence_end_date'])) {
+            throw ValidationException::withMessages([
+                'recurrence_end_date' => 'A repeat end date is required for recurring blackouts.',
+            ]);
+        }
+
+        // Weekly repeats need at least one weekday selected (defaults to the start day)
+        $weekdays = $validated['recurrence_weekdays'] ?? null;
+        if ($recurrence === 'weekly' && empty($weekdays)) {
+            $weekdays = [strtolower(Carbon::parse($validated['start_time'])->format('D'))];
+        }
+
         $blackout = RoomBlackout::create([
             'room_id' => $validated['room_id'],
             'title' => $validated['title'],
@@ -66,6 +86,9 @@ class BlackoutController extends Controller
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'created_by' => $user->id,
+            'recurrence' => $recurrence,
+            'recurrence_end_date' => $recurrence !== 'none' ? $validated['recurrence_end_date'] : null,
+            'recurrence_weekdays' => $recurrence === 'weekly' ? $weekdays : null,
         ]);
 
         return response()->json([

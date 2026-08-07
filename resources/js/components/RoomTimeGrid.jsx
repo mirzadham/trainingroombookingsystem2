@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { ArrowLeft, Clock, Calendar as CalendarIcon, BellPlus, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import AuthPromptModal from './AuthPromptModal';
+import * as api from '../services/api';
 
 /**
  * Generates an array of all half-hour slots from 07:00 to 19:00 (7 AM - 7 PM).
@@ -38,6 +40,30 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
     const [startTime, setStartTime] = useState(null);
     const [duration, setDuration] = useState(null); // in minutes (30, 60, 90, etc.)
 
+    // Waitlist mode state
+    const [waitlistMode, setWaitlistMode] = useState(false);
+    const [waitlistError, setWaitlistError] = useState('');
+    const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+    const [waitlistJoining, setWaitlistJoining] = useState(false);
+
+    const waitlistMutation = useMutation({
+        mutationFn: (payload) => api.joinWaitlist(payload),
+        onSuccess: () => {
+            setWaitlistSuccess(true);
+            setWaitlistJoining(false);
+        },
+        onError: (err) => {
+            const errors = err.response?.data?.errors;
+            setWaitlistError(errors ? Object.values(errors).flat().join(' ') : (err.response?.data?.message || 'Failed to join the waitlist.'));
+            setWaitlistJoining(false);
+        },
+    });
+
+    const hasOccupiedSlots = useMemo(() => {
+        if (!timelineSlots) return false;
+        return timelineSlots.some((s) => s.status === 'occupied');
+    }, [timelineSlots]);
+
     // Determine availability of each of the 24 slots based on the full timeline.
     // timelineSlots is an array of 30-min slots from backend. Usually 00:00 to 23:30 or similar.
     // For each slot in ALL_SLOTS, we check if it is 'available'.
@@ -57,7 +83,11 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
     };
 
     const handleStartTimeSelect = (slot) => {
-        if (getSlotStatus(slot.time) === 'occupied') return;
+        const isOccupied = getSlotStatus(slot.time) === 'occupied';
+
+        // Normal booking mode: occupied slots cannot be selected.
+        if (isOccupied && !waitlistMode) return;
+
         setStartTime(slot.time);
         setDuration(null);
         setStep(2);
@@ -76,8 +106,9 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
         for (let i = startIndex; i < ALL_SLOTS.length; i++) {
             const currentSlot = ALL_SLOTS[i];
 
-            // If the slot itself is occupied, we cannot stretch duration into it
-            if (getSlotStatus(currentSlot.time) === 'occupied') {
+            // In booking mode, an occupied slot caps the duration. In waitlist
+            // mode we allow stretching across occupied slots.
+            if (!waitlistMode && getSlotStatus(currentSlot.time) === 'occupied') {
                 break;
             }
 
@@ -104,10 +135,41 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
             });
         }
         return durations;
-    }, [startTime, timelineSlots]);
+    }, [startTime, timelineSlots, waitlistMode]);
 
     const handleDurationSelect = (dur) => {
         setDuration(dur);
+    };
+
+    const handleJoinWaitlist = () => {
+        if (!startTime || !duration) return;
+
+        if (!isAuthenticated) {
+            // Preserve the selection so the user can come back after login
+            setPendingRedirectUrl(`/rooms/${room.id}?date=${date}${endDate ? `&end_date=${endDate}` : ''}${attendees ? `&attendees=${attendees}` : ''}`);
+            setShowAuthModal(true);
+            return;
+        }
+
+        setWaitlistError('');
+        setWaitlistJoining(true);
+        setWaitlistSuccess(false);
+
+        waitlistMutation.mutate({
+            room_id: room.id,
+            start_time: `${date} ${startTime}:00`,
+            end_time: `${date} ${duration.endTimeStr}:00`,
+            attendees: attendees ? parseInt(attendees, 10) : null,
+        });
+    };
+
+    const toggleWaitlistMode = () => {
+        setWaitlistMode((prev) => !prev);
+        setStep(1);
+        setStartTime(null);
+        setDuration(null);
+        setWaitlistError('');
+        setWaitlistSuccess(false);
     };
 
     const handleBookNow = () => {
@@ -153,7 +215,9 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
                         {step === 1 ? '1. Select Start Time' : '2. Select Duration'}
                     </h3>
                     <p className="text-xs text-slate-500">
-                        {step === 1 ? 'Choose when your meeting begins' : `Starting at ${ALL_SLOTS.find(s => s.time === startTime)?.label}`}
+                        {waitlistMode
+                            ? (step === 1 ? 'Pick the slot you want — even if it is taken' : `Waiting on ${ALL_SLOTS.find(s => s.time === startTime)?.label}`)
+                            : (step === 1 ? 'Choose when your meeting begins' : `Starting at ${ALL_SLOTS.find(s => s.time === startTime)?.label}`)}
                     </p>
                     {endDate && (
                         <p className="text-[10px] text-mimos-600 font-semibold mt-0.5 animate-pulse">
@@ -170,17 +234,20 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
                         {ALL_SLOTS.map((slot, i) => {
                             const status = getSlotStatus(slot.time);
                             const isOccupied = status === 'occupied';
+                            const selectable = waitlistMode || !isOccupied;
 
                             return (
                                 <button
                                     key={i}
                                     onClick={() => handleStartTimeSelect(slot)}
-                                    disabled={isOccupied}
+                                    disabled={!selectable}
                                     className={`
                                         py-2.5 rounded-xl text-xs font-medium transition-all border
-                                        ${isOccupied
+                                        ${!selectable
                                             ? 'bg-slate-50 border-slate-100 text-slate-400 cursor-not-allowed opacity-60'
-                                            : 'bg-white border-slate-200 text-slate-700 hover:border-mimos-500 hover:text-mimos-600 hover:shadow-sm cursor-pointer'
+                                            : isOccupied && waitlistMode
+                                                ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-400 hover:shadow-sm cursor-pointer'
+                                                : 'bg-white border-slate-200 text-slate-700 hover:border-mimos-500 hover:text-mimos-600 hover:shadow-sm cursor-pointer'
                                         }
                                     `}
                                 >
@@ -214,20 +281,67 @@ export default function RoomTimeGrid({ room, date, endDate, attendees, timelineS
             </div>
 
             {/* Footer Action */}
-            <div className="p-4 border-t border-slate-200 bg-white">
-                <button
-                    onClick={handleBookNow}
-                    disabled={step === 1 || !duration}
-                    className={`
-                        w-full py-3 rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2
-                        ${step === 2 && duration
-                            ? 'bg-mimos-500 hover:bg-mimos-600 text-white shadow-lg shadow-mimos-500/25 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
-                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        }
-                    `}
-                >
-                    Book Now
-                </button>
+            <div className="p-4 border-t border-slate-200 bg-white space-y-3">
+                {waitlistError && (
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-xs font-medium">
+                        {waitlistError}
+                    </div>
+                )}
+
+                {waitlistSuccess && (
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                        You are on the waitlist! We will email you if this slot becomes available.
+                    </div>
+                )}
+
+                {waitlistMode ? (
+                    <button
+                        onClick={handleJoinWaitlist}
+                        disabled={step === 1 || !duration || waitlistJoining}
+                        className={`
+                            w-full py-3 rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2
+                            ${step === 2 && duration && !waitlistJoining
+                                ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 cursor-pointer'
+                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            }
+                        `}
+                    >
+                        {waitlistJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : <BellPlus className="w-4 h-4" />}
+                        Join Waitlist
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleBookNow}
+                        disabled={step === 1 || !duration}
+                        className={`
+                            w-full py-3 rounded-xl text-sm font-semibold transition-all flex justify-center items-center gap-2
+                            ${step === 2 && duration
+                                ? 'bg-mimos-500 hover:bg-mimos-600 text-white shadow-lg shadow-mimos-500/25 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
+                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            }
+                        `}
+                    >
+                        Book Now
+                    </button>
+                )}
+
+                {hasOccupiedSlots && (
+                    <button
+                        onClick={toggleWaitlistMode}
+                        className={`w-full text-xs font-semibold py-2 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                            waitlistMode
+                                ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                : 'text-violet-600 hover:text-violet-700 hover:bg-violet-50'
+                        }`}
+                    >
+                        {waitlistMode ? (
+                            <>← Switch back to normal booking</>
+                        ) : (
+                            <><BellPlus className="w-3.5 h-3.5" /> Slot taken? Join the waitlist</>
+                        )}
+                    </button>
+                )}
             </div>
 
             {/* Auth Gate Modal Popup */}

@@ -49,7 +49,7 @@ class BookingService
         $baseRef = Booking::generateUniqueReference();
         $index = 1;
 
-        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration, $baseRef, &$index) {
+        $bookings = DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration, $baseRef, &$index) {
             // Iterate inclusive from start_date to end_date
             for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
                 // Build MYT datetimes (local time = clock-face hours from booking config)
@@ -197,7 +197,47 @@ class BookingService
         ]);
         $this->notificationService->sendBookingNotification($booking, 'cancelled', $oldStatus);
 
+        // An approved slot has been freed — let waitlisted users know
+        if ($oldStatus === BookingStatus::Approved) {
+            app(WaitlistService::class)->notifyForFreedSlot($booking);
+        }
+
         return $booking->fresh(['room.location', 'user']);
+    }
+
+    /**
+     * Cancel a recurring booking series.
+     *
+     * By default cancels the given instance and all future occurrences
+     * (future_only = true). Pass false to cancel the entire series.
+     */
+    public function cancelSeries(Booking $booking, User $user, bool $futureOnly = true): Collection
+    {
+        $cancelled = collect();
+
+        if (! $booking->isRecurring()) {
+            // Not a series — behave like a normal single cancellation.
+            return $cancelled->push($this->cancel($booking, $user));
+        }
+
+        $query = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
+            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
+            ->orderBy('start_time');
+
+        if ($futureOnly) {
+            $query->where('start_time', '>=', $booking->start_time);
+        }
+
+        foreach ($query->get() as $instance) {
+            // Defence in depth: never touch instances owned by someone else.
+            if ($instance->user_id !== $user->id && ! $user->isAdmin()) {
+                continue;
+            }
+
+            $cancelled->push($this->cancel($instance, $user));
+        }
+
+        return $cancelled;
     }
 
     /**
@@ -270,8 +310,7 @@ class BookingService
 
         // Batch fetch blackouts for this room within the outer boundaries
         $blackouts = RoomBlackout::where('room_id', $data['room_id'])
-            ->where('start_time', '<', $seriesEnd)
-            ->where('end_time', '>', $seriesStart)
+            ->overlapping($seriesStart, $seriesEnd)
             ->get();
 
         // Pre-validate all occurrences
@@ -297,9 +336,9 @@ class BookingService
                 ]);
             }
 
-            // In-memory blackout overlap check
+            // In-memory blackout overlap check (handles recurring patterns)
             $blackout = $blackouts->first(function ($bo) use ($weekStart, $weekEnd) {
-                return $bo->start_time < $weekEnd && $bo->end_time > $weekStart;
+                return $bo->overlaps($weekStart, $weekEnd);
             });
 
             if ($blackout) {
@@ -466,9 +505,9 @@ class BookingService
         $end = Carbon::parse($data['end_time']);
 
         $blackout = RoomBlackout::where('room_id', $data['room_id'])
-            ->where('start_time', '<', $end)
-            ->where('end_time', '>', $start)
-            ->first();
+            ->overlapping($start, $end)
+            ->get()
+            ->first(fn (RoomBlackout $b) => $b->overlaps($start, $end));
 
         if ($blackout) {
             $blackoutStart = Carbon::parse($blackout->start_time)->format('M j, Y g:i A');

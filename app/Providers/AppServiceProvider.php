@@ -48,6 +48,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('auth-reset-password', fn (Request $request) => Limit::perMinutes(10, 5)->by($request->ip()));
         RateLimiter::for('auth-invitations', fn (Request $request) => Limit::perMinutes(10, 5)->by($request->ip()));
 
+        // Waitlist join attempts are keyed per user (authenticated endpoint)
+        // to prevent spam entries while allowing legitimate use.
+        RateLimiter::for('waitlist', fn (Request $request) => Limit::perMinute(10)->by('user:'.($request->user()?->id ?? $request->ip())));
+
         // Disable default {data: ...} wrapping on API Resources
         // to maintain backward compatibility with the existing frontend.
         JsonResource::withoutWrapping();

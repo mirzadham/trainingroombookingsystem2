@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Booking;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class CalendarExportService
 {
@@ -54,6 +55,55 @@ class CalendarExportService
             'END:VEVENT',
             'END:VCALENDAR',
         ];
+
+        return implode("\r\n", $lines)."\r\n";
+    }
+
+    /**
+     * Generate a multi-event iCalendar feed for a set of bookings.
+     *
+     * Used by the per-user calendar subscription (webcal://) endpoint.
+     * Each event carries a stable UID so calendar clients can sync
+     * updates/cancellations across refreshes.
+     */
+    public function generateFeed(Collection $bookings): string
+    {
+        $now = Carbon::now('UTC')->format('Ymd\THis\Z');
+
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//MIMOS Academy//Training Room Booking System//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'X-WR-CALNAME:MIMOS Academy Room Bookings',
+            'X-WR-TIMEZONE:Asia/Kuala_Lumpur',
+        ];
+
+        foreach ($bookings as $booking) {
+            $booking->loadMissing(['room.location', 'user']);
+
+            $uid = "booking-{$booking->id}@mimos-academy";
+            $dtStart = $booking->start_time->copy()->setTimezone('UTC')->format('Ymd\THis\Z');
+            $dtEnd = $booking->end_time->copy()->setTimezone('UTC')->format('Ymd\THis\Z');
+
+            $summary = $this->escapeIcsText($booking->title);
+            $location = $this->buildLocation($booking);
+            $description = $this->buildDescription($booking);
+
+            $lines[] = 'BEGIN:VEVENT';
+            $lines[] = "UID:{$uid}";
+            $lines[] = "DTSTAMP:{$now}";
+            $lines[] = "DTSTART:{$dtStart}";
+            $lines[] = "DTEND:{$dtEnd}";
+            $lines[] = "SUMMARY:{$summary}";
+            $lines[] = "LOCATION:{$location}";
+            $lines[] = $this->foldLine("DESCRIPTION:{$description}");
+            $lines[] = 'STATUS:CONFIRMED';
+            $lines[] = 'END:VEVENT';
+        }
+
+        $lines[] = 'END:VCALENDAR';
 
         return implode("\r\n", $lines)."\r\n";
     }

@@ -14,3 +14,9 @@ export const getLocations = () =>
 
 export const getCalendarEvents = (params) =>
     api.get('/calendar', { params }).then(r => r.data);
+
+export const getCalendarSubscription = () =>
+    api.get('/calendar/subscription').then(r => r.data);
+
+export const regenerateCalendarSubscription = () =>
+    api.post('/calendar/subscription/regenerate').then(r => r.data);

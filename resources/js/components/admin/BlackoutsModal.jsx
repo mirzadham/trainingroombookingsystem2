@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Calendar, Clock, Trash2, Plus, AlertCircle, Loader2, CalendarOff } from 'lucide-react';
+import { X, Calendar, Clock, Trash2, Plus, AlertCircle, Loader2, CalendarOff, Repeat } from 'lucide-react';
 import * as api from '../../services/api';
 
 export default function BlackoutsModal({ room, onClose }) {
@@ -9,6 +9,9 @@ export default function BlackoutsModal({ room, onClose }) {
     const [description, setDescription] = useState('');
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+    const [recurrence, setRecurrence] = useState('none');
+    const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
+    const [recurrenceWeekdays, setRecurrenceWeekdays] = useState([]);
     const [formError, setFormError] = useState('');
 
     // Fetch blackouts for the selected room
@@ -28,6 +31,9 @@ export default function BlackoutsModal({ room, onClose }) {
             setDescription('');
             setStartTime('');
             setEndTime('');
+            setRecurrence('none');
+            setRecurrenceEndDate('');
+            setRecurrenceWeekdays([]);
             setFormError('');
         },
         onError: (err) => {
@@ -73,12 +79,26 @@ export default function BlackoutsModal({ room, onClose }) {
             return;
         }
 
+        // Recurring blackouts need a repeat end date
+        if (recurrence !== 'none' && !recurrenceEndDate) {
+            setFormError('Please select a Repeat End Date for recurring blackouts.');
+            return;
+        }
+
+        if (recurrence === 'weekly' && recurrenceWeekdays.length === 0) {
+            setFormError('Please select at least one weekday for weekly blackouts.');
+            return;
+        }
+
         createMutation.mutate({
             room_id: room.id,
             title: title.trim(),
             description: description.trim() || null,
             start_time: startTime.replace('T', ' ') + ':00', // Convert to YYYY-MM-DD HH:MM:SS format
             end_time: endTime.replace('T', ' ') + ':00',
+            recurrence,
+            recurrence_end_date: recurrence !== 'none' ? recurrenceEndDate : null,
+            recurrence_weekdays: recurrence === 'weekly' ? recurrenceWeekdays : null,
         });
     };
 
@@ -176,6 +196,66 @@ export default function BlackoutsModal({ room, onClose }) {
                                 </div>
                             </div>
 
+                            {/* Recurrence options */}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wider">Repeat</label>
+                                <select
+                                    value={recurrence}
+                                    onChange={(e) => setRecurrence(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 cursor-pointer"
+                                >
+                                    <option value="none">Does not repeat</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+
+                            {recurrence !== 'none' && (
+                                <div className="space-y-4 p-4 bg-mimos-50/40 border border-mimos-100 rounded-xl animate-in fade-in duration-300">
+                                    {recurrence === 'weekly' && (
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">Repeat On</label>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day) => (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setRecurrenceWeekdays((prev) =>
+                                                                prev.includes(day)
+                                                                    ? prev.filter((d) => d !== day)
+                                                                    : [...prev, day]
+                                                            );
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border transition-all cursor-pointer select-none ${
+                                                            recurrenceWeekdays.includes(day)
+                                                                ? 'bg-mimos-500 text-white border-mimos-500 shadow-sm'
+                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-mimos-300'
+                                                        }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-600 mb-1 uppercase tracking-wider">Repeat End Date *</label>
+                                        <input
+                                            type="date"
+                                            value={recurrenceEndDate}
+                                            onChange={(e) => setRecurrenceEndDate(e.target.value)}
+                                            min={startTime ? startTime.slice(0, 10) : undefined}
+                                            required
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 cursor-pointer"
+                                        />
+                                        <p className="text-[10px] text-slate-400 mt-1 font-medium">The last day this blackout will apply.</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="pt-2">
                                 <button
                                     type="submit"
@@ -245,6 +325,18 @@ export default function BlackoutsModal({ room, onClose }) {
                                                     <Clock className="w-3.5 h-3.5 text-slate-400" />
                                                     <span>End: {formatDate(bo.end_time)}</span>
                                                 </div>
+                                                {bo.recurrence && bo.recurrence !== 'none' && (
+                                                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-mimos-600 mt-1">
+                                                        <Repeat className="w-3.5 h-3.5" />
+                                                        <span>
+                                                            Repeats {bo.recurrence === 'daily' ? 'daily' : bo.recurrence === 'weekly' ? 'weekly' : 'monthly'}
+                                                            {bo.recurrence === 'weekly' && Array.isArray(bo.recurrence_weekdays) && bo.recurrence_weekdays.length > 0
+                                                                ? ` (${bo.recurrence_weekdays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ')})`
+                                                                : ''}
+                                                            {bo.recurrence_end_date ? ` until ${new Date(bo.recurrence_end_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                             {bo.creator && (
                                                 <div className="mt-2.5 text-[10px] text-slate-400">

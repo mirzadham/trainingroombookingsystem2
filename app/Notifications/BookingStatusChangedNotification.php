@@ -217,6 +217,34 @@ class BookingStatusChangedNotification extends Notification implements ShouldQue
                     ->line('Thank you for your understanding and cooperation.')
                     ->action('Search Alternative Rooms', url('/'));
                 break;
+
+            case 'expired':
+                $reason = $this->booking->rejection_reason ?? 'No reason provided';
+                $mail->subject("Booking Request Expired – {$roomName} | {$this->booking->reference_no}")
+                    ->greeting("Dear {$notifiable->name},")
+                    ->line('Your pending training room booking request has expired because it was not answered by the administrative team within the allowed time.')
+                    ->line('')
+                    ->line('**Expired Booking Request Details:**')
+                    ->line("- **Booking Reference:** {$this->booking->reference_no}")
+                    ->line("- **Room Requested:** {$roomName} / {$locationName}")
+                    ->line("- **Date Requested:** {$dateFormatted}")
+                    ->line("- **Time Requested:** {$timeFormatted}")
+                    ->line('')
+                    ->line('**Reason:**')
+                    ->line("> {$reason}")
+                    ->line('')
+                    ->line('You are welcome to submit a new booking request.');
+
+                $mail->line('')
+                    ->line('For further assistance, please contact:');
+                foreach ($contactEmails as $email) {
+                    $mail->line("- {$email}");
+                }
+
+                $mail->line('')
+                    ->line('We apologise for the inconvenience.')
+                    ->action('Submit a New Booking', url('/'));
+                break;
         }
 
         return $mail;
