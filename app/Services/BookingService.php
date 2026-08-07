@@ -49,7 +49,7 @@ class BookingService
         $baseRef = Booking::generateUniqueReference();
         $index = 1;
 
-        return DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration, $baseRef, &$index) {
+        $bookings = DB::transaction(function () use ($data, $user, $startDate, $endDate, $timeStart, $timeEnd, $groupId, $bookings, $unavailableDates, $maxMultidayDuration, $baseRef, &$index) {
             // Iterate inclusive from start_date to end_date
             for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
                 // Build MYT datetimes (local time = clock-face hours from booking config)

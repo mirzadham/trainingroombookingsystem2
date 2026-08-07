@@ -398,6 +398,48 @@ class BookingTest extends TestCase
     }
 
     /**
+     * Test that multi-day bookings send the submitted notification
+     * (regression: the notification block was unreachable dead code).
+     */
+    public function test_multi_day_booking_sends_submitted_notification(): void
+    {
+        Notification::fake();
+
+        $startDate = now()->addDays(2);
+        $endDate = $startDate->copy()->addDays(1); // 2 days total (inclusive)
+        $startDateTime = $startDate->copy()->setTime(9, 0, 0);
+        $endDateTime = $startDate->copy()->setTime(17, 0, 0);
+
+        $this->actingAs($this->user)
+            ->postJson('/api/bookings', [
+                'room_id' => $this->room->id,
+                'title' => 'Multi-day Notification',
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+                'start_time' => $startDateTime->toDateTimeString(),
+                'end_time' => $endDateTime->toDateTimeString(),
+                'attendees' => 8,
+                'phone' => '+60123456789',
+            ])
+            ->assertStatus(201);
+
+        // Email notification sent to the requester
+        Notification::assertSentTo($this->user, BookingStatusChangedNotification::class);
+
+        // In-app notification record created for the first booking of the series
+        $this->assertDatabaseHas('user_notifications', [
+            'user_id' => $this->user->id,
+            'type' => 'submitted',
+        ]);
+
+        // Email delivery tracking row exists too
+        $this->assertDatabaseHas('booking_notifications', [
+            'user_id' => $this->user->id,
+            'type' => 'submitted',
+        ]);
+    }
+
+    /**
      * Test transaction atomicity in multi-day booking.
      */
     public function test_multi_day_booking_transaction_atomicity(): void
