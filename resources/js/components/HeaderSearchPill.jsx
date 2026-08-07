@@ -24,7 +24,8 @@ export default function HeaderSearchPill({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!date) return;
+        // Location and Date are required (parity with SearchBar)
+        if (!date || !location) return;
 
         const filters = {
             location_id: location || undefined,
@@ -48,6 +49,7 @@ export default function HeaderSearchPill({
                     onChange={setLocation}
                     locations={locations}
                     variant="pill"
+                    required
                 />
             </div>
 
@@ -68,6 +70,7 @@ export default function HeaderSearchPill({
                     min={new Date().toISOString().split('T')[0]}
                     variant="pill"
                     placeholder="Date"
+                    required
                 />
             </div>
 
