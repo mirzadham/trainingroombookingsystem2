@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { 
     History, Search, Filter, Clock, Globe, User as UserIcon, Calendar, 
     ArrowRight, CheckCircle, XCircle, AlertTriangle, FileText, ChevronDown, 
-    ChevronUp, RefreshCw, Loader2, Eye
+    ChevronUp, RefreshCw, Loader2, Eye, Download
 } from 'lucide-react';
 import * as api from '../../services/api';
+import { downloadBlob } from '../../utils/download';
 
 const ACTION_CONFIGS = {
     created: {
@@ -52,6 +53,7 @@ export default function AuditLogs() {
     const [searchVal, setSearchVal] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedLogId, setExpandedLogId] = useState(null);
+    const [exporting, setExporting] = useState(false);
 
     // Fetch Audit Logs
     const { data: logData, isLoading, isFetching, error, refetch } = useQuery({
@@ -76,6 +78,21 @@ export default function AuditLogs() {
 
     const toggleExpandLog = (id) => {
         setExpandedLogId(expandedLogId === id ? null : id);
+    };
+
+    const handleExportCsv = async () => {
+        setExporting(true);
+        try {
+            const blob = await api.exportAdminAuditLogs({
+                action: actionFilter || undefined,
+                search: searchQuery || undefined,
+            });
+            downloadBlob(blob, `audit_logs_${new Date().toISOString().slice(0, 10)}.csv`);
+        } catch (err) {
+            alert('Export failed. Please try again.');
+        } finally {
+            setExporting(false);
+        }
     };
 
     const formatDateTime = (dateStr) => {
@@ -158,6 +175,14 @@ export default function AuditLogs() {
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">Review operational actions, administrator decisions, and changes across all room reservations</p>
                 </div>
+                <button 
+                    onClick={handleExportCsv}
+                    disabled={exporting}
+                    className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-xs font-semibold rounded-xl transition cursor-pointer self-start sm:self-auto disabled:opacity-50"
+                >
+                    {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                    Export CSV
+                </button>
                 <button 
                     onClick={() => refetch()}
                     disabled={isFetching}

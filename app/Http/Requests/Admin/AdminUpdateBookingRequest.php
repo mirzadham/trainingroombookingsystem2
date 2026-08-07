@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\WithinRoomCapacity;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AdminUpdateBookingRequest extends FormRequest
@@ -19,7 +20,7 @@ class AdminUpdateBookingRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'start_time' => 'sometimes|date',
             'end_time' => 'sometimes|date|after:start_time',
-            'attendees' => 'sometimes|integer|min:1',
+            'attendees' => ['sometimes', 'integer', 'min:1', new WithinRoomCapacity],
             'phone' => 'sometimes|required|string|max:20',
         ];
     }

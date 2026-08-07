@@ -16,6 +16,14 @@ A premium, Airbnb-inspired single-page application (SPA) for booking training ro
 - **Modern Authentication Flow**: Clean, split-screen login interfaces for both standard users and administrators, strictly adhering to the MIMOS Academy visual identity.
 - **Admin Dashboard**: A comprehensive management portal for administrators to oversee room inventory, monitor bookings, handle approvals, and generate system reports.
 - **Role-Based Access Control (RBAC)**: Secure separation of concerns between public users and administrators, powered by Laravel Sanctum API authentication.
+- **Booking Reminders & Auto-Expiry**: Scheduled jobs email users 24h before an approved booking and auto-reject pending requests left unanswered for 7 days (configurable via `BOOKING_PENDING_EXPIRY_DAYS`).
+- **Waitlist**: Join a waitlist for a taken slot and get notified by email + in-app when it frees up.
+- **Favorites / Saved Rooms**: Heart any room to save it for later; manage from a dedicated Favorites page.
+- **In-App Notification Centre**: Bell in the header with unread badge covering booking status changes, reminders, waitlist alerts and expiry notices.
+- **Recurring Series Management**: Cancel an entire recurring series (or from any occurrence onward) from your bookings or the admin panel.
+- **Recurring Blackouts**: Schedule daily / weekly / monthly blackout windows (with weekday selection) that automatically block availability, bookings and the admin calendar.
+- **CSV Exports**: One-click CSV download of bookings and audit logs (respecting current filters) for admins.
+- **Capacity Enforcement**: Attendees are validated against room capacity at both the request and service layers.
 
 ## 🛠 Tech Stack
 
@@ -103,6 +111,8 @@ Alternatively, if you are using **Laragon**, you can access the application via 
 ## 🗂 Project Structure
 
 - `app/` - Laravel backend models, controllers, and services.
+  - `app/Console/Commands/` - Scheduled maintenance commands (`bookings:send-reminders`, `bookings:expire-pending`, `waitlist:expire`).
+  - `app/Services/` - Domain services incl. ReminderService, PendingExpiryService, WaitlistService and ExportService.
 - `resources/js/` - React SPA frontend application.
   - `components/` - Reusable UI components (e.g., RoomDrawer, TimelineGrid).
   - `pages/` - Main route components (Home, SearchResults, Login, Dashboard).

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, AlertCircle, History, Plus } from 'lucide-react';
+import { CalendarCheck, AlertCircle, History, Plus, BellPlus, XCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 import EditBookingModal from '../components/EditBookingModal';
@@ -46,6 +46,7 @@ export default function MyBookings() {
     const [editingBooking, setEditingBooking] = useState(null);
     const [selectedBookingDetails, setSelectedBookingDetails] = useState(null);
     const [cancellingBookingId, setCancellingBookingId] = useState(null);
+    const [cancellingSeries, setCancellingSeries] = useState(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ['my-bookings', activeStatus, timeFilter, page],
@@ -56,6 +57,30 @@ export default function MyBookings() {
     const cancelMutation = useMutation({
         mutationFn: (id) => api.cancelBooking(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-bookings'] }),
+    });
+
+    const cancelSeriesMutation = useMutation({
+        mutationFn: (booking) => {
+            // Groups need the first occurrence's id; standalone series bookings use their own.
+            const id = booking.isGroup ? booking.occurrences?.[0]?.id : booking.id;
+            return api.cancelBookingSeries(id, false);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+            setCancellingSeries(null);
+        },
+    });
+
+    // Waitlist
+    const { data: waitlistEntries = [] } = useQuery({
+        queryKey: ['my-waitlist'],
+        queryFn: () => api.getMyWaitlist(),
+        enabled: isAuthenticated,
+    });
+
+    const leaveWaitlistMutation = useMutation({
+        mutationFn: (id) => api.leaveWaitlist(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-waitlist'] }),
     });
 
     const updateMutation = useMutation({
@@ -151,6 +176,60 @@ export default function MyBookings() {
                     <span className="hidden sm:inline">Book a Room</span>
                 </button>
             </div>
+
+            {/* My Waitlist panel */}
+            {waitlistEntries.length > 0 && (
+                <div className="mb-8 p-5 bg-violet-50/50 border border-violet-200/60 rounded-3xl">
+                    <div className="flex items-center gap-2.5 mb-4">
+                        <div className="p-2 bg-violet-100 rounded-xl">
+                            <BellPlus className="w-4 h-4 text-violet-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-semibold text-slate-900">My Waitlist</h2>
+                            <p className="text-[11px] text-slate-500">You will be notified when these slots become available</p>
+                        </div>
+                    </div>
+                    <div className="space-y-2.5">
+                        {waitlistEntries.map((entry) => (
+                            <div key={entry.id} className="flex items-center justify-between gap-3 bg-white/80 border border-violet-100 rounded-2xl px-4 py-3">
+                                <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-slate-800 truncate">{entry.room?.name}</div>
+                                    <div className="text-xs text-slate-500 font-medium mt-0.5">
+                                        {new Date(entry.start_time).toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                        {' '}
+                                        {new Date(entry.start_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} –{' '}
+                                        {new Date(entry.end_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                    </div>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[9px] uppercase font-semibold tracking-wider border mt-1.5 ${
+                                        entry.status === 'notified'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                            : 'bg-violet-50 text-violet-700 border-violet-200'
+                                    }`}>
+                                        {entry.status === 'notified' ? 'Slot Available — Book Now!' : 'Waiting'}
+                                    </span>
+                                </div>
+                                {entry.status === 'notified' ? (
+                                    <button
+                                        onClick={() => navigate(`/rooms/${entry.room_id}?date=${entry.start_time.slice(0, 10)}`)}
+                                        className="flex-shrink-0 px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer"
+                                    >
+                                        Book Now
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => leaveWaitlistMutation.mutate(entry.id)}
+                                        disabled={leaveWaitlistMutation.isPending}
+                                        className="flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 hover:border-red-200 text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                    >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        Leave
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 {/* Time filter segmented control */}
@@ -356,6 +435,7 @@ export default function MyBookings() {
                     onClose={() => setSelectedBookingDetails(null)}
                     onCancel={(id) => cancelMutation.mutate(id)}
                     onEdit={setEditingBooking}
+                    onCancelSeries={setCancellingSeries}
                     isActionPending={cancelMutation.isPending}
                 />
             )}
@@ -375,6 +455,20 @@ export default function MyBookings() {
                     });
                 }}
                 onClose={() => setCancellingBookingId(null)}
+            />
+            {/* Series Cancellation Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!cancellingSeries}
+                title="Cancel Entire Series?"
+                message="This will cancel ALL remaining bookings in this recurring series, including the one you are viewing. Past occurrences are not affected. This action is permanent and cannot be undone."
+                confirmText="Yes, Cancel Series"
+                cancelText="No, Keep Series"
+                variant="danger"
+                isLoading={cancelSeriesMutation.isPending}
+                onConfirm={() => {
+                    if (cancellingSeries) cancelSeriesMutation.mutate(cancellingSeries);
+                }}
+                onClose={() => setCancellingSeries(null)}
             />
         </div>
     );

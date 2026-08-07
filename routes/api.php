@@ -1,16 +1,21 @@
 <?php
 
+use App\Http\Controllers\Api\AdminCalendarController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminExportController;
 use App\Http\Controllers\Api\AdminInvitationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\BlackoutController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CalendarController;
+use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\UserManagementController;
+use App\Http\Controllers\Api\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,7 +67,28 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('bookings', BookingController::class);
     Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+    Route::post('/bookings/{booking}/cancel-series', [BookingController::class, 'cancelSeries']);
     Route::post('/bookings/recurring', [BookingController::class, 'storeRecurring']);
+
+    // Waitlist
+    Route::get('/waitlist', [WaitlistController::class, 'index']);
+    Route::post('/waitlist', [WaitlistController::class, 'store'])->middleware('throttle:waitlist');
+    Route::delete('/waitlist/{waitlistEntry}', [WaitlistController::class, 'destroy']);
+
+    // Favorites
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites/{room}', [FavoriteController::class, 'store']);
+    Route::delete('/favorites/{room}', [FavoriteController::class, 'destroy']);
+
+    // In-app notification centre
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+
+    // Calendar subscription (private iCal feed)
+    Route::get('/calendar/subscription', [CalendarController::class, 'subscription']);
+    Route::post('/calendar/subscription/regenerate', [CalendarController::class, 'regenerate']);
 });
 
 // Admin endpoints
@@ -73,6 +99,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/bookings/batch-reject', [AdminController::class, 'batchReject']);
     Route::post('/bookings/{booking}/approve', [AdminController::class, 'approve']);
     Route::post('/bookings/{booking}/reject', [AdminController::class, 'reject']);
+    Route::post('/bookings/{booking}/attendance', [AdminController::class, 'markAttendance']);
     Route::post('/bookings/{booking}/cancel', [AdminController::class, 'cancelBooking']);
     Route::put('/bookings/{booking}', [AdminController::class, 'updateBooking']);
     Route::get('/dashboard', [AdminController::class, 'dashboard']);
@@ -105,7 +132,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/reports/peak-hours', [ReportController::class, 'peakHours']);
 
     // Admin Calendar View
-    Route::get('/calendar', [AdminController::class, 'calendar']);
+    Route::get('/calendar', [AdminCalendarController::class, 'index']);
+
+    // CSV Exports (defined before other bookings routes to avoid conflicts)
+    Route::get('/bookings/export', [AdminExportController::class, 'bookings']);
+    Route::get('/audit-logs/export', [AdminExportController::class, 'auditLogs']);
+    Route::post('/bookings/{booking}/cancel-series', [AdminController::class, 'cancelSeries']);
 });
 
 // Calendar (public, read-only)

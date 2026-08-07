@@ -28,11 +28,11 @@ class AvailabilityService
             return false;
         }
 
-        // Check for any overlapping room blackouts
+        // Check for any overlapping room blackouts (incl. recurring patterns)
         $hasBlackout = RoomBlackout::where('room_id', $roomId)
-            ->where('start_time', '<', $end)
-            ->where('end_time', '>', $start)
-            ->exists();
+            ->overlapping($start, $end)
+            ->get()
+            ->contains(fn (RoomBlackout $b) => $b->overlaps($start, $end));
 
         return ! $hasBlackout;
     }
@@ -81,10 +81,11 @@ class AvailabilityService
             ->pluck('room_id')
             ->toArray();
 
-        // Batch fetch overlapping blackouts for all candidate rooms
+        // Batch fetch overlapping blackouts (incl. recurring patterns) for all candidate rooms
         $overlappingBlackouts = RoomBlackout::whereIn('room_id', $roomIds)
-            ->where('start_time', '<', $end)
-            ->where('end_time', '>', $start)
+            ->overlapping($start, $end)
+            ->get()
+            ->filter(fn (RoomBlackout $b) => $b->overlaps($start, $end))
             ->pluck('room_id')
             ->toArray();
 
@@ -127,10 +128,9 @@ class AvailabilityService
             ->overlapping($dayStart, $dayEnd)
             ->get();
 
-        // Get all overlapping blackouts for these rooms in the range
+        // Get all overlapping blackouts (incl. recurring patterns) for these rooms in the range
         $blackouts = RoomBlackout::whereIn('room_id', $rooms->pluck('id'))
-            ->where('start_time', '<', $dayEnd)
-            ->where('end_time', '>', $dayStart)
+            ->overlapping($dayStart, $dayEnd)
             ->get();
 
         // Build grid data
@@ -166,7 +166,7 @@ class AvailabilityService
                         });
 
                         $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($currentStart, $currentEnd) {
-                            return Carbon::parse($bo->start_time) < $currentEnd && Carbon::parse($bo->end_time) > $currentStart;
+                            return $bo->overlaps($currentStart, $currentEnd);
                         });
 
                         if ($overlappingBooking || $overlappingBlackout) {
@@ -181,7 +181,7 @@ class AvailabilityService
                     });
 
                     $overlappingBlackout = $roomBlackouts->first(function ($bo) use ($slotStart, $slotEnd) {
-                        return Carbon::parse($bo->start_time) < $slotEnd && Carbon::parse($bo->end_time) > $slotStart;
+                        return $bo->overlaps($slotStart, $slotEnd);
                     });
 
                     $isOccupied = (bool) ($overlappingBooking || $overlappingBlackout);

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban, Search, ChevronDown, ChevronUp, CalendarDays, Building2, DoorOpen, RotateCcw } from 'lucide-react';
+import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban, Search, ChevronDown, ChevronUp, CalendarDays, Building2, DoorOpen, RotateCcw, Download } from 'lucide-react';
 import * as api from '../../services/api';
 import BookingCard from '../../components/BookingCard';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import { groupBookingsList } from '../../utils/bookingGrouping';
+import { downloadBlob } from '../../utils/download';
 import AdminBookingModal from '../../components/admin/AdminBookingModal';
 
 const STATUS_COLORS = {
@@ -33,6 +34,12 @@ export default function AdminBookings() {
     // Admin confirmation modal states
     const [approvingBookingId, setApprovingBookingId] = useState(null);
     const [showBatchApproveConfirm, setShowBatchApproveConfirm] = useState(false);
+
+    // Admin series cancellation state
+    const [cancellingSeries, setCancellingSeries] = useState(null);
+
+    // Export state
+    const [exporting, setExporting] = useState(false);
 
     // Advanced filter state
     const [showFilters, setShowFilters] = useState(false);
@@ -131,12 +138,47 @@ export default function AdminBookings() {
     });
 
     // Admin cancel mutation
+    const handleExportCsv = async () => {
+        setExporting(true);
+        try {
+            const exportParams = { ...queryParams };
+            delete exportParams.page;
+            const blob = await api.exportAdminBookings(exportParams);
+            downloadBlob(blob, `bookings_${new Date().toISOString().slice(0, 10)}.csv`);
+        } catch {
+            alert('Export failed. Please try again.');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const adminCancelSeriesMutation = useMutation({
+        mutationFn: (booking) => {
+            const id = booking.isGroup ? booking.occurrences?.[0]?.id : booking.id;
+            return api.adminCancelBookingSeries(id, false);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+            setCancellingSeries(null);
+            setSelectedBookingDetails(null);
+        },
+    });
+
     const adminCancelMutation = useMutation({
         mutationFn: ({ id, remarks }) => api.adminCancelBooking(id, remarks),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
             setCancellingId(null);
             setCancelRemarks('');
+        },
+    });
+
+    // Attendance marking
+    const markAttendanceMutation = useMutation({
+        mutationFn: ({ id, status }) => api.markBookingAttendance(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+            setSelectedBookingDetails(null);
         },
     });
 
@@ -271,6 +313,14 @@ export default function AdminBookings() {
                             {selectedIds.length === bookings.length ? 'Deselect All' : 'Select All Pending'}
                         </button>
                     )}
+                    <button
+                        onClick={handleExportCsv}
+                        disabled={exporting}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl transition cursor-pointer disabled:opacity-50"
+                    >
+                        {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        Export CSV
+                    </button>
                     <button
                         onClick={() => setShowAdminBookingModal(true)}
                         className="flex items-center gap-2 px-4 py-2 bg-mimos-600 hover:bg-mimos-700 text-white text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
@@ -773,9 +823,26 @@ export default function AdminBookings() {
                     onApprove={(id) => setApprovingBookingId(id)}
                     onReject={(id, reason) => rejectMutation.mutateAsync({ id, reason })}
                     onCancel={(id, remarks) => adminCancelMutation.mutateAsync({ id, remarks })}
-                    isActionPending={approveMutation.isPending || rejectMutation.isPending || adminCancelMutation.isPending}
+                    onCancelSeries={setCancellingSeries}
+                    onMarkAttendance={(booking, status) => markAttendanceMutation.mutate({ id: booking.id, status })}
+                    isActionPending={approveMutation.isPending || rejectMutation.isPending || adminCancelMutation.isPending || markAttendanceMutation.isPending}
                 />
             )}
+
+            {/* Admin Series Cancellation Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!cancellingSeries}
+                title="Cancel Entire Series?"
+                message="This will cancel ALL remaining bookings in this recurring series, including the one you are viewing. Past occurrences are not affected. The requester will be notified for each cancelled booking."
+                confirmText="Yes, Cancel Series"
+                cancelText="No, Keep Series"
+                variant="danger"
+                isLoading={adminCancelSeriesMutation.isPending}
+                onConfirm={() => {
+                    if (cancellingSeries) adminCancelSeriesMutation.mutate(cancellingSeries);
+                }}
+                onClose={() => setCancellingSeries(null)}
+            />
 
             {/* Admin Single Booking Approval Confirmation Modal */}
             <ConfirmationModal

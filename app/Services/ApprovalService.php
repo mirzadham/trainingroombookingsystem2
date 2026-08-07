@@ -181,7 +181,67 @@ class ApprovalService
         ]);
         $this->notificationService->sendBookingNotification($booking, 'admin_cancelled');
 
+        // An approved slot has been freed — let waitlisted users know
+        if ($oldStatus === BookingStatus::Approved) {
+            app(WaitlistService::class)->notifyForFreedSlot($booking);
+        }
+
         return $booking->fresh(['room.location', 'user', 'canceller']);
+    }
+
+    /**
+     * Admin marks a booking's attendance (attended / no-show).
+     *
+     * Only approved bookings that have already started can be marked.
+     * Re-marking is allowed (latest mark wins) and every change is audited.
+     */
+    public function markAttendance(Booking $booking, User $admin, string $status): Booking
+    {
+        $this->validateAdminAccess($booking, $admin);
+
+        if ($booking->status !== BookingStatus::Approved) {
+            throw ValidationException::withMessages([
+                'status' => 'Only approved bookings can be marked for attendance.',
+            ]);
+        }
+
+        if (! in_array($status, ['attended', 'no_show'], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'Attendance status must be attended or no_show.',
+            ]);
+        }
+
+        if ($booking->start_time->isFuture()) {
+            throw ValidationException::withMessages([
+                'start_time' => 'Attendance can only be marked once the booking has started.',
+            ]);
+        }
+
+        $before = $booking->attendance_status;
+
+        $booking->update([
+            'attendance_status' => $status,
+            'attendance_marked_by' => $admin->id,
+            'attendance_marked_at' => Carbon::now(),
+        ]);
+
+        $this->auditService->log($admin, $booking, 'attendance_marked', [
+            'before' => ['attendance_status' => $before],
+            'after' => ['attendance_status' => $status],
+        ]);
+
+        // Let the requester know when their booking was marked as a no-show.
+        if ($status === 'no_show') {
+            $this->notificationService->createInAppNotification(
+                $booking->user,
+                $booking,
+                'no_show',
+                "Your booking for {$booking->room->name} was marked as a no-show.",
+                ['room' => $booking->room->name]
+            );
+        }
+
+        return $booking->fresh(['room.location', 'user', 'attendanceMarker']);
     }
 
     /**

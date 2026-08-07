@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\RoomBlackout;
 use App\Models\User;
 use App\Notifications\BookingStatusChangedNotification;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -150,23 +151,32 @@ class BookingTest extends TestCase
     {
         config(['booking.same_day_advance_minutes' => 60]);
 
-        $start = now()->addMinutes(30); // 30 minutes from now (must be >= 60)
-        $end = $start->copy()->addMinutes(30);
+        // Freeze the clock at 2 PM so the computed slot is always inside
+        // operating hours (7 AM – 7 PM) regardless of when the suite runs.
+        Carbon::setTestNow(today()->setTime(14, 0, 0));
 
-        $response = $this->actingAs($this->user)
-            ->postJson('/api/bookings', [
-                'room_id' => $this->room->id,
-                'title' => 'Urgent Meeting',
-                'start_date' => $start->toDateString(),
-                'end_date' => $start->toDateString(),
-                'start_time' => $start->toDateTimeString(),
-                'end_time' => $end->toDateTimeString(),
-                'attendees' => 5,
-                'phone' => '+60123456789',
-            ]);
+        try {
+            $start = now()->addMinutes(30); // 30 minutes from now (must be >= 60)
+            $end = $start->copy()->addMinutes(30);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['start_time']);
+            $response = $this->actingAs($this->user)
+                ->postJson('/api/bookings', [
+                    'room_id' => $this->room->id,
+                    'title' => 'Urgent Meeting',
+                    'start_date' => $start->toDateString(),
+                    'end_date' => $start->toDateString(),
+                    'start_time' => $start->toDateTimeString(),
+                    'end_time' => $end->toDateTimeString(),
+                    'attendees' => 5,
+                    'phone' => '+60123456789',
+                ]);
+
+            $response->assertStatus(422)
+                ->assertJsonValidationErrors(['start_time']);
+        } finally {
+            // Always release the frozen clock so it cannot leak into other tests.
+            Carbon::setTestNow();
+        }
     }
 
     /**

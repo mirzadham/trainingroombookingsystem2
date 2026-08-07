@@ -17,3 +17,6 @@ export const cancelBooking = (id) =>
 
 export const createRecurringBooking = (data) =>
     api.post('/bookings/recurring', data).then(r => r.data);
+
+export const cancelBookingSeries = (id, futureOnly = true) =>
+    api.post(`/bookings/${id}/cancel-series`, { future_only: futureOnly }).then(r => r.data);

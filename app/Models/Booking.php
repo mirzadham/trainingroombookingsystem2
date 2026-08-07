@@ -55,12 +55,18 @@ class Booking extends Model
         'group_id',
         'approved_by',
         'approved_at',
+        'reminder_sent_at',
+        'attendance_status',
+        'attendance_marked_by',
+        'attendance_marked_at',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
         'approved_at' => 'datetime',
+        'reminder_sent_at' => 'datetime',
+        'attendance_marked_at' => 'datetime',
         'attendees' => 'integer',
         'status' => BookingStatus::class,
     ];
@@ -88,6 +94,11 @@ class Booking extends Model
     public function rejecter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function attendanceMarker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'attendance_marked_by');
     }
 
     /**

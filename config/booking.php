@@ -59,4 +59,22 @@ return [
 
     'max_duration_days' => 14,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pending Request Expiry
+    |--------------------------------------------------------------------------
+    */
+
+    // Pending bookings unanswered for this many days are auto-rejected.
+    'pending_expiry_days' => env('BOOKING_PENDING_EXPIRY_DAYS', 7),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Booking Reminders
+    |--------------------------------------------------------------------------
+    */
+
+    // Reminders are sent for approved bookings starting within this window.
+    'reminder_window_hours' => env('BOOKING_REMINDER_WINDOW_HOURS', 24),
+
 ];

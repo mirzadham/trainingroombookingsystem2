@@ -196,7 +196,45 @@ Please adhere to our structured Git branching strategy:
 
 ---
 
-## ❓ 7. Troubleshooting Common Issues
+## ⚙️ 7. Scheduled Jobs (Cron) — Production Requirement
+
+Three maintenance jobs keep the system self-cleaning. **They only run when the Laravel
+scheduler is triggered every minute**, so every server (including cPanel) must add this
+cron entry:
+
+```bash
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+| Job | Schedule | What it does |
+|---|---|---|
+| `bookings:send-reminders` | Hourly | Emails users whose approved booking starts within the reminder window (once per booking) |
+| `bookings:expire-pending` | Daily 00:30 | Auto-rejects pending requests unanswered for longer than `BOOKING_PENDING_EXPIRY_DAYS` |
+| `waitlist:expire` | Hourly | Cleans up waitlist entries whose slot has already passed |
+
+Each command can also be run manually at any time (e.g. for testing):
+
+```bash
+php artisan bookings:send-reminders
+php artisan bookings:expire-pending --days=7
+php artisan waitlist:expire
+```
+
+### Tuning the jobs (optional)
+
+Add these to your `.env` to override the defaults:
+
+```ini
+# Hours before a booking starts that reminder emails are sent.
+BOOKING_REMINDER_WINDOW_HOURS=24
+
+# Pending bookings unanswered for this many days are auto-rejected.
+BOOKING_PENDING_EXPIRY_DAYS=7
+```
+
+---
+
+## ❓ 8. Troubleshooting Common Issues
 
 - **Missing Storage Images**:  
   If room images do not display, ensure you ran `php artisan storage:link`.

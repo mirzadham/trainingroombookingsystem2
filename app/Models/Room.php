@@ -44,6 +44,11 @@ class Room extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
     /**
      * Scope: only active rooms
      */

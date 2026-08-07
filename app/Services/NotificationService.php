@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\BookingNotification;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Notifications\AdminBookingCancelledNotification;
 use App\Notifications\AdminNewBookingNotification;
 use App\Notifications\BookingStatusChangedNotification;
@@ -28,6 +29,9 @@ class NotificationService
             'status' => 'pending',
             'attempts' => 0,
         ]);
+
+        // In-app notification for the booking owner (notification centre)
+        $this->createInAppNotification($recipient, $booking, $type, $this->inAppMessageForType($type, $booking));
 
         try {
             $recipient->notify(new BookingStatusChangedNotification($booking, $type));
@@ -55,6 +59,38 @@ class NotificationService
         }
 
         return $notifRecord;
+    }
+
+    /**
+     * Create an in-app notification (notification centre) record.
+     */
+    public function createInAppNotification(User $user, ?Booking $booking, string $type, string $message, array $data = []): UserNotification
+    {
+        return UserNotification::create([
+            'user_id' => $user->id,
+            'booking_id' => $booking?->id,
+            'type' => $type,
+            'message' => $message,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Human-readable in-app message for booking status change types.
+     */
+    protected function inAppMessageForType(string $type, Booking $booking): string
+    {
+        $room = $booking->room?->name ?? 'the room';
+
+        return match ($type) {
+            'submitted' => "Your booking request for {$room} has been submitted and is awaiting approval.",
+            'approved' => "Your booking for {$room} has been approved.",
+            'rejected' => "Your booking request for {$room} was rejected.",
+            'cancelled' => "Your booking for {$room} has been cancelled.",
+            'admin_cancelled' => "An administrator cancelled your booking for {$room}.",
+            'expired' => "Your pending booking request for {$room} expired because it was not answered in time.",
+            default => 'Your booking status has changed.',
+        };
     }
 
     /**

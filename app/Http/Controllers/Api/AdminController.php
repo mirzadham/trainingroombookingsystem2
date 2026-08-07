@@ -11,8 +11,8 @@ use App\Http\Resources\BookingResource;
 use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\Room;
-use App\Models\RoomBlackout;
 use App\Models\User;
+use App\Rules\WithinRoomCapacity;
 use App\Services\ApprovalService;
 use App\Services\AuditService;
 use App\Services\AvailabilityService;
@@ -162,6 +162,84 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Booking cancelled successfully.',
+            'booking' => new BookingResource($booking),
+        ]);
+    }
+
+    /**
+     * POST /api/admin/bookings/{booking}/cancel-series
+     * Admin cancels a recurring series (this instance + future ones by default).
+     */
+    public function cancelSeries(Request $request, Booking $booking): JsonResponse
+    {
+        $this->authorize('cancel', $booking);
+
+        $request->validate([
+            'future_only' => 'nullable|boolean',
+            'remarks' => 'nullable|string|max:1000',
+        ]);
+
+        $futureOnly = $request->boolean('future_only', true);
+        $remarks = $request->input('remarks');
+
+        $cancelled = collect();
+
+        // Non-recurring booking → behave like a single admin cancellation.
+        if (! $booking->isRecurring()) {
+            $cancelled->push($this->approvalService->adminCancel(
+                $booking,
+                $request->user(),
+                $remarks ?: 'Cancelled by administrator.'
+            ));
+
+            return response()->json([
+                'message' => 'Booking cancelled successfully.',
+                'cancelled' => BookingResource::collection($cancelled),
+            ]);
+        }
+
+        $series = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
+            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
+            ->orderBy('start_time');
+
+        if ($futureOnly) {
+            $series->where('start_time', '>=', $booking->start_time);
+        }
+
+        foreach ($series->get() as $instance) {
+            $this->authorize('cancel', $instance);
+
+            if ($remarks) {
+                $cancelled->push($this->approvalService->adminCancel($instance, $request->user(), $remarks));
+            } else {
+                $cancelled->push($this->approvalService->adminCancel($instance, $request->user(), 'Cancelled as part of series cancellation.'));
+            }
+        }
+
+        return response()->json([
+            'message' => $cancelled->isEmpty()
+                ? 'No cancellable bookings found in this series.'
+                : "Cancelled {$cancelled->count()} booking(s) in the series.",
+            'cancelled' => BookingResource::collection($cancelled),
+        ]);
+    }
+
+    /**
+     * POST /api/admin/bookings/{booking}/attendance
+     * Admin marks a booking as attended or no-show (approved + started only).
+     */
+    public function markAttendance(Request $request, Booking $booking): JsonResponse
+    {
+        $this->authorize('cancel', $booking); // same location-access rules as other admin actions
+
+        $validated = $request->validate([
+            'status' => 'required|in:attended,no_show',
+        ]);
+
+        $booking = $this->approvalService->markAttendance($booking, $request->user(), $validated['status']);
+
+        return response()->json([
+            'message' => 'Attendance marked as '.$validated['status'].'.',
             'booking' => new BookingResource($booking),
         ]);
     }
@@ -367,7 +445,7 @@ class AdminController extends Controller
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'start_time' => 'required|string',
             'end_time' => 'required|string',
-            'attendees' => 'required|integer|min:1',
+            'attendees' => ['required', 'integer', 'min:1', new WithinRoomCapacity],
 
             // Booker details
             'booker_type' => 'required|in:registered,guest',
@@ -552,128 +630,6 @@ class AdminController extends Controller
             'message' => 'Booking created and approved successfully.',
             'bookings' => BookingResource::collection($createdBookings),
         ], 201);
-    }
-
-    /**
-     * GET /api/admin/calendar
-     * Fetch all bookings and blackouts for admin calendar view.
-     */
-    public function calendar(Request $request): JsonResponse
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'location_id' => 'nullable|exists:locations,id',
-            'room_id' => 'nullable|exists:rooms,id',
-            'status' => 'nullable|string',
-        ]);
-
-        $user = $request->user();
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
-
-        // 1. Query Bookings
-        $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
-            ->where('start_time', '>=', $startDate)
-            ->where('end_time', '<=', $endDate);
-
-        if ($user->isLocationAdmin()) {
-            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
-        }
-
-        if ($request->location_id) {
-            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
-        }
-        if ($request->room_id) {
-            $bookingQuery->where('room_id', $request->room_id);
-        }
-
-        if ($request->status && $request->status !== 'all') {
-            $statuses = explode(',', $request->status);
-            $bookingQuery->whereIn('status', $statuses);
-        } else {
-            // Default: show pending, approved, and cancelled bookings
-            $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
-        }
-
-        $bookings = $bookingQuery->orderBy('start_time')->get()->map(fn ($b) => [
-            'id' => $b->id,
-            'title' => $b->title,
-            'start' => $b->start_time->toIso8601String(),
-            'end' => $b->end_time->toIso8601String(),
-            'room' => $b->room->name,
-            'room_id' => $b->room_id,
-            'location' => $b->room->location->code,
-            'location_id' => $b->room->location_id,
-            'booked_by' => $b->user->name,
-            'booked_by_email' => $b->user->email,
-            'group_id' => $b->group_id,
-            'status' => $b->status->value,
-            'type' => 'booking',
-
-            // Re-map other fields required by BookingDetailsModal
-            'description' => $b->description,
-            'attendees' => $b->attendees,
-            'phone' => $b->phone,
-            'rejection_reason' => $b->rejection_reason,
-            'cancellation_reason' => $b->cancellation_reason,
-            'user' => [
-                'id' => $b->user->id,
-                'name' => $b->user->name,
-                'email' => $b->user->email,
-            ],
-            'room_relation' => [
-                'id' => $b->room->id,
-                'name' => $b->room->name,
-                'location' => [
-                    'id' => $b->room->location->id,
-                    'code' => $b->room->location->code,
-                    'name' => $b->room->location->name,
-                    'address' => $b->room->location->address,
-                ],
-            ],
-        ]);
-
-        $events = collect($bookings);
-
-        // 2. Query Blackouts (if blackout is requested or status is all/default)
-        if (! $request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
-            $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name,email'])
-                ->where('start_time', '>=', $startDate)
-                ->where('end_time', '<=', $endDate);
-
-            if ($user->isLocationAdmin()) {
-                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
-            }
-
-            if ($request->location_id) {
-                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
-            }
-            if ($request->room_id) {
-                $blackoutQuery->where('room_id', $request->room_id);
-            }
-
-            $blackouts = $blackoutQuery->orderBy('start_time')->get()->map(fn ($bo) => [
-                'id' => 'blackout-'.$bo->id,
-                'blackout_id' => $bo->id,
-                'title' => '[Blackout] '.$bo->title,
-                'start' => $bo->start_time->toIso8601String(),
-                'end' => $bo->end_time->toIso8601String(),
-                'room' => $bo->room->name,
-                'room_id' => $bo->room_id,
-                'location' => $bo->room->location->code,
-                'location_id' => $bo->room->location_id,
-                'booked_by' => $bo->creator->name,
-                'booked_by_email' => $bo->creator->email,
-                'status' => 'blackout',
-                'type' => 'blackout',
-                'description' => $bo->description,
-            ]);
-
-            $events = $events->concat($blackouts);
-        }
-
-        return response()->json($events);
     }
 
     /**
