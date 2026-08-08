@@ -184,6 +184,61 @@ export default function AdminCalendar() {
         });
     };
 
+    // Convert a calendar event into the shape BookingDetailsModal expects.
+    // Calendar events use `start`/`end` + flat `room` (string) for the grid,
+    // while the modal reads `start_time`/`end_time` + nested `room` object.
+    const toModalBooking = (evt) => {
+        const rawEvents = evt._rawEvents || [evt];
+
+        const base = {
+            id: evt.id,
+            reference_no: evt.reference_no,
+            title: evt.title,
+            description: evt.description,
+            start_time: evt.start_time || evt.start,
+            end_time: evt.end_time || evt.end,
+            attendees: evt.attendees,
+            phone: evt.phone,
+            status: evt.status,
+            rejection_reason: evt.rejection_reason,
+            cancellation_reason: evt.cancellation_reason,
+            attendance_status: evt.attendance_status,
+            attendance_marked_at: evt.attendance_marked_at,
+            room: evt.room_relation || { name: evt.room, location: null },
+            user: evt.user,
+        };
+
+        // Series (consecutive multi-day) — grouped by group_id in the events memo
+        if (rawEvents.length > 1) {
+            const occurrences = [...rawEvents]
+                .sort((a, b) => new Date(a.start_time || a.start) - new Date(b.start_time || b.start))
+                .map(o => ({
+                    id: o.id,
+                    reference_no: o.reference_no,
+                    start_time: o.start_time || o.start,
+                    end_time: o.end_time || o.end,
+                    status: o.status,
+                    rejection_reason: o.rejection_reason,
+                    cancellation_reason: o.cancellation_reason,
+                }));
+            const statuses = [...new Set(occurrences.map(o => o.status))];
+
+            return {
+                ...base,
+                isGroup: true,
+                isRecurring: !!evt.recurrence_group_id,
+                occurrences,
+                start_time: occurrences[0].start_time,
+                end_time: occurrences[0].end_time,
+                group_start_date: occurrences[0].start_time,
+                group_end_date: occurrences[occurrences.length - 1].start_time,
+                status: statuses.length === 1 ? statuses[0] : 'mixed',
+            };
+        }
+
+        return { ...base, isGroup: false, occurrences: [base] };
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             {/* Header */}
@@ -452,7 +507,7 @@ export default function AdminCalendar() {
                                                         e.stopPropagation();
                                                         setSelectedDate(startDay);
                                                         if (evt.type === 'booking') {
-                                                            setSelectedBooking(evt);
+                                                            setSelectedBooking(toModalBooking(evt));
                                                         }
                                                     }}
                                                 >
@@ -533,7 +588,7 @@ export default function AdminCalendar() {
                                         key={evt.id} 
                                         onClick={() => {
                                             if (evt.type === 'booking') {
-                                                setSelectedBooking(evt);
+                                                setSelectedBooking(toModalBooking(evt));
                                             }
                                         }}
                                         className={`p-4.5 rounded-2xl border ${cardStyle} shadow-xs transition duration-200 flex flex-col relative overflow-hidden ${!isBlackout ? 'cursor-pointer hover:shadow-xs' : ''}`}

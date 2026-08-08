@@ -66,10 +66,14 @@ class AdminCalendarController extends Controller
             'booked_by' => $b->user->name,
             'booked_by_email' => $b->user->email,
             'group_id' => $b->group_id,
+            'recurrence_group_id' => $b->recurrence_group_id,
             'status' => $b->status->value,
             'type' => 'booking',
 
             // Re-map other fields required by BookingDetailsModal
+            'reference_no' => $b->reference_no,
+            'start_time' => $b->start_time->toIso8601String(),
+            'end_time' => $b->end_time->toIso8601String(),
             'description' => $b->description,
             'attendees' => $b->attendees,
             'phone' => $b->phone,
