@@ -42,6 +42,12 @@ class ApprovalService
                 ]);
             }
 
+            // Serialize approvals for this room: booking-row locking alone
+            // cannot order two concurrent approvals of *different* bookings
+            // for the same slot — the room lock makes the availability
+            // re-check below observe every previously committed approval.
+            DB::table('rooms')->where('id', $booking->room_id)->lockForUpdate()->first();
+
             // Re-check availability with lock — this is the CRITICAL check
             if ($this->availabilityService->hasConflict(
                 $booking->room_id,
@@ -113,28 +119,35 @@ class ApprovalService
 
         $before = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 
-        // If time/room changed on an approved booking, re-validate availability
-        if ($booking->status === BookingStatus::Approved) {
-            $newStart = isset($data['start_time']) ? Carbon::parse($data['start_time']) : $booking->start_time;
-            $newEnd = isset($data['end_time']) ? Carbon::parse($data['end_time']) : $booking->end_time;
-            $newRoomId = $data['room_id'] ?? $booking->room_id;
+        DB::transaction(function () use ($booking, $data) {
+            // If time/room changed on an approved booking, re-validate availability.
+            if ($booking->status === BookingStatus::Approved) {
+                $newStart = isset($data['start_time']) ? Carbon::parse($data['start_time']) : $booking->start_time;
+                $newEnd = isset($data['end_time']) ? Carbon::parse($data['end_time']) : $booking->end_time;
+                $newRoomId = $data['room_id'] ?? $booking->room_id;
 
-            if ($this->availabilityService->hasConflict($newRoomId, $newStart, $newEnd, $booking->id)) {
-                throw ValidationException::withMessages([
-                    'conflict' => 'Cannot update: the new time slot conflicts with another approved booking.',
-                ]);
+                // Lock the target room row so the conflict check below cannot
+                // race with another admin concurrently approving or editing a
+                // booking into the same slot.
+                DB::table('rooms')->where('id', $newRoomId)->lockForUpdate()->first();
+
+                if ($this->availabilityService->hasConflict($newRoomId, $newStart, $newEnd, $booking->id)) {
+                    throw ValidationException::withMessages([
+                        'conflict' => 'Cannot update: the new time slot conflicts with another approved booking.',
+                    ]);
+                }
             }
-        }
 
-        $booking->update(array_filter([
-            'room_id' => $data['room_id'] ?? null,
-            'title' => $data['title'] ?? null,
-            'description' => $data['description'] ?? null,
-            'start_time' => $data['start_time'] ?? null,
-            'end_time' => $data['end_time'] ?? null,
-            'attendees' => $data['attendees'] ?? null,
-            'phone' => $data['phone'] ?? null,
-        ], fn ($v) => ! is_null($v)));
+            $booking->update(array_filter([
+                'room_id' => $data['room_id'] ?? null,
+                'title' => $data['title'] ?? null,
+                'description' => $data['description'] ?? null,
+                'start_time' => $data['start_time'] ?? null,
+                'end_time' => $data['end_time'] ?? null,
+                'attendees' => $data['attendees'] ?? null,
+                'phone' => $data['phone'] ?? null,
+            ], fn ($v) => ! is_null($v)));
+        });
 
         $after = $booking->only(['title', 'description', 'start_time', 'end_time', 'attendees', 'room_id', 'phone']);
 

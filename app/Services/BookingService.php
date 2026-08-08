@@ -228,13 +228,68 @@ class BookingService
             $query->where('start_time', '>=', $booking->start_time);
         }
 
-        foreach ($query->get() as $instance) {
-            // Defence in depth: never touch instances owned by someone else.
-            if ($instance->user_id !== $user->id && ! $user->isAdmin()) {
-                continue;
-            }
+        $instances = $query->get()->filter(
+            fn (Booking $instance) => $instance->user_id === $user->id || $user->isAdmin()
+        );
 
-            $cancelled->push($this->cancel($instance, $user));
+        if ($instances->isEmpty()) {
+            return $cancelled;
+        }
+
+        $oldStatuses = [];
+        $freedSlots = collect();
+
+        // One transaction: every instance transitions together, so a failure
+        // mid-way can never leave a partially cancelled series. Each row is
+        // locked and re-checked so a concurrent approval/cancel cannot slip
+        // between the query above and the update.
+        DB::transaction(function () use ($instances, $user, &$oldStatuses, &$freedSlots, &$cancelled) {
+            foreach ($instances as $instance) {
+                $locked = Booking::lockForUpdate()->find($instance->id);
+
+                if (! $locked || ! $locked->canTransitionTo(BookingStatus::Cancelled)) {
+                    continue;
+                }
+
+                $oldStatus = $locked->status;
+                $oldStatuses[$locked->id] = $oldStatus;
+                $locked->update(['status' => BookingStatus::Cancelled]);
+
+                $this->auditService->log($user, $locked, 'cancelled', [
+                    'before' => ['status' => $oldStatus->value],
+                    'after' => ['status' => BookingStatus::Cancelled->value],
+                    'series_cancelled' => true,
+                ]);
+
+                $cancelled->push($locked);
+
+                if ($oldStatus === BookingStatus::Approved) {
+                    $freedSlots->push($locked);
+                }
+            }
+        });
+
+        if ($cancelled->isEmpty()) {
+            return $cancelled;
+        }
+
+        // Load relations for serialization before side effects.
+        foreach ($cancelled as $instance) {
+            $instance->load(['room.location', 'user']);
+        }
+
+        // Side effects after the transaction commits — never hold DB locks
+        // while queueing email.
+        foreach ($cancelled as $instance) {
+            $this->notificationService->sendBookingNotification(
+                $instance,
+                'cancelled',
+                $oldStatuses[$instance->id] ?? null
+            );
+        }
+
+        foreach ($freedSlots as $instance) {
+            app(WaitlistService::class)->notifyForFreedSlot($instance);
         }
 
         return $cancelled;

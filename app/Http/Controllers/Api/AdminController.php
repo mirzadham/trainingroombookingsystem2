@@ -15,10 +15,12 @@ use App\Models\User;
 use App\Rules\WithinRoomCapacity;
 use App\Services\ApprovalService;
 use App\Services\AuditService;
+use App\Services\AvailabilityCacheService;
 use App\Services\AvailabilityService;
 use App\Services\BookingQueryFilter;
 use App\Services\BookingService;
 use App\Services\NotificationService;
+use App\Services\WaitlistService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -140,15 +142,13 @@ class AdminController extends Controller
         $futureOnly = $request->boolean('future_only', true);
         $remarks = $request->input('remarks');
 
-        $cancelled = collect();
-
         // Non-recurring booking → behave like a single admin cancellation.
         if (! $booking->isRecurring()) {
-            $cancelled->push($this->approvalService->adminCancel(
+            $cancelled = collect([$this->approvalService->adminCancel(
                 $booking,
                 $request->user(),
                 $remarks ?: 'Cancelled by administrator.'
-            ));
+            )]);
 
             return response()->json([
                 'message' => 'Booking cancelled successfully.',
@@ -156,21 +156,70 @@ class AdminController extends Controller
             ]);
         }
 
-        $series = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
+        $user = $request->user();
+
+        $query = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
             ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
             ->orderBy('start_time');
 
         if ($futureOnly) {
-            $series->where('start_time', '>=', $booking->start_time);
+            $query->where('start_time', '>=', $booking->start_time);
         }
 
-        foreach ($series->get() as $instance) {
-            $this->authorize('cancel', $instance);
+        $instances = $query->get();
 
-            if ($remarks) {
-                $cancelled->push($this->approvalService->adminCancel($instance, $request->user(), $remarks));
-            } else {
-                $cancelled->push($this->approvalService->adminCancel($instance, $request->user(), 'Cancelled as part of series cancellation.'));
+        $cancelled = collect();
+        $freedSlots = collect();
+        $defaultRemarks = $remarks ?: 'Cancelled as part of series cancellation.';
+
+        // One transaction: the whole series transitions together (row locks
+        // + re-checks guard against concurrent approvals), so a mid-loop
+        // failure can never leave a partially cancelled series.
+        DB::transaction(function () use ($instances, $user, $defaultRemarks, &$cancelled, &$freedSlots) {
+            foreach ($instances as $instance) {
+                $this->authorize('cancel', $instance);
+
+                $locked = Booking::lockForUpdate()->find($instance->id);
+
+                if (! $locked || ! $locked->canTransitionTo(BookingStatus::Cancelled)) {
+                    continue;
+                }
+
+                $oldStatus = $locked->status;
+                $locked->update([
+                    'status' => BookingStatus::Cancelled,
+                    'cancellation_reason' => $defaultRemarks,
+                    'cancelled_by' => $user->id,
+                ]);
+
+                app(AuditService::class)->log($user, $locked, 'admin_cancelled', [
+                    'before' => ['status' => $oldStatus->value],
+                    'after' => ['status' => BookingStatus::Cancelled->value],
+                    'cancellation_reason' => $defaultRemarks,
+                    'series_cancelled' => true,
+                ]);
+
+                $cancelled->push($locked);
+
+                if ($oldStatus === BookingStatus::Approved) {
+                    $freedSlots->push($locked);
+                }
+            }
+        });
+
+        // Side effects after the transaction commits — never hold DB locks
+        // while queueing email.
+        if ($cancelled->isNotEmpty()) {
+            foreach ($cancelled as $instance) {
+                $instance->load(['room.location', 'user', 'canceller']);
+            }
+
+            foreach ($cancelled as $instance) {
+                app(NotificationService::class)->sendBookingNotification($instance, 'admin_cancelled');
+            }
+
+            foreach ($freedSlots as $instance) {
+                app(WaitlistService::class)->notifyForFreedSlot($instance);
             }
         }
 
@@ -205,45 +254,61 @@ class AdminController extends Controller
     /**
      * GET /api/admin/dashboard
      * Dashboard statistics.
+     *
+     * Cached generation-scoped: any booking/room/blackout/location write
+     * invalidates it, so stats are always fresh while unchanged data skips
+     * the counting queries entirely.
      */
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        $baseQuery = Booking::query();
+        // Key includes today's date: "today_bookings" is date-relative, so a
+        // cache entry written before midnight must not be served after it.
+        $data = app(AvailabilityCacheService::class)->remember(
+            "admin:dashboard:{$user->id}:".today()->toDateString(),
+            3600,
+            function () use ($user) {
+                $baseQuery = Booking::query();
 
-        if ($user->isLocationAdmin()) {
-            $baseQuery->whereHas('room', function ($q) use ($user) {
-                $q->where('location_id', $user->location_id);
+                if ($user->isLocationAdmin()) {
+                    $baseQuery->whereHas('room', function ($q) use ($user) {
+                        $q->where('location_id', $user->location_id);
+                    });
+                }
+
+                $stats = [
+                    'pending_count' => (clone $baseQuery)->pending()->count(),
+                    'today_bookings' => (clone $baseQuery)->approved()
+                        ->whereDate('start_time', today())
+                        ->count(),
+                    'this_month_bookings' => (clone $baseQuery)
+                        ->whereBetween('start_time', [
+                            now()->startOfMonth()->toDateTimeString(),
+                            now()->endOfMonth()->toDateTimeString(),
+                        ])
+                        ->count(),
+                    'total_rooms' => $user->isSuperAdmin()
+                        ? Room::active()->count()
+                        : Room::active()->where('location_id', $user->location_id)->count(),
+                ];
+
+                // Recent bookings
+                $recentBookings = (clone $baseQuery)
+                    ->with(['room.location', 'user'])
+                    ->orderByDesc('created_at')
+                    ->limit(10)
+                    ->get();
+
+                return [
+                    'stats' => $stats,
+                    'recent' => $recentBookings,
+                ];
             });
-        }
-
-        $stats = [
-            'pending_count' => (clone $baseQuery)->pending()->count(),
-            'today_bookings' => (clone $baseQuery)->approved()
-                ->whereDate('start_time', today())
-                ->count(),
-            'this_month_bookings' => (clone $baseQuery)
-                ->whereBetween('start_time', [
-                    now()->startOfMonth()->toDateTimeString(),
-                    now()->endOfMonth()->toDateTimeString(),
-                ])
-                ->count(),
-            'total_rooms' => $user->isSuperAdmin()
-                ? Room::active()->count()
-                : Room::active()->where('location_id', $user->location_id)->count(),
-        ];
-
-        // Recent bookings
-        $recentBookings = (clone $baseQuery)
-            ->with(['room.location', 'user'])
-            ->orderByDesc('created_at')
-            ->limit(10)
-            ->get();
 
         return response()->json([
-            'stats' => $stats,
-            'recent_bookings' => BookingResource::collection($recentBookings),
+            'stats' => $data['stats'],
+            'recent_bookings' => BookingResource::collection($data['recent']),
         ]);
     }
 
@@ -444,6 +509,11 @@ class AdminController extends Controller
         $createdBookings = collect();
 
         DB::transaction(function () use ($validated, $targetUser, $room, $isMultiDay, $bypass, $availabilityService, $auditService, $admin, $phone, &$createdBookings) {
+            // Serialize concurrent admin creations for this room: the conflict
+            // checks below must always observe already-committed approved
+            // bookings/blackouts (check-then-insert race protection).
+            DB::table('rooms')->where('id', $room->id)->lockForUpdate()->first();
+
             $startDate = Carbon::parse($validated['start_date']);
             $endDate = $isMultiDay ? Carbon::parse($validated['end_date']) : $startDate;
 
