@@ -65,4 +65,36 @@ class AuditLogPruneTest extends TestCase
 
         $this->assertDatabaseMissing('audit_logs', ['action' => 'updated']);
     }
+
+    /**
+     * A retention window below 1 day would delete the whole table — reject it.
+     */
+    public function test_prune_rejects_retention_window_below_one_day(): void
+    {
+        $this->artisan('audit-logs:prune', ['--days' => 0])
+            ->expectsOutputToContain('Retention days must be at least 1 (got 0).')
+            ->assertExitCode(1);
+    }
+
+    /**
+     * --dry-run must report what would be deleted without deleting anything.
+     */
+    public function test_prune_dry_run_deletes_nothing(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::User]);
+        $booking = Booking::factory()->create(['user_id' => $user->id]);
+
+        AuditLog::create([
+            'user_id' => $user->id,
+            'booking_id' => $booking->id,
+            'action' => 'created',
+            'created_at' => now()->subDays(400),
+        ]);
+
+        $this->artisan('audit-logs:prune', ['--days' => 365, '--dry-run' => true])
+            ->expectsOutputToContain('Would delete 1 audit log(s) older than 365 days (dry run).')
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'created']);
+    }
 }

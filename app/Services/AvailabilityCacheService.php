@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -21,6 +22,10 @@ class AvailabilityCacheService
     // data mutation, not from expiry. If the key ever expires, generation()
     // falls back to 0 and the next bump re-creates it.
     private const GENERATION_TTL = 31536000; // 1 year
+
+    // How long a rebuild lock is held (and how long a waiting request blocks
+    // before falling back to its own rebuild).
+    private const REBUILD_LOCK_SECONDS = 10;
 
     /**
      * Current generation number (0 when nothing has been cached yet).
@@ -47,10 +52,50 @@ class AvailabilityCacheService
 
     /**
      * Cache $callback's result under a generation-scoped key.
+     *
+     * Stampede-protected: the first caller rebuilds under a short-lived
+     * lock; concurrent callers wait briefly and read the fresh value
+     * instead of rebuilding the same payload in parallel.
      */
     public function remember(string $key, int $seconds, callable $callback): mixed
     {
-        return Cache::remember($this->key($key), $seconds, $callback);
+        $cacheKey = $this->key($key);
+
+        $value = Cache::get($cacheKey);
+        if ($value !== null) {
+            return $value;
+        }
+
+        $lock = Cache::lock($cacheKey.':lock', self::REBUILD_LOCK_SECONDS);
+
+        if ($lock->get()) {
+            try {
+                // Double-checked locking: another request may have populated
+                // the value while we waited for the lock.
+                $value = Cache::get($cacheKey);
+                if ($value !== null) {
+                    return $value;
+                }
+
+                $value = $callback();
+                Cache::put($cacheKey, $value, $seconds);
+
+                return $value;
+            } finally {
+                $lock->release();
+            }
+        }
+
+        // Lost the race — wait for the rebuilding request, then read its
+        // result instead of rebuilding in parallel.
+        try {
+            $lock->block(self::REBUILD_LOCK_SECONDS);
+        } catch (LockTimeoutException) {
+            // Rebuild is taking longer than the lock window: rebuild rather
+            // than failing the request.
+        }
+
+        return Cache::get($cacheKey) ?? $callback();
     }
 
     /**

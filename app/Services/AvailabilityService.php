@@ -396,16 +396,8 @@ class AvailabilityService
 
         // One batch fetch spanning every candidate window instead of one
         // isAvailable() (2 queries) per room per shift.
-        $spanStart = $windows[0]['start'];
-        $spanEnd = $windows[0]['end'];
-        foreach ($windows as $window) {
-            if ($window['start']->lt($spanStart)) {
-                $spanStart = $window['start'];
-            }
-            if ($window['end']->gt($spanEnd)) {
-                $spanEnd = $window['end'];
-            }
-        }
+        $spanStart = min(array_map(fn ($window) => $window['start'], $windows));
+        $spanEnd = max(array_map(fn ($window) => $window['end'], $windows));
 
         $bookings = Booking::approved()
             ->whereIn('room_id', $rooms->pluck('id'))
