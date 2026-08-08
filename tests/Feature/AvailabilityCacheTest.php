@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
+use App\Services\AvailabilityCacheService;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -130,5 +131,44 @@ class AvailabilityCacheTest extends TestCase
         $this->getJson('/api/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString())
             ->assertOk()
             ->assertJsonCount(1);
+    }
+
+    /**
+     * Production runs CACHE_STORE=database, but phpunit forces the array
+     * store — so the database store's add/increment semantics that bump()
+     * was designed around (increment is a transactional UPDATE that no-ops
+     * on a missing key; add is insert-only) are never exercised elsewhere.
+     * Smoke-test the full counter + remember() round-trip on that store.
+     */
+    public function test_generation_bump_works_on_database_cache_store(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            $svc = app(AvailabilityCacheService::class);
+
+            // Fresh cache table: the counter key does not exist yet.
+            Cache::forget('availability_cache_generation');
+
+            // First bump must CREATE the counter via add + increment.
+            $svc->bump();
+            $this->assertSame(1, $svc->generation());
+
+            // Subsequent bumps must keep incrementing — never reset to 1.
+            $svc->bump();
+            $svc->bump();
+            $this->assertSame(3, $svc->generation());
+
+            // remember() must round-trip through the database store under
+            // the current generation.
+            $this->assertSame(
+                ['ok' => true],
+                $svc->remember('smoke:key', 60, fn () => ['ok' => true])
+            );
+            $this->assertTrue(Cache::has('availability:v3:smoke:key'));
+        } finally {
+            // Restore the array store for the rest of the test process.
+            config()->set('cache.default', 'array');
+        }
     }
 }
