@@ -171,4 +171,29 @@ class AvailabilityCacheTest extends TestCase
             config()->set('cache.default', 'array');
         }
     }
+
+    /**
+     * Regression: cached payloads must be plain arrays, never Eloquent
+     * objects. The database cache store refuses to unserialize PHP classes
+     * (serializable_classes => false), so object payloads come back as
+     * __PHP_Incomplete_Class and the /api/locations response becomes an
+     * object — which crashes the frontend's locations?.find().
+     */
+    public function test_locations_endpoint_returns_array_from_database_cache(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            // Warm the cache (first request)…
+            $this->getJson('/api/locations')->assertOk()->assertJsonIsArray();
+
+            // …and read it back from the database store — must still be an array.
+            $response = $this->getJson('/api/locations');
+
+            $response->assertOk()->assertJsonIsArray();
+            $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
+        } finally {
+            config()->set('cache.default', 'array');
+        }
+    }
 }

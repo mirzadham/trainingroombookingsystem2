@@ -258,7 +258,9 @@ class AdminController extends Controller
                         : Room::active()->where('location_id', $user->location_id)->count(),
                 ];
 
-                // Recent bookings
+                // Recent bookings — resolved to plain arrays so the cached
+                // payload stays cache-safe (no Eloquent objects in the cache:
+                // serializable_classes => false).
                 $recentBookings = (clone $baseQuery)
                     ->with(['room.location', 'user'])
                     ->orderByDesc('created_at')
@@ -267,13 +269,13 @@ class AdminController extends Controller
 
                 return [
                     'stats' => $stats,
-                    'recent' => $recentBookings,
+                    'recent' => BookingResource::collection($recentBookings)->resolve(request()),
                 ];
             });
 
         return response()->json([
             'stats' => $data['stats'],
-            'recent_bookings' => BookingResource::collection($data['recent']),
+            'recent_bookings' => $data['recent'],
         ]);
     }
 

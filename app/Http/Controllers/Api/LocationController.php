@@ -15,12 +15,17 @@ class LocationController extends Controller
      */
     public function index(): JsonResponse
     {
+        // Cache plain arrays, never Eloquent models: the cache store refuses
+        // to unserialize PHP classes (serializable_classes => false), so
+        // object payloads come back as __PHP_Incomplete_Class and break
+        // response shapes.
         $locations = app(AvailabilityCacheService::class)->remember('locations', 86400, function () {
             return Location::where('is_active', true)
                 ->withCount(['rooms' => function ($q) {
                     $q->where('is_active', true);
                 }])
-                ->get();
+                ->get()
+                ->toArray();
         });
 
         return response()->json($locations);

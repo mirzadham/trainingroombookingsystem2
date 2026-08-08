@@ -21,20 +21,23 @@ class RoomController extends Controller
      */
     public function publicIndex(Request $request): JsonResponse
     {
+        // Cache the resolved resource payload (plain arrays), never Eloquent
+        // models: the cache store refuses to unserialize PHP classes
+        // (serializable_classes => false).
         $rooms = app(AvailabilityCacheService::class)->remember(
             'rooms:public:'.($request->location_id ?? 'all'),
             3600,
             function () use ($request) {
-                return Room::active()->with('location')
+                $rooms = Room::active()->with('location')
                     ->when($request->location_id, fn ($q) => $q->where('location_id', $request->location_id))
                     ->orderBy('name')
                     ->get();
+
+                return RoomResource::collection($rooms)->resolve(request());
             }
         );
 
-        return response()->json(
-            RoomResource::collection($rooms)
-        );
+        return response()->json($rooms);
     }
 
     /**
