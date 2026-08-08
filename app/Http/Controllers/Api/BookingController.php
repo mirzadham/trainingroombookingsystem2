@@ -29,7 +29,8 @@ class BookingController extends Controller
     {
         $query = Booking::where('user_id', $request->user()->id)
             ->with(['room.location', 'approver'])
-            ->orderByDesc('created_at');
+            ->orderBy('start_time')
+            ->orderBy('created_at');
 
         if ($status = $request->query('status')) {
             $query->where('status', $status);
@@ -37,13 +38,15 @@ class BookingController extends Controller
 
         if ($timeFilter = $request->query('time_filter')) {
             if ($timeFilter === 'past') {
-                $query->where('end_time', '<', now());
+                $query->where('end_time', '<', now())
+                    ->reorder()
+                    ->orderByDesc('start_time');
             } elseif ($timeFilter === 'upcoming') {
                 $query->where('end_time', '>=', now());
             }
         }
 
-        $bookings = $query->paginate(20);
+        $bookings = $query->paginate(100);
 
         return response()->json($bookings);
     }

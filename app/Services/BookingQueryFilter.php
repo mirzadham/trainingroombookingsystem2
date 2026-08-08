@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Booking;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -60,7 +61,52 @@ class BookingQueryFilter
             });
         }
 
-        return $query->orderByDesc('created_at');
+        // Order by the axis the view is grouped on — never by creation time in
+        // a time-based view. Pending is a triage queue: soonest-starting request
+        // first, FIFO (oldest requested) as the tiebreak. Explicit past windows
+        // read most-recent-first. All-time reference views (approved/rejected/
+        // cancelled without a time window) keep the "most recently requested
+        // first" behaviour.
+        $timeFilter = $filters['time_filter'] ?? null;
+        $status = $filters['status'] ?? null;
+
+        if ($timeFilter === 'past') {
+            $query->orderByDesc('start_time');
+        } elseif ($timeFilter === 'upcoming' || $status === 'pending') {
+            $query->orderBy('start_time')->orderBy('created_at');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Per-status booking counts honouring the same location-admin scoping as
+     * the list, so tab badges stay correct for location admins.
+     *
+     * @return array{all: int, pending: int, approved: int, rejected: int, cancelled: int}
+     */
+    public static function statusCounts(?int $locationId = null, bool $isLocationAdmin = false): array
+    {
+        $query = Booking::query();
+
+        if ($isLocationAdmin && $locationId) {
+            $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
+        }
+
+        $counts = (clone $query)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return [
+            'all' => (clone $query)->count(),
+            'pending' => (int) ($counts['pending'] ?? 0),
+            'approved' => (int) ($counts['approved'] ?? 0),
+            'rejected' => (int) ($counts['rejected'] ?? 0),
+            'cancelled' => (int) ($counts['cancelled'] ?? 0),
+        ];
     }
 
     /**

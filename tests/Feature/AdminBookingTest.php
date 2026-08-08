@@ -425,4 +425,70 @@ class AdminBookingTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(2); // 1 booking and 1 blackout
     }
+
+    /**
+     * Test that the pending triage queue is sorted soonest-first by start time,
+     * with the oldest request first as the FIFO tiebreak.
+     */
+    public function test_admin_pending_queue_sorted_soonest_first_fifo(): void
+    {
+        $soon = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $later = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(3)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(3)->setTime(11, 0, 0),
+        ]);
+        // Same start time as $soon but requested earlier → FIFO puts it first.
+        $fifo = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $fifo->created_at = now()->subDay();
+        $fifo->save();
+
+        $response = $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?status=pending');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.id', $fifo->id)
+            ->assertJsonPath('data.1.id', $soon->id)
+            ->assertJsonPath('data.2.id', $later->id);
+    }
+
+    /**
+     * Test that the admin bookings response includes per-status counts,
+     * scoped to the location admin's own location.
+     */
+    public function test_admin_bookings_include_scoped_status_counts(): void
+    {
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Pending]);
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Approved]);
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Approved]);
+        Booking::factory()->create(['room_id' => $this->khtpRoom->id, 'status' => BookingStatus::Pending]);
+
+        // TPM admin only sees TPM counts.
+        $this->actingAs($this->tpmAdmin)
+            ->getJson('/api/admin/bookings')
+            ->assertStatus(200)
+            ->assertJsonPath('counts.all', 3)
+            ->assertJsonPath('counts.pending', 1)
+            ->assertJsonPath('counts.approved', 2)
+            ->assertJsonPath('counts.rejected', 0)
+            ->assertJsonPath('counts.cancelled', 0);
+
+        // Super admin sees everything.
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings')
+            ->assertStatus(200)
+            ->assertJsonPath('counts.all', 4)
+            ->assertJsonPath('counts.pending', 2);
+    }
 }
