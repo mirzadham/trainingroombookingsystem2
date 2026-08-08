@@ -36,6 +36,12 @@ export default function AdminCalendar() {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
 
+    // Series lookup state: group_id whose full occurrence list is fetched for
+    // the modal, plus a flag for whether the modal should merge it (event-bar
+    // clicks merge; sidebar day cards intentionally stay per-day).
+    const [selectedSeriesGroupId, setSelectedSeriesGroupId] = useState(null);
+    const [showFullSeries, setShowFullSeries] = useState(false);
+
     // Auto-lock location filter for Location Admins
     React.useEffect(() => {
         if (!isSuperAdmin && adminUser?.location_id) {
@@ -81,6 +87,14 @@ export default function AdminCalendar() {
         queryKey: ['admin-calendar-events', calendarParams],
         queryFn: () => api.getAdminCalendarEvents(calendarParams),
         enabled: !!adminUser,
+    });
+
+    // Full series occurrences (including days outside the visible window),
+    // fetched on demand when a multi-day group bar is opened.
+    const { data: seriesEvents } = useQuery({
+        queryKey: ['admin-calendar-series', selectedSeriesGroupId],
+        queryFn: () => api.getAdminCalendarSeries(selectedSeriesGroupId),
+        enabled: !!selectedSeriesGroupId,
     });
 
     // 1. Group events by group_id
@@ -187,8 +201,12 @@ export default function AdminCalendar() {
     // Convert a calendar event into the shape BookingDetailsModal expects.
     // Calendar events use `start`/`end` + flat `room` (string) for the grid,
     // while the modal reads `start_time`/`end_time` + nested `room` object.
-    const toModalBooking = (evt) => {
-        const rawEvents = evt._rawEvents || [evt];
+    const toModalBooking = (evt, seriesEvents = null) => {
+        // Prefer the complete series (all occurrences, fetched on demand) over
+        // the in-window events the calendar grid already holds.
+        const rawEvents = (seriesEvents && seriesEvents.length > 1)
+            ? seriesEvents
+            : (evt._rawEvents || [evt]);
 
         const base = {
             id: evt.id,
@@ -239,6 +257,13 @@ export default function AdminCalendar() {
 
         return { ...base, isGroup: false, occurrences: [base] };
     };
+
+    // Modal payload: renders immediately from in-window data, then upgrades to
+    // the complete series once the series query resolves.
+    const modalBooking = useMemo(() => {
+        if (!selectedBooking) return null;
+        return toModalBooking(selectedBooking, showFullSeries ? seriesEvents : null);
+    }, [selectedBooking, seriesEvents, showFullSeries]);
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -510,7 +535,13 @@ export default function AdminCalendar() {
                                                         e.stopPropagation();
                                                         setSelectedDate(startDay);
                                                         if (evt.type === 'booking') {
-                                                            setSelectedBooking(toModalBooking(evt));
+                                                            setSelectedBooking(evt);
+                                                            if (evt.group_id) {
+                                                                setSelectedSeriesGroupId(evt.group_id);
+                                                                setShowFullSeries(true);
+                                                            } else {
+                                                                setShowFullSeries(false);
+                                                            }
                                                         }
                                                     }}
                                                 >
@@ -591,7 +622,8 @@ export default function AdminCalendar() {
                                         key={evt.id} 
                                         onClick={() => {
                                             if (evt.type === 'booking') {
-                                                setSelectedBooking(toModalBooking(evt));
+                                                setSelectedBooking(evt);
+                                                setShowFullSeries(false);
                                             }
                                         }}
                                         className={`p-4.5 rounded-2xl border ${cardStyle} shadow-xs transition duration-200 flex flex-col relative overflow-hidden ${!isBlackout ? 'cursor-pointer hover:shadow-xs' : ''}`}
@@ -668,11 +700,14 @@ export default function AdminCalendar() {
             </div>
 
             {/* Booking Details Modal */}
-            {selectedBooking && (
+            {modalBooking && (
                 <BookingDetailsModal
-                    booking={selectedBooking}
+                    booking={modalBooking}
                     isAdmin={true}
-                    onClose={() => setSelectedBooking(null)}
+                    onClose={() => {
+                        setSelectedBooking(null);
+                        setShowFullSeries(false);
+                    }}
                     onApprove={(id) => approveMutation.mutateAsync(id)}
                     onReject={(id, reason) => rejectMutation.mutateAsync({ id, reason })}
                     onCancel={(id, remarks) => adminCancelMutation.mutateAsync({ id, remarks })}
