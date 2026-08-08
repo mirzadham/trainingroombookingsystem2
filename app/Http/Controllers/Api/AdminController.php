@@ -20,7 +20,7 @@ use App\Services\AvailabilityService;
 use App\Services\BookingQueryFilter;
 use App\Services\BookingService;
 use App\Services\NotificationService;
-use App\Services\WaitlistService;
+use App\Services\SeriesCancelService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -157,77 +157,42 @@ class AdminController extends Controller
         }
 
         $user = $request->user();
-
-        $query = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
-            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
-            ->orderBy('start_time');
-
-        if ($futureOnly) {
-            $query->where('start_time', '>=', $booking->start_time);
-        }
-
-        $instances = $query->get();
-
-        $cancelled = collect();
-        $freedSlots = collect();
         $defaultRemarks = $remarks ?: 'Cancelled as part of series cancellation.';
 
-        // One transaction: the whole series transitions together (row locks
-        // + re-checks guard against concurrent approvals), so a mid-loop
-        // failure can never leave a partially cancelled series.
-        DB::transaction(function () use ($instances, $user, $defaultRemarks, &$cancelled, &$freedSlots) {
-            foreach ($instances as $instance) {
-                $this->authorize('cancel', $instance);
-
-                $locked = Booking::lockForUpdate()->find($instance->id);
-
-                if (! $locked || ! $locked->canTransitionTo(BookingStatus::Cancelled)) {
-                    continue;
-                }
-
-                $oldStatus = $locked->status;
+        $result = app(SeriesCancelService::class)->cancel(
+            $booking,
+            $user,
+            $futureOnly,
+            authorize: fn (Booking $instance) => $this->authorize('cancel', $instance),
+            applyCancellation: function (Booking $locked, User $admin, BookingStatus $oldStatus) use ($defaultRemarks) {
                 $locked->update([
                     'status' => BookingStatus::Cancelled,
                     'cancellation_reason' => $defaultRemarks,
-                    'cancelled_by' => $user->id,
+                    'cancelled_by' => $admin->id,
                 ]);
 
-                app(AuditService::class)->log($user, $locked, 'admin_cancelled', [
+                app(AuditService::class)->log($admin, $locked, 'admin_cancelled', [
                     'before' => ['status' => $oldStatus->value],
                     'after' => ['status' => BookingStatus::Cancelled->value],
                     'cancellation_reason' => $defaultRemarks,
                     'series_cancelled' => true,
                 ]);
+            },
+            notificationType: 'admin_cancelled'
+        );
 
-                $cancelled->push($locked);
+        $message = $result['cancelled']->isEmpty()
+            ? 'No cancellable bookings found in this series.'
+            : "Cancelled {$result['cancelled']->count()} booking(s) in the series.";
 
-                if ($oldStatus === BookingStatus::Approved) {
-                    $freedSlots->push($locked);
-                }
-            }
-        });
-
-        // Side effects after the transaction commits — never hold DB locks
-        // while queueing email.
-        if ($cancelled->isNotEmpty()) {
-            foreach ($cancelled as $instance) {
-                $instance->load(['room.location', 'user', 'canceller']);
-            }
-
-            foreach ($cancelled as $instance) {
-                app(NotificationService::class)->sendBookingNotification($instance, 'admin_cancelled');
-            }
-
-            foreach ($freedSlots as $instance) {
-                app(WaitlistService::class)->notifyForFreedSlot($instance);
-            }
+        if ($result['skipped'] > 0) {
+            $message .= " {$result['skipped']} booking(s) were skipped because they could no longer be cancelled.";
         }
 
         return response()->json([
-            'message' => $cancelled->isEmpty()
-                ? 'No cancellable bookings found in this series.'
-                : "Cancelled {$cancelled->count()} booking(s) in the series.",
-            'cancelled' => BookingResource::collection($cancelled),
+            'message' => $message,
+            'cancelled' => BookingResource::collection($result['cancelled']),
+            'skipped' => $result['skipped'],
         ]);
     }
 

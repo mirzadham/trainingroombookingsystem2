@@ -6,10 +6,12 @@ use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\RoomBlackout;
+use App\Models\User;
 use App\Services\AvailabilityCacheService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AdminCalendarController extends Controller
 {
@@ -36,84 +38,91 @@ class AdminCalendarController extends Controller
                 .':'.($request->location_id ?? 'all').':'.($request->room_id ?? 'all')
                 .':'.($request->status ?? 'default'),
             3600,
-            function () use ($request, $user, $startDate, $endDate) {
-                // 1. Query Bookings
-                $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
-                    ->where('start_time', '>=', $startDate)
-                    ->where('end_time', '<=', $endDate);
-
-                if ($user->isLocationAdmin()) {
-                    $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
-                }
-
-                if ($request->location_id) {
-                    $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
-                }
-                if ($request->room_id) {
-                    $bookingQuery->where('room_id', $request->room_id);
-                }
-
-                if ($request->status && $request->status !== 'all') {
-                    $statuses = explode(',', $request->status);
-                    $bookingQuery->whereIn('status', $statuses);
-                } else {
-                    // Default: show pending, approved, and cancelled bookings
-                    $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
-                }
-
-                $events = $bookingQuery->orderBy('start_time')->get()
-                    ->map(fn (Booking $b) => $this->bookingEventShape($b));
-
-                // 2. Query Blackouts (if blackout is requested or status is all/default)
-                if (! $request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
-                    $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name,email'])
-                        ->overlapping($startDate, $endDate);
-
-                    if ($user->isLocationAdmin()) {
-                        $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
-                    }
-
-                    if ($request->location_id) {
-                        $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
-                    }
-                    if ($request->room_id) {
-                        $blackoutQuery->where('room_id', $request->room_id);
-                    }
-
-                    $blackoutEvents = collect();
-
-                    foreach ($blackoutQuery->orderBy('start_time')->get() as $bo) {
-                        // Expand recurring blackouts into concrete occurrences within the range
-                        $instances = $bo->instancesBetween($startDate, $endDate);
-
-                        foreach ($instances as $index => $instance) {
-                            $blackoutEvents->push([
-                                'id' => 'blackout-'.$bo->id.'-'.$index,
-                                'blackout_id' => $bo->id,
-                                'title' => '[Blackout] '.$bo->title,
-                                'start' => $instance['start']->toIso8601String(),
-                                'end' => $instance['end']->toIso8601String(),
-                                'room' => $bo->room->name,
-                                'room_id' => $bo->room_id,
-                                'location' => $bo->room->location->code,
-                                'location_id' => $bo->room->location_id,
-                                'booked_by' => $bo->creator->name,
-                                'booked_by_email' => $bo->creator->email,
-                                'status' => 'blackout',
-                                'type' => 'blackout',
-                                'description' => $bo->description,
-                            ]);
-                        }
-                    }
-
-                    $events = $events->concat($blackoutEvents);
-                }
-
-                return $events;
-            }
+            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate)
         );
 
         return response()->json($events);
+    }
+
+    /**
+     * Build the admin calendar event list: bookings (shaped for the UI) plus
+     * blackouts expanded into concrete occurrences within the range.
+     */
+    private function buildAdminCalendarEvents(Request $request, User $user, Carbon $startDate, Carbon $endDate): Collection
+    {
+        // 1. Query Bookings
+        $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
+            ->where('start_time', '>=', $startDate)
+            ->where('end_time', '<=', $endDate);
+
+        if ($user->isLocationAdmin()) {
+            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+        }
+
+        if ($request->location_id) {
+            $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
+        }
+        if ($request->room_id) {
+            $bookingQuery->where('room_id', $request->room_id);
+        }
+
+        if ($request->status && $request->status !== 'all') {
+            $statuses = explode(',', $request->status);
+            $bookingQuery->whereIn('status', $statuses);
+        } else {
+            // Default: show pending, approved, and cancelled bookings
+            $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
+        }
+
+        $events = $bookingQuery->orderBy('start_time')->get()
+            ->map(fn (Booking $b) => $this->bookingEventShape($b));
+
+        // 2. Query Blackouts (if blackout is requested or status is all/default)
+        if (! $request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
+            $blackoutQuery = RoomBlackout::with(['room.location', 'creator:id,name,email'])
+                ->overlapping($startDate, $endDate);
+
+            if ($user->isLocationAdmin()) {
+                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+            }
+
+            if ($request->location_id) {
+                $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $request->location_id));
+            }
+            if ($request->room_id) {
+                $blackoutQuery->where('room_id', $request->room_id);
+            }
+
+            $blackoutEvents = collect();
+
+            foreach ($blackoutQuery->orderBy('start_time')->get() as $bo) {
+                // Expand recurring blackouts into concrete occurrences within the range
+                $instances = $bo->instancesBetween($startDate, $endDate);
+
+                foreach ($instances as $index => $instance) {
+                    $blackoutEvents->push([
+                        'id' => 'blackout-'.$bo->id.'-'.$index,
+                        'blackout_id' => $bo->id,
+                        'title' => '[Blackout] '.$bo->title,
+                        'start' => $instance['start']->toIso8601String(),
+                        'end' => $instance['end']->toIso8601String(),
+                        'room' => $bo->room->name,
+                        'room_id' => $bo->room_id,
+                        'location' => $bo->room->location->code,
+                        'location_id' => $bo->room->location_id,
+                        'booked_by' => $bo->creator->name,
+                        'booked_by_email' => $bo->creator->email,
+                        'status' => 'blackout',
+                        'type' => 'blackout',
+                        'description' => $bo->description,
+                    ]);
+                }
+            }
+
+            $events = $events->concat($blackoutEvents);
+        }
+
+        return $events;
     }
 
     /**

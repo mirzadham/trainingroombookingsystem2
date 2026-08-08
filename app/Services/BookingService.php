@@ -20,7 +20,8 @@ class BookingService
     public function __construct(
         private AvailabilityService $availabilityService,
         private AuditService $auditService,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private SeriesCancelService $seriesCancelService
     ) {}
 
     /**
@@ -210,89 +211,17 @@ class BookingService
      *
      * By default cancels the given instance and all future occurrences
      * (future_only = true). Pass false to cancel the entire series.
+     *
+     * @return array{cancelled: Collection<int, Booking>, skipped: int}
      */
-    public function cancelSeries(Booking $booking, User $user, bool $futureOnly = true): Collection
+    public function cancelSeries(Booking $booking, User $user, bool $futureOnly = true): array
     {
-        $cancelled = collect();
-
         if (! $booking->isRecurring()) {
             // Not a series — behave like a normal single cancellation.
-            return $cancelled->push($this->cancel($booking, $user));
+            return ['cancelled' => collect([$this->cancel($booking, $user)]), 'skipped' => 0];
         }
 
-        $query = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
-            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
-            ->orderBy('start_time');
-
-        if ($futureOnly) {
-            $query->where('start_time', '>=', $booking->start_time);
-        }
-
-        $instances = $query->get()->filter(
-            fn (Booking $instance) => $instance->user_id === $user->id || $user->isAdmin()
-        );
-
-        if ($instances->isEmpty()) {
-            return $cancelled;
-        }
-
-        $oldStatuses = [];
-        $freedSlots = collect();
-
-        // One transaction: every instance transitions together, so a failure
-        // mid-way can never leave a partially cancelled series. Each row is
-        // locked and re-checked so a concurrent approval/cancel cannot slip
-        // between the query above and the update.
-        DB::transaction(function () use ($instances, $user, &$oldStatuses, &$freedSlots, &$cancelled) {
-            foreach ($instances as $instance) {
-                $locked = Booking::lockForUpdate()->find($instance->id);
-
-                if (! $locked || ! $locked->canTransitionTo(BookingStatus::Cancelled)) {
-                    continue;
-                }
-
-                $oldStatus = $locked->status;
-                $oldStatuses[$locked->id] = $oldStatus;
-                $locked->update(['status' => BookingStatus::Cancelled]);
-
-                $this->auditService->log($user, $locked, 'cancelled', [
-                    'before' => ['status' => $oldStatus->value],
-                    'after' => ['status' => BookingStatus::Cancelled->value],
-                    'series_cancelled' => true,
-                ]);
-
-                $cancelled->push($locked);
-
-                if ($oldStatus === BookingStatus::Approved) {
-                    $freedSlots->push($locked);
-                }
-            }
-        });
-
-        if ($cancelled->isEmpty()) {
-            return $cancelled;
-        }
-
-        // Load relations for serialization before side effects.
-        foreach ($cancelled as $instance) {
-            $instance->load(['room.location', 'user']);
-        }
-
-        // Side effects after the transaction commits — never hold DB locks
-        // while queueing email.
-        foreach ($cancelled as $instance) {
-            $this->notificationService->sendBookingNotification(
-                $instance,
-                'cancelled',
-                $oldStatuses[$instance->id] ?? null
-            );
-        }
-
-        foreach ($freedSlots as $instance) {
-            app(WaitlistService::class)->notifyForFreedSlot($instance);
-        }
-
-        return $cancelled;
+        return $this->seriesCancelService->cancel($booking, $user, $futureOnly);
     }
 
     /**

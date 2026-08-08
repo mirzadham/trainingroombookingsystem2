@@ -79,7 +79,8 @@ class SeriesCancelTest extends TestCase
         $this->actingAs($this->user)
             ->postJson("/api/bookings/{$first->id}/cancel-series", ['future_only' => false])
             ->assertStatus(200)
-            ->assertJsonPath('cancelled.2.id', $third->id);
+            ->assertJsonPath('cancelled.2.id', $third->id)
+            ->assertJsonPath('skipped', 0);
 
         $this->assertEquals(BookingStatus::Cancelled, $first->fresh()->status);
         $this->assertEquals(BookingStatus::Cancelled, $second->fresh()->status);
@@ -135,7 +136,8 @@ class SeriesCancelTest extends TestCase
                 'remarks' => 'Room maintenance',
             ])
             ->assertStatus(200)
-            ->assertJsonCount(3, 'cancelled');
+            ->assertJsonCount(3, 'cancelled')
+            ->assertJsonPath('skipped', 0);
 
         $this->assertEquals(BookingStatus::Cancelled, $second->fresh()->status);
         $this->assertEquals('Room maintenance', $second->fresh()->cancellation_reason);

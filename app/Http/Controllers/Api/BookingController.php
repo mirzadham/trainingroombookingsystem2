@@ -137,13 +137,20 @@ class BookingController extends Controller
 
         $futureOnly = $request->boolean('future_only', true);
 
-        $cancelled = $this->bookingService->cancelSeries($booking, $request->user(), $futureOnly);
+        $result = $this->bookingService->cancelSeries($booking, $request->user(), $futureOnly);
+
+        $message = $result['cancelled']->isEmpty()
+            ? 'No cancellable bookings found in this series.'
+            : "Cancelled {$result['cancelled']->count()} booking(s) in the series.";
+
+        if ($result['skipped'] > 0) {
+            $message .= " {$result['skipped']} booking(s) were skipped because they could no longer be cancelled.";
+        }
 
         return response()->json([
-            'message' => $cancelled->isEmpty()
-                ? 'No cancellable bookings found in this series.'
-                : "Cancelled {$cancelled->count()} booking(s) in the series.",
-            'cancelled' => BookingResource::collection($cancelled),
+            'message' => $message,
+            'cancelled' => BookingResource::collection($result['cancelled']),
+            'skipped' => $result['skipped'],
         ]);
     }
 
