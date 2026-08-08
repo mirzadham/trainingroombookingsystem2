@@ -146,8 +146,9 @@ class AdminCalendarTest extends TestCase
         $start = now()->addDays(5)->setTime(9, 0, 0);
         $groupId = 'test-group-uuid';
 
-        // 3-day series: the second test's window below only covers day 2,
-        // but the series endpoint must return all three days.
+        // 3-day series: the series endpoint must return every day of the
+        // group, regardless of any calendar-view window (the index endpoint
+        // only returns days inside the requested range).
         foreach ([0, 1, 2] as $i) {
             Booking::factory()->create([
                 'room_id' => $this->room->id,
@@ -178,6 +179,17 @@ class AdminCalendarTest extends TestCase
         $this->assertTrue($events->every(fn ($e) => ! empty($e['start_time']) && ! empty($e['end_time'])));
         $this->assertSame($this->room->name, $events[0]['room_relation']['name']);
         $this->assertSame('booking', $events[0]['type']);
+    }
+
+    /**
+     * Test that the series endpoint requires a group_id.
+     */
+    public function test_series_requires_group_id(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/calendar/series')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['group_id']);
     }
 
     /**

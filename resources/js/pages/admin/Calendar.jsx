@@ -707,6 +707,7 @@ export default function AdminCalendar() {
                     onClose={() => {
                         setSelectedBooking(null);
                         setShowFullSeries(false);
+                        setSelectedSeriesGroupId(null);
                     }}
                     onApprove={(id) => approveMutation.mutateAsync(id)}
                     onReject={(id, reason) => rejectMutation.mutateAsync({ id, reason })}
