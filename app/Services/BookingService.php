@@ -20,7 +20,8 @@ class BookingService
     public function __construct(
         private AvailabilityService $availabilityService,
         private AuditService $auditService,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private SeriesCancelService $seriesCancelService
     ) {}
 
     /**
@@ -210,34 +211,17 @@ class BookingService
      *
      * By default cancels the given instance and all future occurrences
      * (future_only = true). Pass false to cancel the entire series.
+     *
+     * @return array{cancelled: Collection<int, Booking>, skipped: int}
      */
-    public function cancelSeries(Booking $booking, User $user, bool $futureOnly = true): Collection
+    public function cancelSeries(Booking $booking, User $user, bool $futureOnly = true): array
     {
-        $cancelled = collect();
-
         if (! $booking->isRecurring()) {
             // Not a series — behave like a normal single cancellation.
-            return $cancelled->push($this->cancel($booking, $user));
+            return ['cancelled' => collect([$this->cancel($booking, $user)]), 'skipped' => 0];
         }
 
-        $query = Booking::where('recurrence_group_id', $booking->recurrence_group_id)
-            ->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved])
-            ->orderBy('start_time');
-
-        if ($futureOnly) {
-            $query->where('start_time', '>=', $booking->start_time);
-        }
-
-        foreach ($query->get() as $instance) {
-            // Defence in depth: never touch instances owned by someone else.
-            if ($instance->user_id !== $user->id && ! $user->isAdmin()) {
-                continue;
-            }
-
-            $cancelled->push($this->cancel($instance, $user));
-        }
-
-        return $cancelled;
+        return $this->seriesCancelService->cancel($booking, $user, $futureOnly);
     }
 
     /**

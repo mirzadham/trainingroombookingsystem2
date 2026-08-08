@@ -21,8 +21,12 @@ Artisan::command('inspire', function () {
 |    have been waiting longer than the configured expiry window.
 | 3. waitlist:expire          — hourly; cleans up waitlist entries whose slot
 |    has already passed.
+| 4. audit-logs:prune         — nightly; deletes audit logs older than the
+|    retention window (365 days by default) so the largest unbounded table
+|    cannot grow forever.
 */
 
 Schedule::command('bookings:send-reminders')->hourly();
 Schedule::command('bookings:expire-pending')->dailyAt('00:30');
 Schedule::command('waitlist:expire')->hourly();
+Schedule::command('audit-logs:prune')->dailyAt('02:30');

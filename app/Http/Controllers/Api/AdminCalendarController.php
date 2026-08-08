@@ -6,9 +6,12 @@ use App\Enums\BookingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\RoomBlackout;
+use App\Models\User;
+use App\Services\AvailabilityCacheService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AdminCalendarController extends Controller
 {
@@ -30,6 +33,23 @@ class AdminCalendarController extends Controller
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
+        $events = app(AvailabilityCacheService::class)->remember(
+            'admin-calendar:'.$user->id.':'.$request->start_date.':'.$request->end_date
+                .':'.($request->location_id ?? 'all').':'.($request->room_id ?? 'all')
+                .':'.($request->status ?? 'default'),
+            3600,
+            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate)
+        );
+
+        return response()->json($events);
+    }
+
+    /**
+     * Build the admin calendar event list: bookings (shaped for the UI) plus
+     * blackouts expanded into concrete occurrences within the range.
+     */
+    private function buildAdminCalendarEvents(Request $request, User $user, Carbon $startDate, Carbon $endDate): Collection
+    {
         // 1. Query Bookings
         $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
             ->where('start_time', '>=', $startDate)
@@ -54,10 +74,8 @@ class AdminCalendarController extends Controller
             $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
         }
 
-        $bookings = $bookingQuery->orderBy('start_time')->get()
+        $events = $bookingQuery->orderBy('start_time')->get()
             ->map(fn (Booking $b) => $this->bookingEventShape($b));
-
-        $events = collect($bookings);
 
         // 2. Query Blackouts (if blackout is requested or status is all/default)
         if (! $request->status || $request->status === 'all' || str_contains($request->status, 'blackout')) {
@@ -104,7 +122,7 @@ class AdminCalendarController extends Controller
             $events = $events->concat($blackoutEvents);
         }
 
-        return response()->json($events);
+        return $events;
     }
 
     /**

@@ -17,13 +17,13 @@ class AdminExportController extends Controller
     {
         $user = $request->user();
 
-        $bookings = $exportService->filteredBookingsQuery(
-            $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
-            $user->location_id,
-            $user->isLocationAdmin()
-        )->get();
-
-        return $exportService->bookingsCsv($bookings);
+        return $exportService->streamBookingsCsv(
+            $exportService->filteredBookingsQuery(
+                $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
+                $user->location_id,
+                $user->isLocationAdmin()
+            )
+        );
     }
 
     /**
@@ -34,12 +34,12 @@ class AdminExportController extends Controller
     {
         $user = $request->user();
 
-        $logs = $exportService->filteredAuditLogsQuery(
-            $request->only(['action', 'search']),
-            $user->location_id,
-            $user->isLocationAdmin()
-        )->get();
-
-        return $exportService->auditLogsCsv($logs);
+        return $exportService->streamAuditLogsCsv(
+            $exportService->filteredAuditLogsQuery(
+                $request->only(['action', 'search']),
+                $user->location_id,
+                $user->isLocationAdmin()
+            )
+        );
     }
 }

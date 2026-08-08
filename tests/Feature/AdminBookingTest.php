@@ -295,6 +295,49 @@ class AdminBookingTest extends TestCase
     }
 
     /**
+     * Test that an admin cannot create an approved booking overlapping an
+     * existing one — the row-locked conflict check must reject it.
+     */
+    public function test_admin_cannot_create_overlapping_booking(): void
+    {
+        Notification::fake();
+
+        $start = now()->addDays(2)->setTime(10, 0, 0);
+        $end = $start->copy()->addHours(2);
+
+        // First admin-created booking (auto-approved)
+        $this->actingAs($this->tpmAdmin)
+            ->postJson('/api/admin/bookings', [
+                'room_id' => $this->tpmRoom->id,
+                'title' => 'Morning Session',
+                'start_date' => $start->toDateString(),
+                'start_time' => $start->toDateTimeString(),
+                'end_time' => $end->toDateTimeString(),
+                'attendees' => 5,
+                'booker_type' => 'registered',
+                'user_id' => $this->tpmAdmin->id,
+            ])
+            ->assertStatus(201);
+
+        // Overlapping admin-created booking must be rejected
+        $this->actingAs($this->tpmAdmin)
+            ->postJson('/api/admin/bookings', [
+                'room_id' => $this->tpmRoom->id,
+                'title' => 'Overlapping Session',
+                'start_date' => $start->toDateString(),
+                'start_time' => $start->copy()->addHour()->toDateTimeString(),
+                'end_time' => $end->copy()->addHour()->toDateTimeString(),
+                'attendees' => 5,
+                'booker_type' => 'registered',
+                'user_id' => $this->tpmAdmin->id,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['time']);
+
+        $this->assertDatabaseCount('bookings', 1);
+    }
+
+    /**
      * Test admin bypass validation.
      */
     public function test_admin_can_bypass_validations(): void

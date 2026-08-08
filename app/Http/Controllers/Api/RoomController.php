@@ -7,6 +7,7 @@ use App\Http\Requests\Room\StoreRoomRequest;
 use App\Http\Requests\Room\UpdateRoomRequest;
 use App\Http\Resources\RoomResource;
 use App\Models\Room;
+use App\Services\AvailabilityCacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,14 +21,19 @@ class RoomController extends Controller
      */
     public function publicIndex(Request $request): JsonResponse
     {
-        $query = Room::active()->with('location');
-
-        if ($request->location_id) {
-            $query->where('location_id', $request->location_id);
-        }
+        $rooms = app(AvailabilityCacheService::class)->remember(
+            'rooms:public:'.($request->location_id ?? 'all'),
+            3600,
+            function () use ($request) {
+                return Room::active()->with('location')
+                    ->when($request->location_id, fn ($q) => $q->where('location_id', $request->location_id))
+                    ->orderBy('name')
+                    ->get();
+            }
+        );
 
         return response()->json(
-            RoomResource::collection($query->orderBy('name')->get())
+            RoomResource::collection($rooms)
         );
     }
 
