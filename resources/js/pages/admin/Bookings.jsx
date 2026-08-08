@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban, Search, ChevronDown, ChevronUp, CalendarDays, Building2, DoorOpen, RotateCcw, Download } from 'lucide-react';
+import { Check, X, Loader2, Clock, MapPin, Users, Filter, CheckSquare, Square, Ban, Search, ChevronDown, ChevronUp, CalendarDays, Building2, DoorOpen, RotateCcw, Download, Sun } from 'lucide-react';
+import { format, differenceInCalendarDays } from 'date-fns';
 import * as api from '../../services/api';
 import BookingCard from '../../components/BookingCard';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
@@ -65,6 +66,24 @@ export default function AdminBookings() {
     };
 
     const queryClient = useQueryClient();
+
+    // Today's confirmed bookings strip — what is happening in the building right now.
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const { data: todayData } = useQuery({
+        queryKey: ['admin-bookings', 'today', todayStr],
+        queryFn: () => api.getAdminBookings({ date: todayStr, status: 'approved', per_page: 50 }),
+        staleTime: 60 * 1000,
+    });
+    const todayBookings = todayData?.data || [];
+
+    const formatTime12 = (iso) => {
+        if (!iso) return '';
+        return new Date(iso)
+            .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            .replace(/\s+/g, '')
+            .toUpperCase();
+    };
 
     // Build query params from all filters
     const queryParams = useMemo(() => {
@@ -204,6 +223,7 @@ export default function AdminBookings() {
     });
 
     const bookings = data?.data || [];
+    const counts = data?.counts || {};
     const totalBookings = data?.total || 0;
     const fromIndex = data?.from || 0;
     const toIndex = data?.to || 0;
@@ -241,21 +261,47 @@ export default function AdminBookings() {
         return withEllipsis;
     };
 
-    const monthGroups = useMemo(() => {
-        const map = new Map();
-        const grouped = groupBookingsList(bookings);
-        grouped.forEach(b => {
-            const dt = new Date(b.start_time);
-            const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
-            const label = dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            if (!map.has(key)) map.set(key, { label, bookings: [] });
-            map.get(key).bookings.push(b);
-        });
-        return map;
-    }, [bookings]);
-    
     const isPendingTab = statusFilter === 'pending';
 
+    // Pending is a triage queue and explicit upcoming views are horizon-based:
+    // both get day-level headers ("Today", "Tomorrow", "Wed, Aug 13"). All-time
+    // and past views keep month headers, most recent first.
+    const useDayHeaders = isPendingTab || timeFilter === 'upcoming';
+
+    const listGroups = useMemo(() => {
+        const grouped = groupBookingsList(bookings);
+        const out = [];
+
+        grouped.forEach(b => {
+            const dt = new Date(b.start_time);
+            const monthKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            if (!useDayHeaders) {
+                const last = out[out.length - 1];
+                if (!last || last.key !== `month-${monthKey}`) {
+                    out.push({ kind: 'month', key: `month-${monthKey}`, label: monthLabel, bookings: [] });
+                }
+                out[out.length - 1].bookings.push(b);
+                return;
+            }
+
+            const dayKey = format(dt, 'yyyy-MM-dd');
+            const diffDays = differenceInCalendarDays(dt, new Date());
+            const dayLabel = diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : format(dt, 'EEE, d MMM');
+            const last = out[out.length - 1];
+            if (!last || last.dayKey !== dayKey) {
+                if (!last || monthKey !== last.monthKey) {
+                    out.push({ kind: 'month', key: `month-${monthKey}`, label: monthLabel, monthKey });
+                }
+                out.push({ kind: 'day', key: `day-${dayKey}`, dayKey, monthKey, label: dayLabel, bookings: [] });
+            }
+            out[out.length - 1].bookings.push(b);
+        });
+
+        return out;
+    }, [bookings, useDayHeaders]);
+    
     const handleSelectAll = () => {
         if (selectedIds.length === bookings.length) {
             setSelectedIds([]);
@@ -331,25 +377,63 @@ export default function AdminBookings() {
                 </div>
             </div>
 
+            {/* Today's confirmed bookings strip — what is happening in the building right now */}
+            {todayBookings.length > 0 && (
+                <div className="mb-6 rounded-3xl border border-emerald-200/60 bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-transparent p-5">
+                    <div className="flex items-center gap-2.5 mb-3">
+                        <div className="p-2 bg-emerald-100 rounded-xl">
+                            <Sun className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-semibold text-slate-900">Today's Bookings</h2>
+                            <p className="text-[11px] text-slate-500">{todayBookings.length} confirmed booking{todayBookings.length === 1 ? '' : 's'} · {format(new Date(), 'EEEE, d MMMM')}</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-1 px-1">
+                        {todayBookings.map(b => (
+                            <button
+                                key={b.id}
+                                onClick={() => setSelectedBookingDetails(b)}
+                                className="flex-shrink-0 flex items-center gap-3 bg-white/90 border border-emerald-200/70 hover:border-emerald-300 rounded-2xl px-4 py-2.5 shadow-xs hover:shadow-sm transition cursor-pointer text-left"
+                            >
+                                <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-slate-800 truncate max-w-[200px]">{b.room?.name || 'Room'}</div>
+                                    <div className="text-[11px] text-slate-500 font-medium">{formatTime12(b.start_time)} – {formatTime12(b.end_time)}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Status filter tabs */}
             <div className="flex gap-2 mb-4 flex-wrap">
-                {['pending', 'approved', 'rejected', 'cancelled', ''].map(status => (
-                    <button
-                        key={status}
-                        onClick={() => {
-                            setStatusFilter(status);
-                            setSelectedIds([]);
-                            setShowBatchReject(false);
-                        }}
-                        className={`px-4 py-2 text-sm font-medium rounded-xl transition cursor-pointer ${
-                            statusFilter === status
-                                ? 'bg-mimos-50 text-mimos-700 border border-mimos-200'
-                                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                        }`}
-                    >
-                        {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'All'}
-                    </button>
-                ))}
+                {['pending', 'approved', 'rejected', 'cancelled', ''].map(status => {
+                    const isActive = statusFilter === status;
+                    const count = counts[status || 'all'] ?? 0;
+                    return (
+                        <button
+                            key={status}
+                            onClick={() => {
+                                setStatusFilter(status);
+                                setSelectedIds([]);
+                                setShowBatchReject(false);
+                            }}
+                            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition cursor-pointer border ${
+                                isActive
+                                    ? 'bg-mimos-50 text-mimos-700 border-mimos-200'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                            }`}
+                        >
+                            {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'All'}
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+                                isActive ? 'bg-mimos-600 text-white' : 'bg-slate-100 text-slate-500'
+                            }`}>
+                                {count}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Advanced Filters Toggle */}
@@ -557,14 +641,22 @@ export default function AdminBookings() {
 
             {!isLoading && bookings.length > 0 && (
                 <div className="space-y-8">
-                    {[...monthGroups.entries()].map(([key, { label, bookings: groupBookings }]) => (
-                        <div key={key} className="space-y-4">
-                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
-                                <span>{label.toUpperCase()}</span>
-                                <span className="flex-1 h-px bg-slate-200/80" />
-                            </div>
-                            <div className="space-y-3">
-                                {groupBookings.map((booking) => (
+                    {listGroups.map(section => (
+                        <div key={section.key} className="space-y-4">
+                            {section.kind === 'day' ? (
+                                <div className="text-sm font-semibold text-slate-800 mb-4 mt-8 first:mt-0 flex items-center gap-3 select-none">
+                                    <span>{section.label}</span>
+                                    <span className="flex-1 h-px bg-slate-200/80" />
+                                </div>
+                            ) : (
+                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
+                                    <span>{section.label.toUpperCase()}</span>
+                                    <span className="flex-1 h-px bg-slate-200/80" />
+                                </div>
+                            )}
+                            {section.bookings && (
+                                <div className="space-y-3">
+                                    {section.bookings.map((booking) => (
                                     <div key={booking.id} className="space-y-2">
                                         <BookingCard
                                             booking={booking}
@@ -669,8 +761,9 @@ export default function AdminBookings() {
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    ))}
+                        )}
+                    </div>
+                ))}
 
                     {/* Pagination */}
                     {totalPages > 1 && (

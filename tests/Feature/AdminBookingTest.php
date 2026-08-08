@@ -425,4 +425,131 @@ class AdminBookingTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(2); // 1 booking and 1 blackout
     }
+
+    /**
+     * Test that the pending triage queue is sorted soonest-first by start time,
+     * with the oldest request first as the FIFO tiebreak.
+     */
+    public function test_admin_pending_queue_sorted_soonest_first_fifo(): void
+    {
+        $soon = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $later = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(3)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(3)->setTime(11, 0, 0),
+        ]);
+        // Same start time as $soon but requested earlier → FIFO puts it first.
+        $fifo = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $fifo->created_at = now()->subDay();
+        $fifo->save();
+
+        $response = $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?status=pending');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.id', $fifo->id)
+            ->assertJsonPath('data.1.id', $soon->id)
+            ->assertJsonPath('data.2.id', $later->id);
+    }
+
+    /**
+     * Test that the admin bookings response includes per-status counts,
+     * scoped to the location admin's own location.
+     */
+    public function test_admin_bookings_include_scoped_status_counts(): void
+    {
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Pending]);
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Approved]);
+        Booking::factory()->create(['room_id' => $this->tpmRoom->id, 'status' => BookingStatus::Approved]);
+        Booking::factory()->create(['room_id' => $this->khtpRoom->id, 'status' => BookingStatus::Pending]);
+
+        // TPM admin only sees TPM counts.
+        $this->actingAs($this->tpmAdmin)
+            ->getJson('/api/admin/bookings')
+            ->assertStatus(200)
+            ->assertJsonPath('counts.all', 3)
+            ->assertJsonPath('counts.pending', 1)
+            ->assertJsonPath('counts.approved', 2)
+            ->assertJsonPath('counts.rejected', 0)
+            ->assertJsonPath('counts.cancelled', 0);
+
+        // Super admin sees everything.
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings')
+            ->assertStatus(200)
+            ->assertJsonPath('counts.all', 4)
+            ->assertJsonPath('counts.pending', 2);
+    }
+
+    /**
+     * Test that the admin bookings per_page parameter is honoured and bounded
+     * to the 1-100 range.
+     */
+    public function test_admin_bookings_per_page_is_bounded(): void
+    {
+        Booking::factory()->count(5)->create(['room_id' => $this->tpmRoom->id]);
+
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?per_page=2')
+            ->assertStatus(200)
+            ->assertJsonPath('per_page', 2)
+            ->assertJsonCount(2, 'data');
+
+        // Oversized values are clamped to the 100 cap.
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?per_page=9999')
+            ->assertStatus(200)
+            ->assertJsonPath('per_page', 100);
+
+        // Negative values fall back to the minimum of 1.
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?per_page=-5')
+            ->assertStatus(200)
+            ->assertJsonPath('per_page', 1);
+    }
+
+    /**
+     * Test that the explicit upcoming time window sorts soonest-first by start
+     * time and excludes past bookings.
+     */
+    public function test_admin_upcoming_bookings_sorted_soonest_first(): void
+    {
+        $soon = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $later = Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->addDays(5)->setTime(14, 0, 0),
+            'end_time' => now()->addDays(5)->setTime(16, 0, 0),
+        ]);
+        Booking::factory()->create([
+            'room_id' => $this->tpmRoom->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->subDays(2)->setTime(10, 0, 0),
+            'end_time' => now()->subDays(2)->setTime(12, 0, 0),
+        ]);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings?time_filter=upcoming');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('data.0.id', $soon->id)
+            ->assertJsonPath('data.1.id', $later->id);
+    }
 }

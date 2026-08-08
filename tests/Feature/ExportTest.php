@@ -150,4 +150,38 @@ class ExportTest extends TestCase
         $this->assertStringContainsString('created', $content);
         $this->assertStringContainsString('Audited Booking', $content);
     }
+
+    /**
+     * Test that the bookings CSV export honours the same ordering as the list:
+     * a pending export is a soonest-first triage queue.
+     */
+    public function test_bookings_export_pending_queue_is_soonest_first(): void
+    {
+        $later = Booking::factory()->create([
+            'user_id' => $this->normalUser->id,
+            'room_id' => $this->room->id,
+            'title' => 'Later Event',
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(5)->setTime(14, 0, 0),
+            'end_time' => now()->addDays(5)->setTime(16, 0, 0),
+        ]);
+        $soon = Booking::factory()->create([
+            'user_id' => $this->normalUser->id,
+            'room_id' => $this->room->id,
+            'title' => 'Soon Event',
+            'status' => BookingStatus::Pending,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/bookings/export?status=pending')
+            ->assertOk();
+
+        $lines = array_values(array_filter(array_map('trim', explode("\n", $response->streamedContent()))));
+
+        $this->assertCount(3, $lines); // header + 2 data rows
+        $this->assertStringStartsWith($soon->reference_no, $lines[1]);
+        $this->assertStringStartsWith($later->reference_no, $lines[2]);
+    }
 }

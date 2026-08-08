@@ -596,4 +596,63 @@ class BookingTest extends TestCase
         // Check rollback: no bookings should exist
         $this->assertDatabaseCount('bookings', 0);
     }
+
+    /**
+     * Test that the user's upcoming bookings are sorted soonest-first by start
+     * time — not by creation time. A booking requested later but starting
+     * sooner must appear above an older request that starts later.
+     */
+    public function test_user_upcoming_bookings_sorted_by_start_time(): void
+    {
+        $sooner = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'room_id' => $this->room->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->addDays(1)->setTime(9, 0, 0),
+            'end_time' => now()->addDays(1)->setTime(11, 0, 0),
+        ]);
+        $later = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'room_id' => $this->room->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->addDays(5)->setTime(14, 0, 0),
+            'end_time' => now()->addDays(5)->setTime(16, 0, 0),
+        ]);
+        $later->created_at = now()->subDays(3);
+        $later->save();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/bookings?time_filter=upcoming');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.id', $sooner->id)
+            ->assertJsonPath('data.1.id', $later->id);
+    }
+
+    /**
+     * Test that past bookings are sorted most-recent-first.
+     */
+    public function test_user_past_bookings_sorted_most_recent_first(): void
+    {
+        $recent = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'room_id' => $this->room->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->subDays(2)->setTime(10, 0, 0),
+            'end_time' => now()->subDays(2)->setTime(12, 0, 0),
+        ]);
+        $older = Booking::factory()->create([
+            'user_id' => $this->user->id,
+            'room_id' => $this->room->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => now()->subDays(10)->setTime(10, 0, 0),
+            'end_time' => now()->subDays(10)->setTime(12, 0, 0),
+        ]);
+
+        $this->actingAs($this->user)
+            ->getJson('/api/bookings?time_filter=past')
+            ->assertStatus(200)
+            ->assertJsonPath('data.0.id', $recent->id)
+            ->assertJsonPath('data.1.id', $older->id);
+    }
 }

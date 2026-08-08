@@ -50,9 +50,13 @@ class AdminController extends Controller
             $user->isLocationAdmin()
         );
 
-        $bookings = $query->paginate(20);
+        $perPage = min(100, max(1, $request->integer('per_page', 20)));
+        $bookings = $query->paginate($perPage);
 
-        return response()->json($bookings);
+        $payload = $bookings->toArray();
+        $payload['counts'] = BookingQueryFilter::statusCounts($user->location_id, $user->isLocationAdmin());
+
+        return response()->json($payload);
     }
 
     /**

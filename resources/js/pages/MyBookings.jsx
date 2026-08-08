@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, AlertCircle, History, Plus, BellPlus, XCircle } from 'lucide-react';
+import { CalendarCheck, History, Plus, BellPlus, XCircle, Clock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { BOOKING_STATUS } from '../constants/bookingStatus';
 import EditBookingModal from '../components/EditBookingModal';
@@ -135,18 +135,37 @@ export default function MyBookings() {
         return withEllipsis;
     };
 
-    const monthGroups = useMemo(() => {
-        const map = new Map();
+    // "Awaiting confirmation" — pending items are the only actionable items in
+    // the upcoming view, so they are lifted out of the chronological list.
+    const isUpcomingView = timeFilter === 'upcoming';
+    const { pendingItems, listItems } = useMemo(() => {
         const grouped = groupBookingsList(bookings);
-        grouped.forEach(b => {
+        const liftPending = isUpcomingView && activeStatus === '';
+        return {
+            pendingItems: liftPending ? grouped.filter(b => b.status === 'pending') : [],
+            listItems: liftPending ? grouped.filter(b => b.status !== 'pending') : grouped,
+        };
+    }, [bookings, isUpcomingView, activeStatus]);
+
+    // Group by month so upcoming and past read the same way; the server already
+    // returns them sorted by start time (ascending upcoming, descending past),
+    // so within-month order is chronological and groups are contiguous.
+    const sections = useMemo(() => {
+        const out = [];
+
+        listItems.forEach(b => {
             const dt = new Date(b.start_time);
-            const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
-            const label = dt.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' });
-            if (!map.has(key)) map.set(key, { label, bookings: [] });
-            map.get(key).bookings.push(b);
+            const monthKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+            const monthLabel = dt.toLocaleDateString('en-MY', { month: 'long', year: 'numeric' });
+            const last = out[out.length - 1];
+            if (!last || last.key !== `month-${monthKey}`) {
+                out.push({ kind: 'month', key: `month-${monthKey}`, label: monthLabel, bookings: [] });
+            }
+            out[out.length - 1].bookings.push(b);
         });
-        return map;
-    }, [bookings]);
+
+        return out;
+    }, [listItems]);
 
     if (!isAuthenticated) {
         return (
@@ -316,25 +335,48 @@ export default function MyBookings() {
 
             {!isLoading && bookings.length > 0 && (
                 <div className="space-y-8">
-                    {[...monthGroups.entries()].map(([key, { label, bookings: groupBookings }]) => (
-                        <div key={key}>
+                    {pendingItems.length > 0 && (
+                        <div className="space-y-4">
+                            <div className="text-xs font-semibold text-amber-600 uppercase tracking-[0.12em] mb-6 flex items-center gap-2.5 select-none">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>Awaiting Confirmation</span>
+                                <span className="flex-1 h-px bg-amber-200/80" />
+                            </div>
+                            {pendingItems.map(b => (
+                                <BookingCard
+                                    key={b.id}
+                                    booking={b}
+                                    onViewDetails={setSelectedBookingDetails}
+                                    onCancel={setCancellingBookingId}
+                                    onEdit={setEditingBooking}
+                                    isActionPending={cancelMutation.isPending}
+                                    actioningId={cancelMutation.variables}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {sections.map(section => (
+                        <div key={section.key}>
                             <div className="text-xs font-semibold text-slate-400 uppercase tracking-[0.12em] mb-6 mt-8 first:mt-0 flex items-center gap-4 select-none">
-                                <span>{label.toUpperCase()}</span>
+                                <span>{section.label.toUpperCase()}</span>
                                 <span className="flex-1 h-px bg-slate-200/80" />
                             </div>
-                            <div className="space-y-4">
-                                {groupBookings.map(b => (
-                                    <BookingCard
-                                        key={b.id}
-                                        booking={b}
-                                        onViewDetails={setSelectedBookingDetails}
-                                        onCancel={setCancellingBookingId}
-                                        onEdit={setEditingBooking}
-                                        isActionPending={cancelMutation.isPending}
-                                        actioningId={cancelMutation.variables}
-                                    />
-                                ))}
-                            </div>
+                            {section.bookings && (
+                                <div className="space-y-4">
+                                    {section.bookings.map(b => (
+                                        <BookingCard
+                                            key={b.id}
+                                            booking={b}
+                                            onViewDetails={setSelectedBookingDetails}
+                                            onCancel={setCancellingBookingId}
+                                            onEdit={setEditingBooking}
+                                            isActionPending={cancelMutation.isPending}
+                                            actioningId={cancelMutation.variables}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
 
