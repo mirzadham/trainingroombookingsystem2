@@ -54,49 +54,8 @@ class AdminCalendarController extends Controller
             $bookingQuery->whereIn('status', [BookingStatus::Pending, BookingStatus::Approved, BookingStatus::Cancelled]);
         }
 
-        $bookings = $bookingQuery->orderBy('start_time')->get()->map(fn ($b) => [
-            'id' => $b->id,
-            'title' => $b->title,
-            'start' => $b->start_time->toIso8601String(),
-            'end' => $b->end_time->toIso8601String(),
-            'room' => $b->room->name,
-            'room_id' => $b->room_id,
-            'location' => $b->room->location->code,
-            'location_id' => $b->room->location_id,
-            'booked_by' => $b->user->name,
-            'booked_by_email' => $b->user->email,
-            'group_id' => $b->group_id,
-            'recurrence_group_id' => $b->recurrence_group_id,
-            'status' => $b->status->value,
-            'type' => 'booking',
-
-            // Re-map other fields required by BookingDetailsModal
-            'reference_no' => $b->reference_no,
-            'start_time' => $b->start_time->toIso8601String(),
-            'end_time' => $b->end_time->toIso8601String(),
-            'description' => $b->description,
-            'attendees' => $b->attendees,
-            'phone' => $b->phone,
-            'rejection_reason' => $b->rejection_reason,
-            'cancellation_reason' => $b->cancellation_reason,
-            'attendance_status' => $b->attendance_status,
-            'attendance_marked_at' => $b->attendance_marked_at?->toIso8601String(),
-            'user' => [
-                'id' => $b->user->id,
-                'name' => $b->user->name,
-                'email' => $b->user->email,
-            ],
-            'room_relation' => [
-                'id' => $b->room->id,
-                'name' => $b->room->name,
-                'location' => [
-                    'id' => $b->room->location->id,
-                    'code' => $b->room->location->code,
-                    'name' => $b->room->location->name,
-                    'address' => $b->room->location->address,
-                ],
-            ],
-        ]);
+        $bookings = $bookingQuery->orderBy('start_time')->get()
+            ->map(fn (Booking $b) => $this->bookingEventShape($b));
 
         $events = collect($bookings);
 
@@ -146,5 +105,82 @@ class AdminCalendarController extends Controller
         }
 
         return response()->json($events);
+    }
+
+    /**
+     * GET /api/admin/calendar/series?group_id={group}
+     * Fetch every occurrence of a consecutive multi-day booking group,
+     * regardless of the visible calendar window, so the booking details
+     * modal can show the complete series (not just in-view days).
+     */
+    public function series(Request $request): JsonResponse
+    {
+        $request->validate([
+            'group_id' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        $query = Booking::with(['room.location', 'user:id,name,email'])
+            ->where('group_id', $request->group_id)
+            ->orderBy('start_time');
+
+        if ($user->isLocationAdmin()) {
+            $query->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+        }
+
+        return response()->json($query->get()->map(fn (Booking $b) => $this->bookingEventShape($b)));
+    }
+
+    /**
+     * Shape a booking as a calendar event, including the fields the
+     * BookingDetailsModal reads (start_time/end_time aliases, reference_no,
+     * nested room_relation object).
+     */
+    private function bookingEventShape(Booking $b): array
+    {
+        return [
+            'id' => $b->id,
+            'title' => $b->title,
+            'start' => $b->start_time->toIso8601String(),
+            'end' => $b->end_time->toIso8601String(),
+            'room' => $b->room->name,
+            'room_id' => $b->room_id,
+            'location' => $b->room->location->code,
+            'location_id' => $b->room->location_id,
+            'booked_by' => $b->user->name,
+            'booked_by_email' => $b->user->email,
+            'group_id' => $b->group_id,
+            'recurrence_group_id' => $b->recurrence_group_id,
+            'status' => $b->status->value,
+            'type' => 'booking',
+
+            // Re-map other fields required by BookingDetailsModal
+            'reference_no' => $b->reference_no,
+            'start_time' => $b->start_time->toIso8601String(),
+            'end_time' => $b->end_time->toIso8601String(),
+            'description' => $b->description,
+            'attendees' => $b->attendees,
+            'phone' => $b->phone,
+            'rejection_reason' => $b->rejection_reason,
+            'cancellation_reason' => $b->cancellation_reason,
+            'attendance_status' => $b->attendance_status,
+            'attendance_marked_at' => $b->attendance_marked_at?->toIso8601String(),
+            'user' => [
+                'id' => $b->user->id,
+                'name' => $b->user->name,
+                'email' => $b->user->email,
+            ],
+            'room_relation' => [
+                'id' => $b->room->id,
+                'name' => $b->room->name,
+                'location' => [
+                    'id' => $b->room->location->id,
+                    'code' => $b->room->location->code,
+                    'name' => $b->room->location->name,
+                    'address' => $b->room->location->address,
+                ],
+            ],
+        ];
     }
 }

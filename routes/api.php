@@ -133,6 +133,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
 
     // Admin Calendar View
     Route::get('/calendar', [AdminCalendarController::class, 'index']);
+    Route::get('/calendar/series', [AdminCalendarController::class, 'series']);
 
     // CSV Exports (defined before other bookings routes to avoid conflicts)
     Route::get('/bookings/export', [AdminExportController::class, 'bookings']);
