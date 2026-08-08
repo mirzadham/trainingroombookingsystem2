@@ -65,3 +65,6 @@ export const adminCreateBooking = (data) =>
 
 export const getAdminCalendarEvents = (params) =>
     api.get('/admin/calendar', { params }).then(r => r.data);
+
+export const getAdminCalendarSeries = (groupId) =>
+    api.get('/admin/calendar/series', { params: { group_id: groupId } }).then(r => r.data);

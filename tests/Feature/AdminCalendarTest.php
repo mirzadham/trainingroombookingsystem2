@@ -136,4 +136,128 @@ class AdminCalendarTest extends TestCase
         $this->assertTrue($events->every(fn ($e) => ! empty($e['start_time']) && ! empty($e['end_time'])));
         $this->assertSame($this->room->name, $events[0]['room_relation']['name']);
     }
+
+    /**
+     * Test that the series endpoint returns every occurrence of a group,
+     * including days outside the visible calendar window.
+     */
+    public function test_series_returns_all_occurrences_for_group(): void
+    {
+        $start = now()->addDays(5)->setTime(9, 0, 0);
+        $groupId = 'test-group-uuid';
+
+        // 3-day series: the series endpoint must return every day of the
+        // group, regardless of any calendar-view window (the index endpoint
+        // only returns days inside the requested range).
+        foreach ([0, 1, 2] as $i) {
+            Booking::factory()->create([
+                'room_id' => $this->room->id,
+                'user_id' => $this->superAdmin->id,
+                'title' => 'Week-long Course',
+                'start_time' => $start->copy()->addDays($i),
+                'end_time' => $start->copy()->addDays($i)->addHours(4),
+                'group_id' => $groupId,
+                'status' => BookingStatus::Approved,
+            ]);
+        }
+
+        $response = $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/calendar/series?group_id='.$groupId);
+
+        $response->assertOk();
+
+        $events = collect($response->json());
+
+        $this->assertCount(3, $events);
+
+        // Occurrences must be ordered by start_time ascending (the modal relies on it).
+        $startTimes = $events->pluck('start_time')->values()->all();
+        $this->assertSame(collect($startTimes)->sort()->values()->all(), $startTimes);
+
+        $this->assertTrue($events->every(fn ($e) => $e['group_id'] === $groupId));
+        $this->assertTrue($events->every(fn ($e) => ! empty($e['reference_no'])));
+        $this->assertTrue($events->every(fn ($e) => ! empty($e['start_time']) && ! empty($e['end_time'])));
+        $this->assertSame($this->room->name, $events[0]['room_relation']['name']);
+        $this->assertSame('booking', $events[0]['type']);
+    }
+
+    /**
+     * Test that the series endpoint requires a group_id.
+     */
+    public function test_series_requires_group_id(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->getJson('/api/admin/calendar/series')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['group_id']);
+    }
+
+    /**
+     * Test that the series endpoint is scoped: a location admin only sees
+     * groups belonging to their own location.
+     */
+    public function test_series_scoped_to_location_admin(): void
+    {
+        $otherLocation = Location::create([
+            'name' => 'Kulim Hi-Tech Park',
+            'code' => 'KHTP',
+            'address' => 'Kedah',
+        ]);
+        $otherRoom = Room::factory()->create(['location_id' => $otherLocation->id, 'capacity' => 10]);
+        $locationAdmin = User::factory()->create([
+            'role' => UserRole::LocationAdmin,
+            'location_id' => $this->location->id,
+        ]);
+
+        $groupId = 'test-group-uuid';
+        $start = now()->addDays(3)->setTime(9, 0, 0);
+
+        // Group at the admin's own location
+        Booking::factory()->create([
+            'room_id' => $this->room->id,
+            'user_id' => $this->superAdmin->id,
+            'start_time' => $start,
+            'end_time' => $start->copy()->addHours(4),
+            'group_id' => $groupId,
+            'status' => BookingStatus::Approved,
+        ]);
+        Booking::factory()->create([
+            'room_id' => $this->room->id,
+            'user_id' => $this->superAdmin->id,
+            'start_time' => $start->copy()->addDay(),
+            'end_time' => $start->copy()->addDay()->addHours(4),
+            'group_id' => $groupId,
+            'status' => BookingStatus::Approved,
+        ]);
+
+        // Foreign group at the other location
+        Booking::factory()->create([
+            'room_id' => $otherRoom->id,
+            'user_id' => $this->superAdmin->id,
+            'start_time' => $start,
+            'end_time' => $start->copy()->addHours(4),
+            'group_id' => 'other-group-uuid',
+            'status' => BookingStatus::Approved,
+        ]);
+        Booking::factory()->create([
+            'room_id' => $otherRoom->id,
+            'user_id' => $this->superAdmin->id,
+            'start_time' => $start->copy()->addDay(),
+            'end_time' => $start->copy()->addDay()->addHours(4),
+            'group_id' => 'other-group-uuid',
+            'status' => BookingStatus::Approved,
+        ]);
+
+        // Own location: full group visible
+        $this->actingAs($locationAdmin)
+            ->getJson('/api/admin/calendar/series?group_id='.$groupId)
+            ->assertOk()
+            ->assertJsonCount(2);
+
+        // Foreign location: scoped out
+        $this->actingAs($locationAdmin)
+            ->getJson('/api/admin/calendar/series?group_id=other-group-uuid')
+            ->assertOk()
+            ->assertJsonCount(0);
+    }
 }
