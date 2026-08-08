@@ -127,21 +127,39 @@ class BookingTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['duration']);
 
-        // 2. Max duration is 8 hours (480 mins)
-        $end = $start->copy()->addHours(9);
+        // 2. Max duration is now 12 hours (720 mins) — a 9-hour booking (previously over
+        //    the 8-hour limit) is accepted. Use a different day so it doesn't overlap with
+        //    the 30-minute booking above (duplicate-prevention would reject the overlap).
+        $longDay = now()->addDays(3)->setTime(7, 0, 0);
+        $end = $longDay->copy()->addHours(9); // 7 AM – 4 PM
         $this->actingAs($this->user)
             ->postJson('/api/bookings', [
                 'room_id' => $this->room->id,
                 'title' => 'Long Meet',
-                'start_date' => $start->toDateString(),
-                'end_date' => $start->toDateString(),
-                'start_time' => $start->toDateTimeString(),
+                'start_date' => $longDay->toDateString(),
+                'end_date' => $longDay->toDateString(),
+                'start_time' => $longDay->toDateTimeString(),
                 'end_time' => $end->toDateTimeString(),
                 'attendees' => 5,
                 'phone' => '+60123456789',
             ])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['duration']);
+            ->assertStatus(201);
+
+        // 3. Boundary: the full operating day (7 AM – 7 PM, exactly 12 hours) is accepted.
+        $fullDay = now()->addDays(4)->setTime(7, 0, 0);
+        $fullDayEnd = $fullDay->copy()->setTime(19, 0, 0);
+        $this->actingAs($this->user)
+            ->postJson('/api/bookings', [
+                'room_id' => $this->room->id,
+                'title' => 'Full Day Training',
+                'start_date' => $fullDay->toDateString(),
+                'end_date' => $fullDay->toDateString(),
+                'start_time' => $fullDay->toDateTimeString(),
+                'end_time' => $fullDayEnd->toDateTimeString(),
+                'attendees' => 5,
+                'phone' => '+60123456789',
+            ])
+            ->assertStatus(201);
     }
 
     /**
