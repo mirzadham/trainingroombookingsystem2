@@ -36,21 +36,12 @@ class ExportService
      */
     public function streamBookingsCsv(Builder $query): StreamedResponse
     {
-        return response()->streamDownload(function () use ($query) {
-            $handle = fopen('php://output', 'w');
-
-            fputcsv($handle, $this->bookingsCsvHeaders());
-
-            $query->chunkById(200, function (Collection $bookings) use ($handle) {
-                foreach ($bookings as $booking) {
-                    fputcsv($handle, $this->bookingsCsvRow($booking));
-                }
-            });
-
-            fclose($handle);
-        }, 'bookings_'.now()->format('Ymd_His').'.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+        return $this->streamCsv(
+            $query,
+            $this->bookingsCsvHeaders(),
+            fn (Booking $booking) => $this->bookingsCsvRow($booking),
+            'bookings_'.now()->format('Ymd_His').'.csv'
+        );
     }
 
     /**
@@ -79,19 +70,33 @@ class ExportService
      */
     public function streamAuditLogsCsv(Builder $query): StreamedResponse
     {
-        return response()->streamDownload(function () use ($query) {
+        return $this->streamCsv(
+            $query,
+            $this->auditLogsCsvHeaders(),
+            fn (AuditLog $log) => $this->auditLogsCsvRow($log),
+            'audit_logs_'.now()->format('Ymd_His').'.csv'
+        );
+    }
+
+    /**
+     * Stream a CSV download for a query, fetching rows in chunks so memory
+     * stays bounded no matter how large the result set is.
+     */
+    private function streamCsv(Builder $query, array $headers, callable $row, string $filename): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($query, $headers, $row) {
             $handle = fopen('php://output', 'w');
 
-            fputcsv($handle, $this->auditLogsCsvHeaders());
+            fputcsv($handle, $headers);
 
-            $query->chunkById(200, function (Collection $logs) use ($handle) {
-                foreach ($logs as $log) {
-                    fputcsv($handle, $this->auditLogsCsvRow($log));
+            $query->chunkById(200, function (Collection $items) use ($handle, $row) {
+                foreach ($items as $item) {
+                    fputcsv($handle, $row($item));
                 }
             });
 
             fclose($handle);
-        }, 'audit_logs_'.now()->format('Ymd_His').'.csv', [
+        }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
