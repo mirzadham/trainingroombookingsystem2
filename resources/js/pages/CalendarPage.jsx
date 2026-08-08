@@ -141,7 +141,7 @@ export default function CalendarPage() {
                         >
                             <ChevronLeft className="w-5 h-5" />
                         </button>
-                        <h2 className="text-lg font-semibold text-slate-900">
+                        <h2 className="text-xl font-semibold text-slate-900">
                             {format(currentMonth, 'MMMM yyyy')}
                         </h2>
                         <button
@@ -155,7 +155,7 @@ export default function CalendarPage() {
                     {/* Day labels */}
                     <div className="grid grid-cols-7 gap-px mb-1">
                         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                            <div key={d} className="text-center text-xs font-medium text-slate-500 py-2">{d}</div>
+                            <div key={d} className="text-center text-xs font-medium text-slate-500 py-2.5">{d}</div>
                         ))}
                     </div>
 
@@ -220,7 +220,7 @@ export default function CalendarPage() {
                                 }
                             });
 
-                            const minHeight = Math.max(120, 40 + tracks.length * 28 + 10);
+                            const minHeight = Math.max(125, 48 + tracks.length * 34 + 12);
 
                             return (
                                 <div key={weekIdx} className="grid grid-cols-7 gap-px relative bg-transparent" style={{ minHeight: `${minHeight}px` }}>
@@ -234,11 +234,11 @@ export default function CalendarPage() {
                                             <div 
                                                 key={dayIdx} 
                                                 onClick={() => setSelectedDate(day)}
-                                                className={`p-2 cursor-pointer transition-colors bg-white relative ${
+                                                className={`p-2.5 cursor-pointer transition-colors bg-white relative ${
                                                     isSelected ? '!bg-mimos-50/50 ring-2 ring-mimos-500 ring-inset z-10' : 'hover:!bg-slate-50/50'
                                                 } ${!isCurrentMonth ? '!bg-slate-50/50' : ''}`}
                                             >
-                                                <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-medium mb-1 ${
+                                                <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium mb-1 ${
                                                     isTodayDate 
                                                         ? 'bg-mimos-600 text-white' 
                                                         : isSelected 
@@ -277,13 +277,13 @@ export default function CalendarPage() {
                                         return (
                                             <div
                                                 key={evt.id}
-                                                className={`absolute h-6 px-2.5 flex items-center text-xs border truncate shadow-sm transition-opacity hover:opacity-90 cursor-pointer z-10
+                                                className={`absolute h-7 px-2.5 flex items-center text-[13px] border truncate shadow-sm transition-opacity hover:opacity-90 cursor-pointer z-10
                                                     ${colorClass}
                                                     ${continuesPrior ? 'rounded-l-none border-l-0' : 'rounded-l-md ml-1'}
                                                     ${continuesAfter ? 'rounded-r-none border-r-0' : 'rounded-r-md mr-1'}
                                                 `}
                                                 style={{
-                                                    top: `${40 + track * 28}px`,
+                                                    top: `${48 + track * 34}px`,
                                                     left: `calc(${safeStartIdx} * (100% / 7))`,
                                                     width: `calc(${span} * (100% / 7) - ${continuesPrior ? '0px' : '4px'} - ${continuesAfter ? '0px' : '4px'})`,
                                                 }}
