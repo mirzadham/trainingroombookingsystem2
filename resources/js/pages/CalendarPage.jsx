@@ -20,6 +20,13 @@ const getRoomColor = (roomId) => {
     return ROOM_COLORS[roomId % ROOM_COLORS.length];
 };
 
+// Calendar week-row layout constants. Keep ROW_TOP_PAD and TRACK_PITCH in
+// sync with the event bar `top` offset below — they define the same grid.
+const ROW_TOP_PAD = 48; // badge zone: 10px cell pad + 32px badge + 4px margin + 2px gap
+const ROW_BASE = 125; // minimum week-row height (matches the ~125px column width)
+const TRACK_PITCH = 34; // 28px event bar (h-7) + 6px gap
+const ROW_BOTTOM_PAD = 12;
+
 export default function CalendarPage() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -220,7 +227,7 @@ export default function CalendarPage() {
                                 }
                             });
 
-                            const minHeight = Math.max(125, 48 + tracks.length * 34 + 12);
+                            const minHeight = Math.max(ROW_BASE, ROW_TOP_PAD + tracks.length * TRACK_PITCH + ROW_BOTTOM_PAD);
 
                             return (
                                 <div key={weekIdx} className="grid grid-cols-7 gap-px relative bg-transparent" style={{ minHeight: `${minHeight}px` }}>
@@ -283,7 +290,7 @@ export default function CalendarPage() {
                                                     ${continuesAfter ? 'rounded-r-none border-r-0' : 'rounded-r-md mr-1'}
                                                 `}
                                                 style={{
-                                                    top: `${48 + track * 34}px`,
+                                                    top: `${ROW_TOP_PAD + track * TRACK_PITCH}px`,
                                                     left: `calc(${safeStartIdx} * (100% / 7))`,
                                                     width: `calc(${span} * (100% / 7) - ${continuesPrior ? '0px' : '4px'} - ${continuesAfter ? '0px' : '4px'})`,
                                                 }}
