@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus, Mail } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, parseISO, min, max } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, isWeekend, parseISO, min, max } from 'date-fns';
 import { Link } from 'react-router-dom';
 import * as api from '../services/api';
 
@@ -161,8 +161,8 @@ export default function CalendarPage() {
 
                     {/* Day labels */}
                     <div className="grid grid-cols-7 gap-px mb-1">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-                            <div key={d} className="text-center text-xs font-medium text-slate-500 py-2.5">{d}</div>
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
+                            <div key={d} className={`text-center text-xs font-medium py-2.5 ${i >= 5 ? 'text-slate-400' : 'text-slate-700'}`}>{d}</div>
                         ))}
                     </div>
 
@@ -250,7 +250,9 @@ export default function CalendarPage() {
                                                         ? 'bg-mimos-600 text-white' 
                                                         : isSelected 
                                                             ? 'bg-mimos-100 text-mimos-700 ring-2 ring-mimos-500/30'
-                                                            : isCurrentMonth ? 'text-slate-700' : 'text-slate-400'
+                                                            : !isCurrentMonth
+                                                                ? 'text-slate-400'
+                                                                : isWeekend(day) ? 'text-slate-400' : 'text-slate-700'
                                                 }`}>
                                                     {format(day, 'd')}
                                                 </div>
