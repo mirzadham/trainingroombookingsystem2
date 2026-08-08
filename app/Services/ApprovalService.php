@@ -32,6 +32,11 @@ class ApprovalService
         }
 
         DB::transaction(function () use ($booking, $admin) {
+            // Lock order is always room-first (matches AdminController::storeBooking
+            // and WaitlistService::join) so concurrent write paths never acquire
+            // locks in opposite order, which would risk deadlock detection rollbacks.
+            DB::table('rooms')->where('id', $booking->room_id)->lockForUpdate()->first();
+
             // Lock the booking row for update
             $booking = Booking::lockForUpdate()->findOrFail($booking->id);
 
@@ -41,12 +46,6 @@ class ApprovalService
                     'status' => 'This booking is no longer pending.',
                 ]);
             }
-
-            // Serialize approvals for this room: booking-row locking alone
-            // cannot order two concurrent approvals of *different* bookings
-            // for the same slot — the room lock makes the availability
-            // re-check below observe every previously committed approval.
-            DB::table('rooms')->where('id', $booking->room_id)->lockForUpdate()->first();
 
             // Re-check availability with lock — this is the CRITICAL check
             if ($this->availabilityService->hasConflict(
