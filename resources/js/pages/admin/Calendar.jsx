@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, MapPin, Clock, User, Plus, Lock, CalendarOff, AlertCircle, Check, X, Ban, RefreshCw, CalendarCheck, Mail } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, parseISO, min, max } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday, isWeekend, parseISO, min, max } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 import * as api from '../../services/api';
 import BookingDetailsModal from '../../components/BookingDetailsModal';
@@ -348,8 +348,8 @@ export default function AdminCalendar() {
 
                     {/* Day Names Header */}
                     <div className="grid grid-cols-7 gap-px mb-2 select-none">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => (
-                            <div key={dayName} className="text-center text-[10px] font-semibold text-slate-400 uppercase py-2">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((dayName, i) => (
+                            <div key={dayName} className={`text-center text-[10px] font-semibold uppercase py-2 ${i >= 5 ? 'text-slate-400' : 'text-slate-800'}`}>
                                 {dayName}
                             </div>
                         ))}
@@ -443,7 +443,9 @@ export default function AdminCalendar() {
                                                             ? 'bg-mimos-600 text-white shadow-xs' 
                                                             : isSelected 
                                                                 ? 'bg-mimos-100 text-mimos-700 ring-2 ring-mimos-500/20'
-                                                                : isCurrentMonth ? 'text-slate-800' : 'text-slate-400'
+                                                                : !isCurrentMonth
+                                                                    ? 'text-slate-400'
+                                                                    : isWeekend(day) ? 'text-slate-400' : 'text-slate-800'
                                                     }`}>
                                                         {format(day, 'd')}
                                                     </div>
