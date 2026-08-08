@@ -163,6 +163,37 @@ class BookingTest extends TestCase
     }
 
     /**
+     * Test that the max-duration cap rejects overlong windows when the
+     * operating hours alone would permit them (widened to 6 AM – 10 PM here,
+     * so a 13-hour window is legal on the hours front and the duration check
+     * is what fires).
+     */
+    public function test_booking_rejects_duration_over_maximum(): void
+    {
+        config([
+            'booking.operating_hours.open' => 6,
+            'booking.operating_hours.close' => 22,
+        ]);
+
+        $start = now()->addDays(2)->setTime(6, 0, 0); // 6 AM
+        $end = $start->copy()->addHours(13); // 6 AM – 7 PM = 13 hours > 12h cap
+
+        $this->actingAs($this->user)
+            ->postJson('/api/bookings', [
+                'room_id' => $this->room->id,
+                'title' => 'Overlong Meet',
+                'start_date' => $start->toDateString(),
+                'end_date' => $start->toDateString(),
+                'start_time' => $start->toDateTimeString(),
+                'end_time' => $end->toDateTimeString(),
+                'attendees' => 5,
+                'phone' => '+60123456789',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['duration']);
+    }
+
+    /**
      * Test same day advance minutes validation.
      */
     public function test_booking_validation_same_day_advance(): void
