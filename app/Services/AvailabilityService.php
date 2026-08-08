@@ -10,6 +10,10 @@ use Illuminate\Support\Collection;
 
 class AvailabilityService
 {
+    public function __construct(
+        private AvailabilityCacheService $availabilityCache
+    ) {}
+
     /**
      * Check if a specific room is available for the given time range.
      * Only APPROVED bookings block availability.
@@ -28,13 +32,27 @@ class AvailabilityService
             return false;
         }
 
-        // Check for any overlapping room blackouts (incl. recurring patterns)
-        $hasBlackout = RoomBlackout::where('room_id', $roomId)
+        // One-off blackouts: precise SQL overlap check that uses the
+        // (room_id, start_time, end_time) index — no occurrence expansion.
+        $hasOneOffBlackout = RoomBlackout::where('room_id', $roomId)
+            ->where(function ($q) {
+                $q->where('recurrence', 'none')->orWhereNull('recurrence');
+            })
+            ->overlapping($start, $end)
+            ->exists();
+
+        if ($hasOneOffBlackout) {
+            return false;
+        }
+
+        // Recurring blackouts need per-occurrence expansion, done in memory.
+        $hasRecurringBlackout = RoomBlackout::where('room_id', $roomId)
+            ->where('recurrence', '!=', 'none')
             ->overlapping($start, $end)
             ->get()
             ->contains(fn (RoomBlackout $b) => $b->overlaps($start, $end));
 
-        return ! $hasBlackout;
+        return ! $hasRecurringBlackout;
     }
 
     /**
@@ -72,28 +90,13 @@ class AvailabilityService
         $start = $date->copy()->setTime($startTime->hour, $startTime->minute);
         $end = $date->copy()->setTime($endTime->hour, $endTime->minute);
 
-        $roomIds = $rooms->pluck('id')->toArray();
-
-        // Batch fetch overlapping approved bookings for all candidate rooms
-        $overlappingBookings = Booking::approved()
-            ->whereIn('room_id', $roomIds)
-            ->overlapping($start, $end)
-            ->pluck('room_id')
-            ->toArray();
-
-        // Batch fetch overlapping blackouts (incl. recurring patterns) for all candidate rooms
-        $overlappingBlackouts = RoomBlackout::whereIn('room_id', $roomIds)
-            ->overlapping($start, $end)
-            ->get()
-            ->filter(fn (RoomBlackout $b) => $b->overlaps($start, $end))
-            ->pluck('room_id')
-            ->toArray();
-
-        $occupiedRoomIds = array_unique(array_merge($overlappingBookings, $overlappingBlackouts));
+        // Batch fetch overlapping approved bookings + blackouts for all
+        // candidate rooms in two queries (no per-room N+1).
+        $occupiedRoomIds = $this->occupiedRoomIds($rooms->pluck('id')->toArray(), $start, $end);
 
         // Filter rooms that are available for the requested time
         return $rooms->map(function ($room) use ($occupiedRoomIds) {
-            $room->is_available = ! in_array($room->id, $occupiedRoomIds);
+            $room->is_available = ! in_array($room->id, $occupiedRoomIds, true);
 
             return $room;
         });
@@ -102,8 +105,24 @@ class AvailabilityService
     /**
      * Generate timeline grid data for a location on a specific date.
      * Returns rooms as rows with time slot availability.
+     *
+     * Cached per (location, date range): any booking / room / blackout /
+     * location write bumps the availability cache generation, so cached
+     * grids can never go stale while unchanged grids skip the full rebuild.
      */
     public function getTimelineGrid(?int $locationId, Carbon $date, ?Carbon $endDate = null): array
+    {
+        return $this->availabilityCache->remember(
+            'timeline:'.($locationId ?? 'all').':'.$date->toDateString().':'.($endDate?->toDateString() ?? 'single'),
+            3600,
+            fn () => $this->buildTimelineGrid($locationId, $date, $endDate)
+        );
+    }
+
+    /**
+     * Rebuild the timeline grid from the database.
+     */
+    private function buildTimelineGrid(?int $locationId, Carbon $date, ?Carbon $endDate = null): array
     {
         $query = Room::active()->with('location');
 
@@ -291,6 +310,40 @@ class AvailabilityService
     }
 
     /**
+     * Room IDs occupied for a given range: overlapping approved bookings
+     * plus overlapping blackouts (incl. recurring patterns).
+     *
+     * Always two batched queries — never one per room.
+     */
+    private function occupiedRoomIds(array $roomIds, Carbon $start, Carbon $end): array
+    {
+        if ($roomIds === []) {
+            return [];
+        }
+
+        $bookingRoomIds = Booking::approved()
+            ->whereIn('room_id', $roomIds)
+            ->overlapping($start, $end)
+            ->pluck('room_id')
+            ->toArray();
+
+        $blackoutRoomIds = RoomBlackout::whereIn('room_id', $roomIds)
+            ->overlapping($start, $end)
+            ->get()
+            ->filter(fn (RoomBlackout $b) => $b->overlaps($start, $end))
+            ->pluck('room_id')
+            ->toArray();
+
+        // Normalize to ints: some drivers/PDO configs return integer columns
+        // as strings, which would silently break the strict in_array()
+        // checks in getAvailableRooms()/findAlternativeRooms() and mark
+        // occupied rooms as available.
+        $ids = array_map('intval', array_merge($bookingRoomIds, $blackoutRoomIds));
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
      * Find nearby available time slots (shift by slot-duration increments, ±2 hours).
      */
     private function findNearbySlots(
@@ -314,8 +367,13 @@ class AvailabilityService
         }
         $rooms = $query->with('location')->get();
 
+        if ($rooms->isEmpty()) {
+            return $suggestions;
+        }
+
         // Try shifting by 30-min increments, up to ±2 hours
         $shifts = [-30, 30, -60, 60, -90, 90, -120, 120];
+        $windows = [];
 
         foreach ($shifts as $shiftMinutes) {
             $newStart = $date->copy()->setTime($startTime->hour, $startTime->minute)->addMinutes($shiftMinutes);
@@ -329,20 +387,64 @@ class AvailabilityService
                 continue;
             }
 
+            $windows[] = ['start' => $newStart, 'end' => $newEnd];
+        }
+
+        if ($windows === []) {
+            return $suggestions;
+        }
+
+        // One batch fetch spanning every candidate window instead of one
+        // isAvailable() (2 queries) per room per shift.
+        $spanStart = $windows[0]['start'];
+        $spanEnd = $windows[0]['end'];
+        foreach ($windows as $window) {
+            if ($window['start']->lt($spanStart)) {
+                $spanStart = $window['start'];
+            }
+            if ($window['end']->gt($spanEnd)) {
+                $spanEnd = $window['end'];
+            }
+        }
+
+        $bookings = Booking::approved()
+            ->whereIn('room_id', $rooms->pluck('id'))
+            ->overlapping($spanStart, $spanEnd)
+            ->get();
+
+        $blackouts = RoomBlackout::whereIn('room_id', $rooms->pluck('id'))
+            ->overlapping($spanStart, $spanEnd)
+            ->get();
+
+        foreach ($windows as $window) {
+            $occupiedRoomIds = $bookings
+                ->filter(fn (Booking $b) => $b->start_time < $window['end'] && $b->end_time > $window['start'])
+                ->pluck('room_id')
+                ->merge(
+                    $blackouts
+                        ->filter(fn (RoomBlackout $b) => $b->overlaps($window['start'], $window['end']))
+                        ->pluck('room_id')
+                )
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+
             foreach ($rooms as $room) {
-                if ($this->isAvailable($room->id, $newStart, $newEnd)) {
-                    $suggestions->push([
-                        'room' => [
-                            'id' => $room->id,
-                            'name' => $room->name,
-                            'capacity' => $room->capacity,
-                            'location' => $room->location->name,
-                        ],
-                        'start_time' => $newStart->toDateTimeString(),
-                        'end_time' => $newEnd->toDateTimeString(),
-                        'type' => 'nearby_time',
-                    ]);
+                if ($occupiedRoomIds->contains($room->id)) {
+                    continue;
                 }
+
+                $suggestions->push([
+                    'room' => [
+                        'id' => $room->id,
+                        'name' => $room->name,
+                        'capacity' => $room->capacity,
+                        'location' => $room->location->name,
+                    ],
+                    'start_time' => $window['start']->toDateTimeString(),
+                    'end_time' => $window['end']->toDateTimeString(),
+                    'type' => 'nearby_time',
+                ]);
             }
         }
 
@@ -369,8 +471,16 @@ class AvailabilityService
         }
         $rooms = $query->get();
 
+        if ($rooms->isEmpty()) {
+            return $suggestions;
+        }
+
         $start = $date->copy()->setTime($startTime->hour, $startTime->minute);
         $end = $date->copy()->setTime($endTime->hour, $endTime->minute);
+
+        // Single batched conflict check for every candidate room (previously
+        // one isAvailable() — two queries — per room).
+        $occupiedRoomIds = $this->occupiedRoomIds($rooms->pluck('id')->toArray(), $start, $end);
 
         foreach ($rooms as $room) {
             // Skip rooms from the originally requested location (those would be in nearby_times)
@@ -378,7 +488,7 @@ class AvailabilityService
                 continue;
             }
 
-            if ($this->isAvailable($room->id, $start, $end)) {
+            if (! in_array($room->id, $occupiedRoomIds, true)) {
                 $suggestions->push([
                     'room' => [
                         'id' => $room->id,
