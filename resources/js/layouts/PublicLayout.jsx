@@ -270,7 +270,7 @@ export default function PublicLayout() {
             />
 
             {/* Main Content */}
-            <main className="flex-grow relative flex flex-col min-h-0">
+            <main className="flex-grow relative">
                 <Outlet />
             </main>
 
