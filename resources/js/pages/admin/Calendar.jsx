@@ -193,6 +193,7 @@ export default function AdminCalendar() {
         const base = {
             id: evt.id,
             reference_no: evt.reference_no,
+            recurrence_group_id: evt.recurrence_group_id,
             title: evt.title,
             description: evt.description,
             start_time: evt.start_time || evt.start,
