@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\BookingStatus;
+use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
+use App\Models\User;
 use App\Services\AvailabilityCacheService;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
@@ -227,6 +229,46 @@ class AvailabilityCacheTest extends TestCase
 
             // …and read it back from the database store — must still be an array.
             $response = $this->getJson('/api/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString());
+            $response->assertOk()->assertJsonIsArray();
+            $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
+        } finally {
+            config()->set('cache.default', 'array');
+        }
+    }
+
+    /**
+     * Regression: the admin calendar endpoint must return a JSON array even
+     * when served from the database cache store — same class of bug as the
+     * public calendar (cached Eloquent Collection → __PHP_Incomplete_Class).
+     */
+    public function test_admin_calendar_returns_array_from_database_cache(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            $start = now()->addDays(5)->setTime(9, 0);
+            $end = $start->copy()->addHours(1);
+
+            $admin = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+            Booking::factory()->create([
+                'room_id' => $this->room->id,
+                'user_id' => $admin->id,
+                'status' => BookingStatus::Approved,
+                'start_time' => $start,
+                'end_time' => $end,
+            ]);
+
+            $url = '/api/admin/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString();
+
+            // Warm the cache (first request)…
+            $this->actingAs($admin)->getJson($url)
+                ->assertOk()
+                ->assertJsonIsArray()
+                ->assertJsonCount(1);
+
+            // …and read it back from the database store — must still be an array.
+            $response = $this->actingAs($admin)->getJson($url);
             $response->assertOk()->assertJsonIsArray();
             $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
         } finally {

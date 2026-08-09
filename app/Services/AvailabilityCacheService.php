@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Generation-scoped cache for availability-facing read paths
@@ -104,14 +105,18 @@ class AvailabilityCacheService
      * The cache store is configured with serializable_classes => false, so a
      * payload that was (mistakenly) written as a PHP object comes back as an
      * __PHP_Incomplete_Class instead of the original class. Such entries are
-     * dropped and rebuilt, so a single bad write can never break responses
-     * until its TTL expires.
+     * dropped and rebuilt on the next read, so a single bad write can never
+     * be served to callers.
      */
     private function read(string $cacheKey): mixed
     {
         $value = Cache::get($cacheKey);
 
         if ($value instanceof \__PHP_Incomplete_Class) {
+            Log::warning('Cache entry dropped: unserialized as __PHP_Incomplete_Class (payloads must be plain arrays, not PHP objects)', [
+                'key' => $cacheKey,
+            ]);
+
             Cache::forget($cacheKey);
 
             return null;
