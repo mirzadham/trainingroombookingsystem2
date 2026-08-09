@@ -38,6 +38,10 @@ class CalendarController extends Controller
                     $query->where('room_id', $request->room_id);
                 }
 
+                // Cache a plain array, never an Eloquent Collection: the cache
+                // store refuses to unserialize PHP classes
+                // (serializable_classes => false), so object payloads come back
+                // as __PHP_Incomplete_Class and break the JSON response shape.
                 return $query->orderBy('start_time')->get()->map(fn ($b) => [
                     'id' => $b->id,
                     'title' => $b->title,
@@ -49,7 +53,7 @@ class CalendarController extends Controller
                     'booked_by' => $b->user->name,
                     'booked_by_email' => $b->user->email,
                     'group_id' => $b->group_id,
-                ]);
+                ])->all();
             }
         );
 

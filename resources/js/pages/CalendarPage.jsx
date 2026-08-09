@@ -53,7 +53,7 @@ export default function CalendarPage() {
 
     // 1. Group events by group_id
     const events = useMemo(() => {
-        if (!rawEvents) return [];
+        if (!Array.isArray(rawEvents)) return [];
         
         const grouped = new Map();
         const standalone = [];
@@ -100,7 +100,7 @@ export default function CalendarPage() {
     // Calculate events for selected date details
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
     const selectedEvents = useMemo(() => {
-        if (!rawEvents) return [];
+        if (!Array.isArray(rawEvents)) return [];
         // Use rawEvents to display individual daily slots in the sidebar
         return rawEvents.filter(evt => {
             const startStr = evt.start.split('T')[0];
@@ -125,7 +125,7 @@ export default function CalendarPage() {
                                 className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 appearance-none cursor-pointer"
                             >
                                 <option value="" className="bg-white">All Locations</option>
-                                {(locations || []).map(loc => (
+                                {(Array.isArray(locations) ? locations : []).map(loc => (
                                     <option key={loc.id} value={loc.id} className="bg-white">{loc.code}</option>
                                 ))}
                             </select>

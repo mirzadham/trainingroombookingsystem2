@@ -99,7 +99,7 @@ export default function AdminCalendar() {
 
     // 1. Group events by group_id
     const events = useMemo(() => {
-        if (!rawEvents) return [];
+        if (!Array.isArray(rawEvents)) return [];
         
         const grouped = new Map();
         const standalone = [];
@@ -146,7 +146,7 @@ export default function AdminCalendar() {
     // Calculate events for selected date details
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
     const selectedEvents = useMemo(() => {
-        if (!rawEvents) return [];
+        if (!Array.isArray(rawEvents)) return [];
         return rawEvents.filter(evt => {
             const startStr = evt.start.split('T')[0];
             const endStr = evt.end.split('T')[0];

@@ -61,7 +61,7 @@ class AvailabilityCacheService
     {
         $cacheKey = $this->key($key);
 
-        $value = Cache::get($cacheKey);
+        $value = $this->read($cacheKey);
         if ($value !== null) {
             return $value;
         }
@@ -72,7 +72,7 @@ class AvailabilityCacheService
             try {
                 // Double-checked locking: another request may have populated
                 // the value while we waited for the lock.
-                $value = Cache::get($cacheKey);
+                $value = $this->read($cacheKey);
                 if ($value !== null) {
                     return $value;
                 }
@@ -95,7 +95,29 @@ class AvailabilityCacheService
             // than failing the request.
         }
 
-        return Cache::get($cacheKey) ?? $callback();
+        return $this->read($cacheKey) ?? $callback();
+    }
+
+    /**
+     * Read a value from cache, treating unserialization failures as a miss.
+     *
+     * The cache store is configured with serializable_classes => false, so a
+     * payload that was (mistakenly) written as a PHP object comes back as an
+     * __PHP_Incomplete_Class instead of the original class. Such entries are
+     * dropped and rebuilt, so a single bad write can never break responses
+     * until its TTL expires.
+     */
+    private function read(string $cacheKey): mixed
+    {
+        $value = Cache::get($cacheKey);
+
+        if ($value instanceof \__PHP_Incomplete_Class) {
+            Cache::forget($cacheKey);
+
+            return null;
+        }
+
+        return $value;
     }
 
     /**
