@@ -38,7 +38,11 @@ class AdminCalendarController extends Controller
                 .':'.($request->location_id ?? 'all').':'.($request->room_id ?? 'all')
                 .':'.($request->status ?? 'default'),
             3600,
-            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate)
+            // Cache a plain array, never an Eloquent Collection: the cache
+            // store refuses to unserialize PHP classes
+            // (serializable_classes => false), so object payloads come back
+            // as __PHP_Incomplete_Class and break the JSON response shape.
+            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate)->all()
         );
 
         return response()->json($events);

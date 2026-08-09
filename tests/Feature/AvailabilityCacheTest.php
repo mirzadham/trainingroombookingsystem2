@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\BookingStatus;
+use App\Enums\UserRole;
 use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
+use App\Models\User;
 use App\Services\AvailabilityCacheService;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
@@ -192,6 +194,114 @@ class AvailabilityCacheTest extends TestCase
 
             $response->assertOk()->assertJsonIsArray();
             $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
+        } finally {
+            config()->set('cache.default', 'array');
+        }
+    }
+
+    /**
+     * Regression: the public calendar endpoint must return a JSON array even
+     * when served from the database cache store. The pre-fix controller
+     * cached an Eloquent Collection, which the store restores as
+     * __PHP_Incomplete_Class — the JSON object crashed CalendarPage's
+     * rawEvents.forEach() (TypeError: W.forEach is not a function).
+     */
+    public function test_public_calendar_returns_array_from_database_cache(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            $start = now()->addDays(5)->setTime(9, 0);
+            $end = $start->copy()->addHours(1);
+
+            Booking::factory()->create([
+                'room_id' => $this->room->id,
+                'status' => BookingStatus::Approved,
+                'start_time' => $start,
+                'end_time' => $end,
+            ]);
+
+            // Warm the cache (first request)…
+            $this->getJson('/api/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString())
+                ->assertOk()
+                ->assertJsonIsArray()
+                ->assertJsonCount(1);
+
+            // …and read it back from the database store — must still be an array.
+            $response = $this->getJson('/api/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString());
+            $response->assertOk()->assertJsonIsArray();
+            $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
+        } finally {
+            config()->set('cache.default', 'array');
+        }
+    }
+
+    /**
+     * Regression: the admin calendar endpoint must return a JSON array even
+     * when served from the database cache store — same class of bug as the
+     * public calendar (cached Eloquent Collection → __PHP_Incomplete_Class).
+     */
+    public function test_admin_calendar_returns_array_from_database_cache(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            $start = now()->addDays(5)->setTime(9, 0);
+            $end = $start->copy()->addHours(1);
+
+            $admin = User::factory()->create(['role' => UserRole::SuperAdmin]);
+
+            Booking::factory()->create([
+                'room_id' => $this->room->id,
+                'user_id' => $admin->id,
+                'status' => BookingStatus::Approved,
+                'start_time' => $start,
+                'end_time' => $end,
+            ]);
+
+            $url = '/api/admin/calendar?start_date='.$start->toDateString().'&end_date='.$end->toDateString();
+
+            // Warm the cache (first request)…
+            $this->actingAs($admin)->getJson($url)
+                ->assertOk()
+                ->assertJsonIsArray()
+                ->assertJsonCount(1);
+
+            // …and read it back from the database store — must still be an array.
+            $response = $this->actingAs($admin)->getJson($url);
+            $response->assertOk()->assertJsonIsArray();
+            $this->assertSame('array', gettype(json_decode($response->getContent(), true)));
+        } finally {
+            config()->set('cache.default', 'array');
+        }
+    }
+
+    /**
+     * Regression: remember() must self-heal corrupted cache entries. If a
+     * payload was (mistakenly) written as a PHP class object, the database
+     * store's serializable_classes => false setting restores it as an
+     * __PHP_Incomplete_Class. Such entries must be treated as a miss and
+     * rebuilt — never served to callers.
+     */
+    public function test_remember_self_heals_incomplete_class_entries(): void
+    {
+        config()->set('cache.default', 'database');
+
+        try {
+            $svc = app(AvailabilityCacheService::class);
+            $cacheKey = $svc->key('self-heal:key');
+
+            // Simulate a payload written by the pre-fix code: a serialized
+            // Eloquent Collection. The store refuses to restore the class,
+            // so this reads back as __PHP_Incomplete_Class.
+            Cache::put($cacheKey, collect([['id' => 1]]), 60);
+            $this->assertInstanceOf(\__PHP_Incomplete_Class::class, Cache::get($cacheKey));
+
+            // remember() must detect the corruption, drop it, and rebuild.
+            $value = $svc->remember('self-heal:key', 60, fn () => [['id' => 2]]);
+
+            $this->assertSame([['id' => 2]], $value);
+            $this->assertSame([['id' => 2]], Cache::get($cacheKey));
         } finally {
             config()->set('cache.default', 'array');
         }
