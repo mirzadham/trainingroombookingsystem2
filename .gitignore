@@ -71,3 +71,10 @@ Homestead.yaml
 
 # Agent Tooling (pi / ECC) — vendored deps only
 .pi/scripts/node_modules/
+
+# Playwright E2E artifacts
+/test-results/
+/playwright-report/
+
+# ECC local memory vault
+/.ecc/

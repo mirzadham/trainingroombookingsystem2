@@ -108,6 +108,13 @@ This project uses Laravel's Vite integration for a seamless developer experience
 
 Alternatively, if you are using **Laragon**, you can access the application via your configured local domain (e.g., `http://trainingroombookingsystem2.test`) and only need to run `npm run dev` to enable Hot Module Replacement (HMR) for React components.
 
+## 🧪 Testing
+
+- **Feature/Unit tests (PHPUnit):** `php artisan test`
+- **E2E tests (Playwright):** `npm run test:e2e`
+
+Playwright tests require the app to be reachable (Laragon domain or `php artisan serve` — the config reuses any running server, falling back to `php artisan serve --port=8000`) and PHP on the PATH. The suite drives the real dev database through the fixture helper at `tests/e2e/helpers/fixtures.php` (`seed`, `invite`, `reset`, `clear-throttle`) using dedicated `e2e.*@example.com` accounts and `E2E Room *` rooms, and covers the room-admin role end-to-end: API scoping (bookings, counts, approve/deny, rooms, dashboard, calendar, blackouts, exports), email notifications, the super-admin invite flow, invitation claiming, and the room-admin UI.
+
 ## 🗂 Project Structure
 
 - `app/` - Laravel backend models, controllers, and services.
