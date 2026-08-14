@@ -136,10 +136,10 @@ npm run build                          # Vite production build
 
 ## Acceptance
 
-- [ ] `room_admin` exists; middleware/login admit them via `isAdmin()`
-- [ ] Room admins only see/act on assigned rooms across: bookings list+counts, dashboard, calendar, blackouts, reports, exports, audit logs, admin-created bookings
-- [ ] Room CRUD: edit only assigned rooms; create/delete denied
-- [ ] Super admin can invite a room admin with a campus + room list; claim flow attaches rooms; can edit room assignments later
-- [ ] Email notifications reach room admins for their rooms only (same emails other admins get)
-- [ ] All existing tests green + new `RoomAdminTest` coverage
-- [ ] `npm run build` passes
+- [x] `room_admin` exists; middleware/login admit them via `isAdmin()`
+- [x] Room admins only see/act on assigned rooms across: bookings list+counts, dashboard, calendar, blackouts, reports, exports, audit logs, admin-created bookings
+- [x] Room CRUD: edit only assigned rooms; create/delete denied
+- [x] Super admin can invite a room admin with a campus + room list; claim flow attaches rooms; can edit room assignments later
+- [x] Email notifications reach room admins for their rooms only (same emails other admins get)
+- [x] All existing tests green + new `RoomAdminTest` coverage (202 tests, 769 assertions)
+- [x] `npm run build` passes
