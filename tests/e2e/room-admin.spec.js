@@ -265,6 +265,32 @@ test.describe('Room admin — UI flows', () => {
         await expect(row).toContainText(fx.otherRoom.name);
     });
 
+    test('super admin invites a location admin (explicit null room_ids path)', async ({ page }) => {
+        await adminLogin(page, fx.superAdmin.email, fx.superAdmin.password);
+
+        await page.goto('/admin/users');
+        await page.getByRole('button', { name: 'Invite Administrator' }).click();
+
+        const modal = page.locator('div.fixed.inset-0').last();
+        const inviteEmail = `e2e.locinvite.${Date.now()}@example.com`;
+
+        // The invite modal sends room_ids: null for non-room-admin roles;
+        // the backend must accept it (regression for the whereIn(null) 500).
+        await modal.locator('input[type="email"]').fill(inviteEmail);
+        await modal.getByRole('button', { name: 'Location Admin' }).click();
+        await modal
+            .locator('select')
+            .selectOption({ label: `${fx.locations.tpm.name} (TPM)` });
+
+        page.once('dialog', (dialog) => dialog.accept());
+        await modal.getByRole('button', { name: 'Send Invite' }).click();
+
+        await page.getByRole('button', { name: /Pending Invitations/ }).click();
+        const row = page.locator('tr', { hasText: inviteEmail });
+        await expect(row).toBeVisible();
+        await expect(row).toContainText('Location Admin');
+    });
+
     test('claiming a room-admin invitation provisions the scoped account', async ({ page }) => {
         const invite = fixture('invite', [
             'e2e.claimant@example.com',

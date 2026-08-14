@@ -76,7 +76,7 @@ class UserManagementController extends Controller
     {
         // Single lookup for the campus check in the room_ids.* validation
         // closure below (avoids one query per selected room).
-        $roomsById = Room::whereIn('id', $request->input('room_ids', []))->get()->keyBy('id');
+        $roomsById = Room::whereIn('id', (array) $request->input('room_ids', []))->get()->keyBy('id');
 
         $validated = $request->validate([
             'email' => [
@@ -235,7 +235,7 @@ class UserManagementController extends Controller
     {
         // Single lookup for the campus check in the room_ids.* validation
         // closure below (avoids one query per selected room).
-        $roomsById = Room::whereIn('id', $request->input('room_ids', []))->get()->keyBy('id');
+        $roomsById = Room::whereIn('id', (array) $request->input('room_ids', []))->get()->keyBy('id');
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],

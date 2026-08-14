@@ -777,4 +777,41 @@ class RoomAdminTest extends TestCase
 
         $this->assertDatabaseHas('users', ['id' => $user->id, 'role' => 'user']);
     }
+
+    // ---------------------------------------------------------
+    // Null room_ids (the frontend sends an explicit null for
+    // non-room-admin roles)
+    // ---------------------------------------------------------
+
+    public function test_invite_non_room_admin_with_null_room_ids_succeeds(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->postJson('/api/admin/users/invite', [
+                'email' => 'roomadmin5@example.com',
+                'role' => 'location_admin',
+                'location_id' => $this->tpm->id,
+                'room_ids' => null,
+            ])
+            ->assertStatus(201);
+
+        $this->assertDatabaseHas('admin_invitations', ['email' => 'roomadmin5@example.com', 'role' => 'location_admin']);
+    }
+
+    public function test_update_user_with_null_room_ids_succeeds(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::LocationAdmin, 'location_id' => $this->tpm->id]);
+
+        $this->actingAs($this->superAdmin)
+            ->putJson("/api/admin/users/{$user->id}", [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => 'location_admin',
+                'user_type' => 'internal',
+                'location_id' => $this->tpm->id,
+                'room_ids' => null,
+            ])
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'role' => 'location_admin']);
+    }
 }
