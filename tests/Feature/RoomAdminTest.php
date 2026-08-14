@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BookingStatus;
 use App\Enums\UserRole;
 use App\Models\AdminInvitation;
+use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
@@ -425,13 +426,13 @@ class RoomAdminTest extends TestCase
 
     public function test_room_admin_audit_logs_scoped(): void
     {
-        \App\Models\AuditLog::create([
+        AuditLog::create([
             'user_id' => $this->superAdmin->id,
             'action' => 'created',
             'changes' => ['assigned' => true],
             'booking_id' => Booking::factory()->create(['room_id' => $this->assignedRoom->id])->id,
         ]);
-        \App\Models\AuditLog::create([
+        AuditLog::create([
             'user_id' => $this->superAdmin->id,
             'action' => 'created',
             'changes' => ['assigned' => false],

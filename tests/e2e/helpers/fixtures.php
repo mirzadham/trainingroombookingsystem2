@@ -23,14 +23,16 @@ use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Room;
 use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 require __DIR__.'/../../../vendor/autoload.php';
 
 $app = require __DIR__.'/../../../bootstrap/app.php';
 
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
 if (app()->environment('production')) {
@@ -261,7 +263,7 @@ function clearThrottle(): void
     // limitKey is the client IP. Clearing the limiter *name* is a no-op, so
     // clear the real cache entries (plus their :timer counterparts).
     foreach (['auth-login', 'auth-admin-login', 'auth-invitations'] as $name) {
-        Illuminate\Support\Facades\RateLimiter::clear(md5($name.'127.0.0.1'));
+        RateLimiter::clear(md5($name.'127.0.0.1'));
     }
 
     out(['throttle' => 'cleared']);
