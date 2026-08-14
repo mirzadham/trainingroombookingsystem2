@@ -40,6 +40,9 @@ class ReportController extends Controller
         if ($user->isLocationAdmin()) {
             $query->where('location_id', $user->location_id);
         }
+        if ($user->isRoomAdmin()) {
+            $query->whereIn('id', $user->adminRoomIds()->all());
+        }
 
         $rooms = $query->get();
         $roomIds = $rooms->pluck('id')->toArray();
@@ -94,7 +97,9 @@ class ReportController extends Controller
             ->where('start_time', '>=', $request->start_date)
             ->where('end_time', '<=', Carbon::parse($request->end_date)->endOfDay());
 
-        if ($user->isLocationAdmin()) {
+        if ($user->isRoomAdmin()) {
+            $query->whereIn('room_id', $user->adminRoomIds()->all());
+        } elseif ($user->isLocationAdmin()) {
             $locId = $user->location_id;
             $query->whereHas('room', fn ($q) => $q->where('location_id', $locId));
         } elseif ($request->location_id) {

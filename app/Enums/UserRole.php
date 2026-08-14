@@ -6,6 +6,7 @@ enum UserRole: string
 {
     case User = 'user';
     case LocationAdmin = 'location_admin';
+    case RoomAdmin = 'room_admin';
     case SuperAdmin = 'super_admin';
 
     /**
@@ -13,6 +14,6 @@ enum UserRole: string
      */
     public function isAdmin(): bool
     {
-        return in_array($this, [self::LocationAdmin, self::SuperAdmin]);
+        return in_array($this, [self::LocationAdmin, self::RoomAdmin, self::SuperAdmin]);
     }
 }

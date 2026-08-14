@@ -20,6 +20,12 @@ class RoomPolicy
      */
     public function create(User $user): bool
     {
+        // Room admins manage existing assigned rooms only — they cannot
+        // create new rooms in the directory.
+        if ($user->isRoomAdmin()) {
+            return false;
+        }
+
         return $user->isAdmin();
     }
 
@@ -32,11 +38,7 @@ class RoomPolicy
             return false;
         }
 
-        if ($user->isLocationAdmin()) {
-            return $room->location_id === $user->location_id;
-        }
-
-        return true; // Super admin can update any room
+        return $user->hasRoomAccess($room);
     }
 
     /**
@@ -56,10 +58,6 @@ class RoomPolicy
             return false;
         }
 
-        if ($user->isLocationAdmin()) {
-            return $room->location_id === $user->location_id;
-        }
-
-        return true;
+        return $user->hasRoomAccess($room);
     }
 }

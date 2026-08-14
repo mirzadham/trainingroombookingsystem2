@@ -15,7 +15,8 @@ import {
     UserCheck, 
     UserX, 
     ShieldAlert, 
-    Building2 
+    Building2,
+    DoorOpen
 } from 'lucide-react';
 import * as api from '../../services/api';
 
@@ -57,6 +58,13 @@ export default function AdminUsers() {
         queryKey: ['locations'],
         queryFn: api.getLocations,
     });
+
+    const { data: roomsData } = useQuery({
+        queryKey: ['admin-rooms'],
+        queryFn: api.getAdminRooms,
+        staleTime: 5 * 60 * 1000,
+    });
+    const allRooms = roomsData?.data || roomsData || [];
 
     // Mutations
     const inviteMutation = useMutation({
@@ -127,6 +135,7 @@ export default function AdminUsers() {
     const formatRole = (role) => {
         if (role === 'super_admin') return 'Super Admin';
         if (role === 'location_admin') return 'Location Admin';
+        if (role === 'room_admin') return 'Room Admin';
         return 'Regular User';
     };
 
@@ -198,6 +207,7 @@ export default function AdminUsers() {
                                 <option value="">All Roles</option>
                                 <option value="super_admin">Super Admins</option>
                                 <option value="location_admin">Location Admins</option>
+                                <option value="room_admin">Room Admins</option>
                                 <option value="user">Regular Users</option>
                             </select>
 
@@ -262,6 +272,8 @@ export default function AdminUsers() {
                                                                 ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
                                                                 : user.role === 'location_admin'
                                                                 ? 'bg-cyan-50 border-cyan-200 text-cyan-700'
+                                                                : user.role === 'room_admin'
+                                                                ? 'bg-amber-50 border-amber-200 text-amber-700'
                                                                 : 'bg-slate-100 border-slate-200 text-slate-600'
                                                         }`}>
                                                             {formatRole(user.role)}
@@ -270,6 +282,16 @@ export default function AdminUsers() {
                                                             <span className="flex items-center gap-1 text-[11px] text-slate-500 font-medium pl-1">
                                                                 <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                                                                 {user.location?.name || 'No Location Scope'}
+                                                            </span>
+                                                        )}
+                                                        {user.role === 'room_admin' && (
+                                                            <span className="flex items-start gap-1 text-[11px] text-slate-500 font-medium pl-1">
+                                                                <DoorOpen className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+                                                                <span>
+                                                                    {user.admin_rooms?.length
+                                                                        ? user.admin_rooms.map(r => r.name).join(', ')
+                                                                        : 'No Rooms Assigned'}
+                                                                </span>
                                                             </span>
                                                         )}
                                                     </div>
@@ -392,6 +414,8 @@ export default function AdminUsers() {
                                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit border ${
                                                                 invite.role === 'super_admin'
                                                                     ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                                                                    : invite.role === 'room_admin'
+                                                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
                                                                     : 'bg-cyan-50 border-cyan-200 text-cyan-700'
                                                             }`}>
                                                                 {formatRole(invite.role)}
@@ -400,6 +424,16 @@ export default function AdminUsers() {
                                                                 <span className="flex items-center gap-1 text-[11px] text-slate-500 font-medium pl-1">
                                                                     <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                                                                     {invite.location?.name || 'No Scope'}
+                                                                </span>
+                                                            )}
+                                                            {invite.role === 'room_admin' && (
+                                                                <span className="flex items-start gap-1 text-[11px] text-slate-500 font-medium pl-1">
+                                                                    <DoorOpen className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+                                                                    <span>
+                                                                        {invite.rooms?.length
+                                                                            ? invite.rooms.map(r => r.name).join(', ')
+                                                                            : 'No Rooms Assigned'}
+                                                                    </span>
                                                                 </span>
                                                             )}
                                                         </div>
@@ -460,6 +494,7 @@ export default function AdminUsers() {
             {showInviteModal && (
                 <InviteAdminModal
                     locations={locations || []}
+                    rooms={allRooms}
                     onClose={() => setShowInviteModal(false)}
                     onSubmit={handleInviteSubmit}
                     isLoading={inviteMutation.isPending}
@@ -471,6 +506,7 @@ export default function AdminUsers() {
                 <EditUserModal
                     user={editingUser}
                     locations={locations || []}
+                    rooms={allRooms}
                     onClose={() => setEditingUser(null)}
                     onSubmit={handleUpdateSubmit}
                     isLoading={updateUserMutation.isPending}
@@ -483,27 +519,46 @@ export default function AdminUsers() {
 /* 
  * INVITE ADMIN SUB-MODAL COMPONENT 
  */
-function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
+function InviteAdminModal({ locations, rooms, onClose, onSubmit, isLoading }) {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('location_admin');
     const [locationId, setLocationId] = useState('');
+    const [roomIds, setRoomIds] = useState([]);
+
+    const campusRooms = rooms.filter(r => String(r.location_id) === String(locationId));
+
+    const toggleRoom = (roomId) => {
+        setRoomIds(prev => prev.includes(roomId)
+            ? prev.filter(id => id !== roomId)
+            : [...prev, roomId]);
+    };
+
+    const handleRoleChange = (newRole) => {
+        setRole(newRole);
+        setRoomIds([]);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (role === 'location_admin' && !locationId) {
+        if ((role === 'location_admin' || role === 'room_admin') && !locationId) {
             alert('Please select an assigned location scope.');
+            return;
+        }
+        if (role === 'room_admin' && roomIds.length === 0) {
+            alert('Please select at least one room to assign.');
             return;
         }
         onSubmit({
             email,
             role,
-            location_id: role === 'location_admin' ? parseInt(locationId) : null
+            location_id: (role === 'location_admin' || role === 'room_admin') ? parseInt(locationId) : null,
+            room_ids: role === 'room_admin' ? roomIds : null
         });
     };
 
     return (
         <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/45 backdrop-blur-xs p-4 animate-fade-in">
-            <div className="bg-white border border-slate-200 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden transform scale-100 transition-all">
+            <div className="bg-white border border-slate-200 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden transform scale-100 transition-all max-h-[92vh] flex flex-col">
                 {/* Modal Header */}
                 <div className="p-6 border-b border-slate-200/70 flex items-center justify-between bg-slate-50/50">
                     <div>
@@ -516,7 +571,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                 </div>
 
                 {/* Form Body */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
                         <input
@@ -531,11 +586,11 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Role Scope</label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-3 gap-2">
                             <button
                                 type="button"
-                                onClick={() => setRole('location_admin')}
-                                className={`px-4 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                                onClick={() => handleRoleChange('location_admin')}
+                                className={`px-2 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                                     role === 'location_admin'
                                         ? 'bg-cyan-50/40 border-cyan-400 text-cyan-700 shadow-xs'
                                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -546,8 +601,20 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setRole('super_admin')}
-                                className={`px-4 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                                onClick={() => handleRoleChange('room_admin')}
+                                className={`px-2 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                                    role === 'room_admin'
+                                        ? 'bg-amber-50/60 border-amber-400 text-amber-700 shadow-xs'
+                                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                                }`}
+                            >
+                                <DoorOpen className="w-4 h-4 shrink-0" />
+                                Room Admin
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleRoleChange('super_admin')}
+                                className={`px-2 py-3 border text-xs font-semibold rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
                                     role === 'super_admin'
                                         ? 'bg-indigo-50/40 border-indigo-400 text-indigo-700 shadow-xs'
                                         : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -559,12 +626,12 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                         </div>
                     </div>
 
-                    {role === 'location_admin' && (
+                    {(role === 'location_admin' || role === 'room_admin') && (
                         <div className="animate-slide-down">
                             <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
                             <select
                                 value={locationId}
-                                onChange={e => setLocationId(e.target.value)}
+                                onChange={e => { setLocationId(e.target.value); setRoomIds([]); }}
                                 required
                                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/30 appearance-none cursor-pointer"
                             >
@@ -573,6 +640,33 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
                                     <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
                                 ))}
                             </select>
+                        </div>
+                    )}
+
+                    {role === 'room_admin' && (
+                        <div className="animate-slide-down">
+                            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Assigned Rooms</label>
+                            {!locationId ? (
+                                <p className="text-xs text-slate-400">Select a location first to see its rooms.</p>
+                            ) : campusRooms.length === 0 ? (
+                                <p className="text-xs text-slate-400">No rooms found in this location.</p>
+                            ) : (
+                                <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50/40">
+                                    {campusRooms.map(room => (
+                                        <label key={room.id} className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-slate-50 transition">
+                                            <input
+                                                type="checkbox"
+                                                checked={roomIds.includes(room.id)}
+                                                onChange={() => toggleRoom(room.id)}
+                                                className="w-4 h-4 accent-mimos-500 cursor-pointer"
+                                            />
+                                            <span className="text-xs text-slate-700 font-medium">{room.name}</span>
+                                            <span className="text-[10px] text-slate-400 ml-auto">{room.capacity} pax</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                            <p className="text-[10px] text-slate-400 mt-1.5">{roomIds.length} room{roomIds.length !== 1 ? 's' : ''} selected</p>
                         </div>
                     )}
 
@@ -602,7 +696,7 @@ function InviteAdminModal({ locations, onClose, onSubmit, isLoading }) {
 /* 
  * EDIT USER DETAIL SUB-MODAL COMPONENT 
  */
-function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
+function EditUserModal({ user, locations, rooms, onClose, onSubmit, isLoading }) {
     const [name, setName] = useState(user.name || '');
     const [email, setEmail] = useState(user.email || '');
     const [role, setRole] = useState(user.role || 'user');
@@ -610,17 +704,40 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
     const [locationId, setLocationId] = useState(user.location_id || '');
     const [phone, setPhone] = useState(user.phone || '');
     const [department, setDepartment] = useState(user.department || '');
+    const [roomIds, setRoomIds] = useState(user.admin_rooms?.map(r => r.id) || []);
+
+    const campusRooms = rooms.filter(r => String(r.location_id) === String(locationId));
+
+    const toggleRoom = (roomId) => {
+        setRoomIds(prev => prev.includes(roomId)
+            ? prev.filter(id => id !== roomId)
+            : [...prev, roomId]);
+    };
+
+    const handleRoleChange = (newRole) => {
+        setRole(newRole);
+        setRoomIds([]);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if ((role === 'location_admin' || role === 'room_admin') && !locationId) {
+            alert('Please select an assigned location scope.');
+            return;
+        }
+        if (role === 'room_admin' && roomIds.length === 0) {
+            alert('Please select at least one room to assign.');
+            return;
+        }
         onSubmit({
             name,
             email,
             role,
             user_type: userType,
-            location_id: role === 'location_admin' ? parseInt(locationId) : null,
+            location_id: (role === 'location_admin' || role === 'room_admin') ? parseInt(locationId) : null,
             phone: phone || null,
             department: department || null,
+            room_ids: role === 'room_admin' ? roomIds : null,
         });
     };
 
@@ -679,21 +796,22 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                             <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Role Scope</label>
                             <select
                                 value={role}
-                                onChange={e => setRole(e.target.value)}
+                                onChange={e => handleRoleChange(e.target.value)}
                                 className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/30 appearance-none cursor-pointer"
                             >
                                 <option value="user">Regular User</option>
                                 <option value="location_admin">Location Admin</option>
+                                <option value="room_admin">Room Admin</option>
                                 <option value="super_admin">Super Admin</option>
                             </select>
                         </div>
 
-                        {role === 'location_admin' && (
+                        {(role === 'location_admin' || role === 'room_admin') && (
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Assigned Location Scope</label>
                                 <select
                                     value={locationId}
-                                    onChange={e => setLocationId(e.target.value)}
+                                    onChange={e => { setLocationId(e.target.value); setRoomIds([]); }}
                                     required
                                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/30 appearance-none cursor-pointer"
                                 >
@@ -702,6 +820,33 @@ function EditUserModal({ user, locations, onClose, onSubmit, isLoading }) {
                                         <option key={loc.id} value={loc.id}>{loc.name} ({loc.code})</option>
                                     ))}
                                 </select>
+                            </div>
+                        )}
+
+                        {role === 'room_admin' && (
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Assigned Rooms</label>
+                                {!locationId ? (
+                                    <p className="text-xs text-slate-400">Select a location first to see its rooms.</p>
+                                ) : campusRooms.length === 0 ? (
+                                    <p className="text-xs text-slate-400">No rooms found in this location.</p>
+                                ) : (
+                                    <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50/40">
+                                        {campusRooms.map(room => (
+                                            <label key={room.id} className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-slate-50 transition">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={roomIds.includes(room.id)}
+                                                    onChange={() => toggleRoom(room.id)}
+                                                    className="w-4 h-4 accent-mimos-500 cursor-pointer"
+                                                />
+                                                <span className="text-xs text-slate-700 font-medium">{room.name}</span>
+                                                <span className="text-[10px] text-slate-400 ml-auto">{room.capacity} pax</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-[10px] text-slate-400 mt-1.5">{roomIds.length} room{roomIds.length !== 1 ? 's' : ''} selected</p>
                             </div>
                         )}
 

@@ -25,20 +25,37 @@ class AdminInvitationNotification extends Notification implements ShouldQueue
     {
         $setupUrl = config('app.url').'/admin/setup-account?token='.$this->invitation->token;
 
-        $roleLabel = $this->invitation->role === 'super_admin' ? 'Super Admin' : 'Location Admin';
+        $roleLabel = match ($this->invitation->role) {
+            'super_admin' => 'Super Admin',
+            'room_admin' => 'Room Admin',
+            default => 'Location Admin',
+        };
         $locationLabel = $this->invitation->location ? $this->invitation->location->name : 'All Locations';
 
         $formattedExpiry = $this->invitation->expires_at
             ?->format('l, d F Y \a\t h:i A');
 
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject('Invitation to Join the MIMOS Academy Admin Panel')
             ->greeting('Dear '.($notifiable->name ?? 'Administrator').',')
             ->line('You have been invited to join the Training Room Booking System as an administrator.')
             ->line('')
             ->line('**Invitation Details:**')
             ->line("- **Role:** {$roleLabel}")
-            ->line("- **Location:** {$locationLabel}")
+            ->line("- **Location:** {$locationLabel}");
+
+        if ($this->invitation->role === 'room_admin') {
+            $roomNames = $this->invitation->rooms
+                ->pluck('name')
+                ->map(fn ($name) => '- '.$name)
+                ->implode("\n");
+
+            $mail->line('')
+                ->line('**Assigned Rooms:**')
+                ->line($roomNames);
+        }
+
+        return $mail
             ->line("- **Invited By:** {$this->invitation->inviter->name}")
             ->line("- **Expires On:** {$formattedExpiry} MYT")
             ->line('')

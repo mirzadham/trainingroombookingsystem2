@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\AdminInvitation;
 use App\Models\AuditLog;
+use App\Models\Room;
 use App\Models\User;
 use App\Notifications\AdminInvitationNotification;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class UserManagementController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = User::with('location');
+        $query = User::with(['location', 'adminRooms']);
 
         // Filters
         if ($request->filled('role')) {
@@ -59,7 +60,7 @@ class UserManagementController extends Controller
      */
     public function invitations(): JsonResponse
     {
-        $invitations = AdminInvitation::with(['location', 'inviter'])
+        $invitations = AdminInvitation::with(['location', 'inviter', 'rooms'])
             ->whereNull('accepted_at')
             ->orderByDesc('created_at')
             ->get();
@@ -80,18 +81,34 @@ class UserManagementController extends Controller
                 'max:255',
                 function ($attribute, $value, $fail) {
                     $existingAdmin = User::where('email', $value)
-                        ->whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin])
+                        ->whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin, UserRole::RoomAdmin])
                         ->first();
                     if ($existingAdmin) {
                         $fail('A user with administrative privileges already exists with this email address.');
                     }
                 },
             ],
-            'role' => ['required', Rule::in(['super_admin', 'location_admin'])],
+            'role' => ['required', Rule::in(['super_admin', 'location_admin', 'room_admin'])],
             'location_id' => [
-                Rule::requiredIf($request->role === 'location_admin'),
+                Rule::requiredIf(in_array($request->role, ['location_admin', 'room_admin'], true)),
                 'nullable',
                 'exists:locations,id',
+            ],
+            'room_ids' => [
+                Rule::requiredIf($request->role === 'room_admin'),
+                'nullable',
+                'array',
+                'min:1',
+            ],
+            'room_ids.*' => [
+                'integer',
+                'exists:rooms,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $room = Room::find($value);
+                    if ($room && $request->location_id && (int) $room->location_id !== (int) $request->location_id) {
+                        $fail('One or more selected rooms do not belong to the selected campus.');
+                    }
+                },
             ],
         ]);
 
@@ -104,17 +121,24 @@ class UserManagementController extends Controller
                 ->whereNull('accepted_at')
                 ->delete();
 
-            return AdminInvitation::create([
+            $invitation = AdminInvitation::create([
                 'email' => $validated['email'],
                 'role' => $validated['role'],
-                'location_id' => $validated['role'] === 'location_admin' ? $validated['location_id'] : null,
+                'location_id' => in_array($validated['role'], ['location_admin', 'room_admin'], true) ? $validated['location_id'] : null,
                 'token' => $token,
                 'invited_by' => $request->user()->id,
                 'expires_at' => now()->addHours(48),
             ]);
+
+            if ($validated['role'] === 'room_admin') {
+                $invitation->rooms()->attach($validated['room_ids']);
+            }
+
+            return $invitation;
         });
 
         // Send Email
+        $invitation->load(['location', 'rooms']);
         Notification::route('mail', $invitation->email)
             ->notify(new AdminInvitationNotification($invitation));
 
@@ -126,6 +150,7 @@ class UserManagementController extends Controller
                 'email' => $invitation->email,
                 'role' => $invitation->role,
                 'location_id' => $invitation->location_id,
+                'room_ids' => $invitation->rooms()->pluck('rooms.id')->all(),
             ],
             'ip_address' => $request->ip(),
         ]);
@@ -167,7 +192,7 @@ class UserManagementController extends Controller
 
         return response()->json([
             'message' => 'Invitation resent and renewed successfully.',
-            'invitation' => $invitation->load('location'),
+            'invitation' => $invitation->load(['location', 'rooms']),
         ]);
     }
 
@@ -206,23 +231,54 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'role' => ['required', Rule::in(['user', 'location_admin', 'super_admin'])],
+            'role' => ['required', Rule::in(['user', 'location_admin', 'room_admin', 'super_admin'])],
             'user_type' => ['required', Rule::in(['internal', 'external'])],
             'location_id' => [
-                Rule::requiredIf($request->role === 'location_admin'),
+                Rule::requiredIf(in_array($request->role, ['location_admin', 'room_admin'], true)),
                 'nullable',
                 'exists:locations,id',
             ],
             'phone' => ['nullable', 'string', 'max:20'],
             'department' => ['nullable', 'string', 'max:255'],
+            'room_ids' => [
+                Rule::requiredIf($request->role === 'room_admin'),
+                'nullable',
+                'array',
+                'min:1',
+            ],
+            'room_ids.*' => [
+                'integer',
+                'exists:rooms,id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $room = Room::find($value);
+                    if ($room && $request->location_id && (int) $room->location_id !== (int) $request->location_id) {
+                        $fail('One or more selected rooms do not belong to the selected campus.');
+                    }
+                },
+            ],
         ]);
 
         // Capture changes for audit
         $original = $user->only(['name', 'email', 'role', 'location_id', 'phone', 'department', 'user_type']);
+        $originalRoomIds = $user->adminRooms()->pluck('rooms.id')->all();
+
+        $roomIds = $validated['room_ids'] ?? [];
+        unset($validated['room_ids']);
 
         $user->update($validated);
 
+        // Sync room-admin scope (or clear it when the role is not room_admin)
+        if ($user->role === UserRole::RoomAdmin) {
+            $user->adminRooms()->sync($roomIds);
+        } else {
+            $user->adminRooms()->sync([]);
+        }
+
         $changes = $user->getChanges();
+
+        if ($originalRoomIds != $roomIds && $user->role === UserRole::RoomAdmin) {
+            $changes['room_ids'] = ['before' => $originalRoomIds, 'after' => $roomIds];
+        }
 
         if (! empty($changes)) {
             AuditLog::create([
@@ -239,7 +295,7 @@ class UserManagementController extends Controller
 
         return response()->json([
             'message' => 'User details updated successfully.',
-            'user' => $user->load('location'),
+            'user' => $user->load(['location', 'adminRooms']),
         ]);
     }
 

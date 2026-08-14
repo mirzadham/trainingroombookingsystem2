@@ -101,11 +101,19 @@ class NotificationService
         try {
             $booking->loadMissing('room.location');
             $locationId = $booking->room->location_id;
+            $roomId = $booking->room_id;
 
-            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin])
-                ->where(function ($q) use ($locationId) {
+            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin, UserRole::RoomAdmin])
+                ->where(function ($q) use ($locationId, $roomId) {
                     $q->where('role', UserRole::SuperAdmin)
-                        ->orWhere('location_id', $locationId);
+                        ->orWhere(function ($laq) use ($locationId) {
+                            $laq->where('role', UserRole::LocationAdmin)
+                                ->where('location_id', $locationId);
+                        })
+                        ->orWhere(function ($raq) use ($roomId) {
+                            $raq->where('role', UserRole::RoomAdmin)
+                                ->whereHas('adminRooms', fn ($rq) => $rq->where('rooms.id', $roomId));
+                        });
                 })
                 ->where('status', '!=', 'suspended')
                 ->get();
@@ -129,11 +137,19 @@ class NotificationService
         try {
             $booking->loadMissing('room.location');
             $locationId = $booking->room->location_id;
+            $roomId = $booking->room_id;
 
-            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin])
-                ->where(function ($q) use ($locationId) {
+            $admins = User::whereIn('role', [UserRole::SuperAdmin, UserRole::LocationAdmin, UserRole::RoomAdmin])
+                ->where(function ($q) use ($locationId, $roomId) {
                     $q->where('role', UserRole::SuperAdmin)
-                        ->orWhere('location_id', $locationId);
+                        ->orWhere(function ($laq) use ($locationId) {
+                            $laq->where('role', UserRole::LocationAdmin)
+                                ->where('location_id', $locationId);
+                        })
+                        ->orWhere(function ($raq) use ($roomId) {
+                            $raq->where('role', UserRole::RoomAdmin)
+                                ->whereHas('adminRooms', fn ($rq) => $rq->where('rooms.id', $roomId));
+                        });
                 })
                 ->where('status', '!=', 'suspended')
                 ->get();

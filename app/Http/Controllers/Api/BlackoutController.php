@@ -31,6 +31,10 @@ class BlackoutController extends Controller
             });
         }
 
+        if ($user->isRoomAdmin()) {
+            $query->whereIn('room_id', $user->adminRoomIds()->all());
+        }
+
         $blackouts = $query->orderByDesc('start_time')->get();
 
         return response()->json($blackouts);
@@ -57,10 +61,10 @@ class BlackoutController extends Controller
         $user = $request->user();
         $room = Room::findOrFail($validated['room_id']);
 
-        // Check if Location Admin has access to this room's location
-        if ($user->isLocationAdmin() && $room->location_id !== $user->location_id) {
+        // Check if this admin has access to the room
+        if (! $user->hasRoomAccess($room)) {
             throw ValidationException::withMessages([
-                'room_id' => 'You do not have administrative access to this room\'s location.',
+                'room_id' => 'You do not have administrative access to this room.',
             ]);
         }
 
@@ -106,8 +110,8 @@ class BlackoutController extends Controller
         $user = $request->user();
         $room = $blackout->room;
 
-        // Check if Location Admin has access to this room's location
-        if ($user->isLocationAdmin() && $room->location_id !== $user->location_id) {
+        // Check if this admin has access to the room
+        if (! $user->hasRoomAccess($room)) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 

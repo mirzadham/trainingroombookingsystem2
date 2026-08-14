@@ -67,6 +67,10 @@ class RoomController extends Controller
             $query->where('location_id', $user->location_id);
         }
 
+        if ($user->isRoomAdmin()) {
+            $query->whereIn('id', $user->adminRoomIds()->all());
+        }
+
         return response()->json(
             RoomResource::collection($query->orderBy('name')->get())
         );
@@ -77,6 +81,8 @@ class RoomController extends Controller
      */
     public function store(StoreRoomRequest $request): JsonResponse
     {
+        $this->authorize('create', Room::class);
+
         $room = Room::create($request->validated());
 
         return (new RoomResource($room->load('location')))
@@ -99,6 +105,8 @@ class RoomController extends Controller
      */
     public function update(UpdateRoomRequest $request, Room $room): JsonResponse
     {
+        $this->authorize('update', $room);
+
         $room->update($request->validated());
 
         Cache::forget("room_images_gallery:{$room->id}");

@@ -47,14 +47,15 @@ class AdminController extends Controller
             Booking::with(['room.location', 'user', 'approver']),
             $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
             $user->location_id,
-            $user->isLocationAdmin()
+            $user->isLocationAdmin(),
+            $this->roomScopeIds($user)
         );
 
         $perPage = min(100, max(1, $request->integer('per_page', 20)));
         $bookings = $query->paginate($perPage);
 
         $payload = $bookings->toArray();
-        $payload['counts'] = BookingQueryFilter::statusCounts($user->location_id, $user->isLocationAdmin());
+        $payload['counts'] = BookingQueryFilter::statusCounts($user->location_id, $user->isLocationAdmin(), $this->roomScopeIds($user));
 
         return response()->json($payload);
     }
@@ -231,16 +232,20 @@ class AdminController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
+        $roomIds = $this->roomScopeIds($user);
 
         // Key includes today's date: "today_bookings" is date-relative, so a
         // cache entry written before midnight must not be served after it.
+        // Room-admin scope is appended so reassignments invalidate entries.
         $data = app(AvailabilityCacheService::class)->remember(
-            "admin:dashboard:{$user->id}:".today()->toDateString(),
+            "admin:dashboard:{$user->id}:".today()->toDateString().($roomIds ? ':'.implode(',', $roomIds) : ''),
             3600,
-            function () use ($user) {
+            function () use ($user, $roomIds) {
                 $baseQuery = Booking::query();
 
-                if ($user->isLocationAdmin()) {
+                if ($roomIds !== null) {
+                    $baseQuery->whereIn('room_id', $roomIds);
+                } elseif ($user->isLocationAdmin()) {
                     $baseQuery->whereHas('room', function ($q) use ($user) {
                         $q->where('location_id', $user->location_id);
                     });
@@ -257,9 +262,11 @@ class AdminController extends Controller
                             now()->endOfMonth()->toDateTimeString(),
                         ])
                         ->count(),
-                    'total_rooms' => $user->isSuperAdmin()
-                        ? Room::active()->count()
-                        : Room::active()->where('location_id', $user->location_id)->count(),
+                    'total_rooms' => match (true) {
+                        $user->isSuperAdmin() => Room::active()->count(),
+                        $user->isRoomAdmin() => Room::active()->whereIn('id', $roomIds)->count(),
+                        default => Room::active()->where('location_id', $user->location_id)->count(),
+                    },
                 ];
 
                 // Recent bookings — resolved to plain arrays so the cached
@@ -391,7 +398,8 @@ class AdminController extends Controller
             AuditLog::with(['user', 'booking.room.location']),
             $request->only(['action', 'search']),
             $user->location_id,
-            $user->isLocationAdmin()
+            $user->isLocationAdmin(),
+            $this->roomScopeIds($user)
         );
 
         $logs = $query->paginate(30);
@@ -435,10 +443,10 @@ class AdminController extends Controller
         $roomId = (int) $validated['room_id'];
         $room = Room::findOrFail($roomId);
 
-        // 1. Authorize: check if admin has access to this room's location
-        if (! $admin->hasLocationAccess($room->location_id)) {
+        // 1. Authorize: check if admin has access to this room
+        if (! $admin->hasRoomAccess($room)) {
             throw ValidationException::withMessages([
-                'authorization' => 'You do not have access to bookings at this location.',
+                'authorization' => 'You do not have access to bookings in this room.',
             ]);
         }
 
@@ -609,6 +617,16 @@ class AdminController extends Controller
             'message' => 'Booking created and approved successfully.',
             'bookings' => BookingResource::collection($createdBookings),
         ], 201);
+    }
+
+    /**
+     * Room IDs the requesting admin is scoped to (room-admin role only).
+     * Null for super admins and location admins, which keeps their existing
+     * location-based scoping untouched.
+     */
+    private function roomScopeIds(User $user): ?array
+    {
+        return $user->adminRoomIds()?->all();
     }
 
     /**

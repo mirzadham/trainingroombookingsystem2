@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'department' => $this->department,
             'location' => new LocationResource($this->whenLoaded('location')),
+            'admin_rooms' => RoomResource::collection($this->whenLoaded('adminRooms')),
         ];
     }
 }

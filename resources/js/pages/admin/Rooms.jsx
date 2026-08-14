@@ -10,6 +10,8 @@ export default function AdminRooms() {
     const queryClient = useQueryClient();
     const { adminUser } = useAuth();
     const isLocationAdmin = adminUser?.role === 'location_admin';
+    const isRoomAdmin = adminUser?.role === 'room_admin';
+    const isScopedAdmin = isLocationAdmin || isRoomAdmin;
     const [showForm, setShowForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [selectedRoomForBlackout, setSelectedRoomForBlackout] = useState(null);
@@ -56,7 +58,7 @@ export default function AdminRooms() {
                 </div>
                 {!isLoading && (
                     <div className="flex flex-wrap items-center gap-3">
-                        {!isLocationAdmin && (
+                        {!isScopedAdmin && (
                             <div className="relative min-w-[180px]">
                                 <select
                                     value={locationFilter}
@@ -71,12 +73,14 @@ export default function AdminRooms() {
                                 <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
                         )}
+                        {!isRoomAdmin && (
                         <button
                             onClick={() => setShowForm(true)}
                             className="flex items-center gap-2 px-4 py-2.5 bg-mimos-500 hover:bg-mimos-600 text-white font-medium text-sm rounded-xl shadow-lg shadow-mimos-500/25 transition cursor-pointer shrink-0"
                         >
                             <Plus className="w-4 h-4" /> Add Room
                         </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -232,6 +236,8 @@ const PREDEFINED_AMENITIES = [
 
 function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser }) {
     const isLocationAdmin = adminUser?.role === 'location_admin';
+    const isRoomAdmin = adminUser?.role === 'room_admin';
+    const isScopedAdmin = isLocationAdmin || isRoomAdmin;
     const [name, setName] = useState(room?.name || '');
     const [locationId, setLocationId] = useState(() => {
         if (room?.location_id) return room.location_id;
@@ -306,13 +312,13 @@ function RoomForm({ room, locations, onSubmit, onCancel, isLoading, adminUser })
                         value={locationId} 
                         onChange={e => setLocationId(e.target.value)} 
                         required
-                        disabled={isLocationAdmin}
+                        disabled={isScopedAdmin}
                         className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-mimos-500/50 appearance-none cursor-pointer ${
                             isLocationAdmin ? 'bg-slate-100/85 cursor-not-allowed opacity-80' : ''
                         }`}
                     >
-                        {isLocationAdmin ? (
-                            locations.filter(loc => loc.id === adminUser.location_id).map(loc => (
+                        {isScopedAdmin ? (
+                            locations.filter(loc => loc.id === adminUser.location_id || loc.id === room?.location_id).map(loc => (
                                 <option key={loc.id} value={loc.id} className="bg-white">{loc.name} ({loc.code})</option>
                             ))
                         ) : (

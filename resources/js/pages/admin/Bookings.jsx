@@ -9,6 +9,7 @@ import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import { groupBookingsList } from '../../utils/bookingGrouping';
 import { downloadBlob } from '../../utils/download';
 import AdminBookingModal from '../../components/admin/AdminBookingModal';
+import { useAuth } from '../../hooks/useAuth';
 
 const STATUS_COLORS = {
     pending: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -18,6 +19,8 @@ const STATUS_COLORS = {
 };
 
 export default function AdminBookings() {
+    const { adminUser } = useAuth();
+    const isRoomAdmin = adminUser?.role === 'room_admin';
     const [statusFilter, setStatusFilter] = useState('pending');
     const [rejectingId, setRejectingId] = useState(null);
     const [rejectReason, setRejectReason] = useState('');
@@ -106,6 +109,13 @@ export default function AdminBookings() {
         setShowBatchReject(false);
         setBatchReason('');
     }, [statusFilter, debouncedSearch, locationFilter, roomFilter, dateFrom, dateTo, timeFilter]);
+
+    // Room admins are locked to their campus; the backend scopes rooms further.
+    React.useEffect(() => {
+        if (isRoomAdmin && adminUser?.location_id) {
+            setLocationFilter(String(adminUser.location_id));
+        }
+    }, [isRoomAdmin, adminUser?.location_id]);
 
     // Count active advanced filters (excluding status which is always visible)
     const activeFilterCount = [debouncedSearch, locationFilter, roomFilter, dateFrom, dateTo, timeFilter].filter(Boolean).length;
@@ -499,7 +509,8 @@ export default function AdminBookings() {
                                         setLocationFilter(e.target.value);
                                         setRoomFilter(''); // Reset room when location changes
                                     }}
-                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer appearance-none"
+                                    disabled={isRoomAdmin}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-mimos-500/30 focus:border-mimos-300 transition cursor-pointer disabled:bg-slate-100 disabled:cursor-not-allowed appearance-none"
                                 >
                                     <option value="">All Locations</option>
                                     {locations.map(loc => (
