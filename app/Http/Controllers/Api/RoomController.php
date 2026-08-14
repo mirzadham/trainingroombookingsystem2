@@ -68,7 +68,7 @@ class RoomController extends Controller
         }
 
         if ($user->isRoomAdmin()) {
-            $query->whereIn('id', $user->adminRoomIds()->all());
+            $query->whereIn('id', $user->adminRoomIds());
         }
 
         return response()->json(

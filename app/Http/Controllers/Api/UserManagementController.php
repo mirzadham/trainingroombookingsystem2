@@ -74,6 +74,10 @@ class UserManagementController extends Controller
      */
     public function inviteAdmin(Request $request): JsonResponse
     {
+        // Single lookup for the campus check in the room_ids.* validation
+        // closure below (avoids one query per selected room).
+        $roomsById = Room::whereIn('id', $request->input('room_ids', []))->get()->keyBy('id');
+
         $validated = $request->validate([
             'email' => [
                 'required',
@@ -102,9 +106,10 @@ class UserManagementController extends Controller
             ],
             'room_ids.*' => [
                 'integer',
+                'distinct',
                 'exists:rooms,id',
-                function ($attribute, $value, $fail) use ($request) {
-                    $room = Room::find($value);
+                function ($attribute, $value, $fail) use ($request, $roomsById) {
+                    $room = $roomsById->get($value);
                     if ($room && $request->location_id && (int) $room->location_id !== (int) $request->location_id) {
                         $fail('One or more selected rooms do not belong to the selected campus.');
                     }
@@ -157,7 +162,7 @@ class UserManagementController extends Controller
 
         return response()->json([
             'message' => 'Invitation sent successfully.',
-            'invitation' => $invitation->load('location'),
+            'invitation' => $invitation->load(['location', 'rooms']),
         ], 201);
     }
 
@@ -228,6 +233,10 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user): JsonResponse
     {
+        // Single lookup for the campus check in the room_ids.* validation
+        // closure below (avoids one query per selected room).
+        $roomsById = Room::whereIn('id', $request->input('room_ids', []))->get()->keyBy('id');
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
@@ -248,9 +257,10 @@ class UserManagementController extends Controller
             ],
             'room_ids.*' => [
                 'integer',
+                'distinct',
                 'exists:rooms,id',
-                function ($attribute, $value, $fail) use ($request) {
-                    $room = Room::find($value);
+                function ($attribute, $value, $fail) use ($request, $roomsById) {
+                    $room = $roomsById->get($value);
                     if ($room && $request->location_id && (int) $room->location_id !== (int) $request->location_id) {
                         $fail('One or more selected rooms do not belong to the selected campus.');
                     }
@@ -265,19 +275,22 @@ class UserManagementController extends Controller
         $roomIds = $validated['room_ids'] ?? [];
         unset($validated['room_ids']);
 
-        $user->update($validated);
+        $changes = DB::transaction(function () use ($user, $validated, $roomIds) {
+            $user->update($validated);
 
-        // Sync room-admin scope (or clear it when the role is not room_admin)
-        if ($user->role === UserRole::RoomAdmin) {
-            $user->adminRooms()->sync($roomIds);
-        } else {
-            $user->adminRooms()->sync([]);
-        }
+            // Sync room-admin scope (or clear it when the role is not room_admin)
+            if ($user->role === UserRole::RoomAdmin) {
+                $user->adminRooms()->sync($roomIds);
+            } else {
+                $user->adminRooms()->sync([]);
+            }
 
-        $changes = $user->getChanges();
+            return $user->getChanges();
+        });
 
         if ($originalRoomIds != $roomIds && $user->role === UserRole::RoomAdmin) {
-            $changes['room_ids'] = ['before' => $originalRoomIds, 'after' => $roomIds];
+            $changes['room_ids_before'] = $originalRoomIds;
+            $changes['room_ids_after'] = $roomIds;
         }
 
         if (! empty($changes)) {

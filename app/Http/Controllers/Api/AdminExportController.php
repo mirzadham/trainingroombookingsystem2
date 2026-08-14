@@ -22,7 +22,7 @@ class AdminExportController extends Controller
                 $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
                 $user->location_id,
                 $user->isLocationAdmin(),
-                $user->isRoomAdmin() ? $user->adminRoomIds()->all() : null
+                $user->adminRoomIds()
             )
         );
     }
@@ -40,7 +40,7 @@ class AdminExportController extends Controller
                 $request->only(['action', 'search']),
                 $user->location_id,
                 $user->isLocationAdmin(),
-                $user->isRoomAdmin() ? $user->adminRoomIds()->all() : null
+                $user->adminRoomIds()
             )
         );
     }

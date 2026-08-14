@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -186,16 +185,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Room IDs this admin is scoped to, or null when room-level scoping
-     * does not apply (super admins and location admins keep their existing
-     * location-based scoping).
+     * Room IDs this admin is scoped to.
+     *
+     * null means room-level scoping does not apply (super admins and
+     * location admins keep their location-based scoping); an empty array
+     * means the room admin is scoped to zero rooms (callers must filter
+     * accordingly — never treat [] as "no filter").
      */
-    public function adminRoomIds(): ?Collection
+    public function adminRoomIds(): ?array
     {
         if (! $this->isRoomAdmin()) {
             return null;
         }
 
-        return $this->adminRooms()->pluck('rooms.id');
+        return $this->adminRooms()->pluck('rooms.id')->all();
     }
 }

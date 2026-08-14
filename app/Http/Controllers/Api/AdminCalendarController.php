@@ -32,7 +32,7 @@ class AdminCalendarController extends Controller
         $user = $request->user();
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
-        $roomIds = $user->isRoomAdmin() ? $user->adminRoomIds()->all() : null;
+        $roomIds = $user->adminRoomIds();
 
         $events = app(AvailabilityCacheService::class)->remember(
             'admin-calendar:'.$user->id.':'.$request->start_date.':'.$request->end_date
@@ -162,7 +162,7 @@ class AdminCalendarController extends Controller
         }
 
         if ($user->isRoomAdmin()) {
-            $query->whereIn('room_id', $user->adminRoomIds()->all());
+            $query->whereIn('room_id', $user->adminRoomIds());
         }
 
         return response()->json($query->get()->map(fn (Booking $b) => $this->bookingEventShape($b)));

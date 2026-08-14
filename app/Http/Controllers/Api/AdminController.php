@@ -37,7 +37,7 @@ class AdminController extends Controller
 
     /**
      * GET /api/admin/bookings
-     * List all bookings (scoped by location for location admins).
+     * List all bookings (scoped by location for location admins, by room for room admins).
      */
     public function bookings(Request $request): JsonResponse
     {
@@ -48,14 +48,14 @@ class AdminController extends Controller
             $request->only(['status', 'location_id', 'room_id', 'date', 'date_from', 'date_to', 'time_filter', 'search']),
             $user->location_id,
             $user->isLocationAdmin(),
-            $this->roomScopeIds($user)
+            $user->adminRoomIds()
         );
 
         $perPage = min(100, max(1, $request->integer('per_page', 20)));
         $bookings = $query->paginate($perPage);
 
         $payload = $bookings->toArray();
-        $payload['counts'] = BookingQueryFilter::statusCounts($user->location_id, $user->isLocationAdmin(), $this->roomScopeIds($user));
+        $payload['counts'] = BookingQueryFilter::statusCounts($user->location_id, $user->isLocationAdmin(), $user->adminRoomIds());
 
         return response()->json($payload);
     }
@@ -232,7 +232,7 @@ class AdminController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
-        $roomIds = $this->roomScopeIds($user);
+        $roomIds = $user->adminRoomIds();
 
         // Key includes today's date: "today_bookings" is date-relative, so a
         // cache entry written before midnight must not be served after it.
@@ -399,7 +399,7 @@ class AdminController extends Controller
             $request->only(['action', 'search']),
             $user->location_id,
             $user->isLocationAdmin(),
-            $this->roomScopeIds($user)
+            $user->adminRoomIds()
         );
 
         $logs = $query->paginate(30);
@@ -617,16 +617,6 @@ class AdminController extends Controller
             'message' => 'Booking created and approved successfully.',
             'bookings' => BookingResource::collection($createdBookings),
         ], 201);
-    }
-
-    /**
-     * Room IDs the requesting admin is scoped to (room-admin role only).
-     * Null for super admins and location admins, which keeps their existing
-     * location-based scoping untouched.
-     */
-    private function roomScopeIds(User $user): ?array
-    {
-        return $user->adminRoomIds()?->all();
     }
 
     /**

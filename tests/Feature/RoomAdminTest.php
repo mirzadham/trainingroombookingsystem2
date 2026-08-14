@@ -632,4 +632,149 @@ class RoomAdminTest extends TestCase
         Notification::assertSentTo($this->roomAdmin, AdminNewBookingNotification::class);
         Notification::assertNotSentTo($this->otherRoomAdmin, AdminNewBookingNotification::class);
     }
+
+    // ---------------------------------------------------------
+    // Zero-room regression: a room admin with no assigned rooms
+    // must see nothing, never everything.
+    // ---------------------------------------------------------
+
+    public function test_zero_room_admin_has_no_booking_visibility(): void
+    {
+        $this->roomAdmin->adminRooms()->sync([]);
+
+        Booking::factory()->create(['room_id' => $this->assignedRoom->id, 'title' => 'Leak Check Assigned']);
+        Booking::factory()->create(['room_id' => $this->otherRoom->id, 'title' => 'Leak Check Other']);
+
+        $response = $this->actingAs($this->roomAdmin)
+            ->getJson('/api/admin/bookings');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('total', 0)
+            ->assertJsonPath('counts.all', 0)
+            ->assertJsonPath('counts.pending', 0)
+            ->assertJsonMissing(['title' => 'Leak Check Assigned'])
+            ->assertJsonMissing(['title' => 'Leak Check Other']);
+    }
+
+    public function test_zero_room_admin_has_no_audit_log_visibility(): void
+    {
+        $this->roomAdmin->adminRooms()->sync([]);
+
+        AuditLog::create([
+            'user_id' => $this->superAdmin->id,
+            'action' => 'created',
+            'changes' => ['leak' => true],
+            'booking_id' => Booking::factory()->create(['room_id' => $this->assignedRoom->id])->id,
+        ]);
+
+        $this->actingAs($this->roomAdmin)
+            ->getJson('/api/admin/audit-logs')
+            ->assertStatus(200)
+            ->assertJsonPath('total', 0);
+    }
+
+    public function test_zero_room_admin_export_contains_no_rows(): void
+    {
+        $this->roomAdmin->adminRooms()->sync([]);
+
+        Booking::factory()->create(['room_id' => $this->assignedRoom->id, 'title' => 'Leak Export Row']);
+
+        $response = $this->actingAs($this->roomAdmin)
+            ->getJson('/api/admin/bookings/export');
+
+        $response->assertStatus(200);
+        $this->assertStringNotContainsString('Leak Export Row', $response->streamedContent());
+    }
+
+    // ---------------------------------------------------------
+    // Room show / attendance / series-cancel authorization
+    // ---------------------------------------------------------
+
+    public function test_room_admin_cannot_view_other_room_details(): void
+    {
+        $this->actingAs($this->roomAdmin)
+            ->getJson("/api/admin/rooms/{$this->otherRoom->id}")
+            ->assertStatus(403);
+
+        $this->actingAs($this->roomAdmin)
+            ->getJson("/api/admin/rooms/{$this->assignedRoom->id}")
+            ->assertStatus(200)
+            ->assertJsonPath('id', $this->assignedRoom->id);
+    }
+
+    public function test_room_admin_mark_attendance_scoped(): void
+    {
+        $past = now()->subHours(2);
+
+        $assigned = Booking::factory()->create([
+            'room_id' => $this->assignedRoom->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => $past,
+            'end_time' => $past->copy()->addHour(),
+        ]);
+        $other = Booking::factory()->create([
+            'room_id' => $this->otherRoom->id,
+            'status' => BookingStatus::Approved,
+            'start_time' => $past,
+            'end_time' => $past->copy()->addHour(),
+        ]);
+
+        $this->actingAs($this->roomAdmin)
+            ->postJson("/api/admin/bookings/{$other->id}/attendance", ['status' => 'attended'])
+            ->assertStatus(403);
+
+        $this->actingAs($this->roomAdmin)
+            ->postJson("/api/admin/bookings/{$assigned->id}/attendance", ['status' => 'attended'])
+            ->assertStatus(200);
+
+        $this->assertDatabaseHas('bookings', ['id' => $assigned->id, 'attendance_status' => 'attended']);
+    }
+
+    public function test_room_admin_cancel_series_denied_on_other_room(): void
+    {
+        $booking = Booking::factory()->create(['room_id' => $this->otherRoom->id, 'status' => BookingStatus::Approved]);
+
+        $this->actingAs($this->roomAdmin)
+            ->postJson("/api/admin/bookings/{$booking->id}/cancel-series", ['future_only' => false])
+            ->assertStatus(403);
+    }
+
+    // ---------------------------------------------------------
+    // Validation hardening: duplicate and cross-campus room ids
+    // ---------------------------------------------------------
+
+    public function test_room_admin_invite_rejects_duplicate_room_ids(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->postJson('/api/admin/users/invite', [
+                'email' => 'roomadmin4@example.com',
+                'role' => 'room_admin',
+                'location_id' => $this->tpm->id,
+                'room_ids' => [$this->assignedRoom->id, $this->assignedRoom->id],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['room_ids.0']);
+
+        $this->assertDatabaseMissing('admin_invitations', ['email' => 'roomadmin4@example.com']);
+    }
+
+    public function test_super_admin_update_user_rejects_rooms_from_other_campus(): void
+    {
+        $khtpRoom = Room::factory()->create(['location_id' => $this->khtp->id]);
+        $user = User::factory()->create(['role' => UserRole::User]);
+
+        $this->actingAs($this->superAdmin)
+            ->putJson("/api/admin/users/{$user->id}", [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => 'room_admin',
+                'user_type' => 'internal',
+                'location_id' => $this->tpm->id,
+                'room_ids' => [$khtpRoom->id],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['room_ids.0']);
+
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'role' => 'user']);
+    }
 }

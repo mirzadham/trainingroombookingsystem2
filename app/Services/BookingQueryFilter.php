@@ -29,7 +29,8 @@ class BookingQueryFilter
             $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
         }
 
-        if (! empty($roomIds)) {
+        if ($roomIds !== null) {
+            // null = no room scoping; [] = scoped to zero rooms (filter to nothing).
             $query->whereIn('room_id', $roomIds);
         }
 
@@ -105,7 +106,7 @@ class BookingQueryFilter
             $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
         }
 
-        if (! empty($roomIds)) {
+        if ($roomIds !== null) {
             $query->whereIn('room_id', $roomIds);
         }
 
@@ -138,7 +139,7 @@ class BookingQueryFilter
             $query->whereHas('booking.room', fn ($q) => $q->where('location_id', $locationId));
         }
 
-        if (! empty($roomIds)) {
+        if ($roomIds !== null) {
             $query->whereHas('booking', fn ($q) => $q->whereIn('room_id', $roomIds));
         }
 

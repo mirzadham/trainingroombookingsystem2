@@ -32,7 +32,7 @@ class BlackoutController extends Controller
         }
 
         if ($user->isRoomAdmin()) {
-            $query->whereIn('room_id', $user->adminRoomIds()->all());
+            $query->whereIn('room_id', $user->adminRoomIds());
         }
 
         $blackouts = $query->orderByDesc('start_time')->get();
