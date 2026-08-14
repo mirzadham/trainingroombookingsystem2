@@ -9,9 +9,17 @@ import { useAuth } from '../../hooks/useAuth';
 export default function Reports() {
     const { adminUser } = useAuth();
     const isLocationAdmin = adminUser?.role === 'location_admin';
+    const isRoomAdmin = adminUser?.role === 'room_admin';
     const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
     const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [locationFilter, setLocationFilter] = useState('');
+
+    // Room admins are locked to their campus; the backend scopes rooms further.
+    React.useEffect(() => {
+        if (isRoomAdmin && adminUser?.location_id) {
+            setLocationFilter(String(adminUser.location_id));
+        }
+    }, [isRoomAdmin, adminUser?.location_id]);
 
     const { data: locations } = useQuery({
         queryKey: ['locations'],
@@ -111,7 +119,7 @@ export default function Reports() {
                         className="py-3"
                     />
                 </div>
-                {!isLocationAdmin && (
+                {!isLocationAdmin && !isRoomAdmin && (
                     <div className="flex-1 min-w-[200px]">
                         <label className="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase tracking-widest">Location Branch</label>
                         <div className="relative">

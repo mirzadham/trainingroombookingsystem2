@@ -32,17 +32,19 @@ class AdminCalendarController extends Controller
         $user = $request->user();
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $roomIds = $user->adminRoomIds();
 
         $events = app(AvailabilityCacheService::class)->remember(
             'admin-calendar:'.$user->id.':'.$request->start_date.':'.$request->end_date
                 .':'.($request->location_id ?? 'all').':'.($request->room_id ?? 'all')
-                .':'.($request->status ?? 'default'),
+                .':'.($request->status ?? 'default')
+                .($roomIds ? ':'.implode(',', $roomIds) : ''),
             3600,
             // Cache a plain array, never an Eloquent Collection: the cache
             // store refuses to unserialize PHP classes
             // (serializable_classes => false), so object payloads come back
             // as __PHP_Incomplete_Class and break the JSON response shape.
-            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate)->all()
+            fn () => $this->buildAdminCalendarEvents($request, $user, $startDate, $endDate, $roomIds)->all()
         );
 
         return response()->json($events);
@@ -52,7 +54,7 @@ class AdminCalendarController extends Controller
      * Build the admin calendar event list: bookings (shaped for the UI) plus
      * blackouts expanded into concrete occurrences within the range.
      */
-    private function buildAdminCalendarEvents(Request $request, User $user, Carbon $startDate, Carbon $endDate): Collection
+    private function buildAdminCalendarEvents(Request $request, User $user, Carbon $startDate, Carbon $endDate, ?array $roomIds): Collection
     {
         // 1. Query Bookings
         $bookingQuery = Booking::with(['room.location', 'user:id,name,email'])
@@ -61,6 +63,10 @@ class AdminCalendarController extends Controller
 
         if ($user->isLocationAdmin()) {
             $bookingQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+        }
+
+        if ($roomIds !== null) {
+            $bookingQuery->whereIn('room_id', $roomIds);
         }
 
         if ($request->location_id) {
@@ -88,6 +94,10 @@ class AdminCalendarController extends Controller
 
             if ($user->isLocationAdmin()) {
                 $blackoutQuery->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+            }
+
+            if ($roomIds !== null) {
+                $blackoutQuery->whereIn('room_id', $roomIds);
             }
 
             if ($request->location_id) {
@@ -149,6 +159,10 @@ class AdminCalendarController extends Controller
 
         if ($user->isLocationAdmin()) {
             $query->whereHas('room', fn ($q) => $q->where('location_id', $user->location_id));
+        }
+
+        if ($user->isRoomAdmin()) {
+            $query->whereIn('room_id', $user->adminRoomIds());
         }
 
         return response()->json($query->get()->map(fn (Booking $b) => $this->bookingEventShape($b)));

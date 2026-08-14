@@ -159,13 +159,14 @@ class ExportService
      * Reusable query builder for booking exports — shares the exact filter
      * semantics with the admin bookings list via BookingQueryFilter.
      */
-    public function filteredBookingsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
+    public function filteredBookingsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false, ?array $roomIds = null): Builder
     {
         return BookingQueryFilter::applyBookings(
             Booking::with(['room.location', 'user']),
             $filters,
             $locationId,
-            $isLocationAdmin
+            $isLocationAdmin,
+            $roomIds
         );
     }
 
@@ -173,13 +174,14 @@ class ExportService
      * Reusable query builder for audit-log exports — shares the exact filter
      * semantics with the admin audit-logs list via BookingQueryFilter.
      */
-    public function filteredAuditLogsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
+    public function filteredAuditLogsQuery(array $filters, ?int $locationId = null, bool $isLocationAdmin = false, ?array $roomIds = null): Builder
     {
         return BookingQueryFilter::applyAuditLogs(
             AuditLog::with(['user', 'booking.room.location']),
             $filters,
             $locationId,
-            $isLocationAdmin
+            $isLocationAdmin,
+            $roomIds
         );
     }
 }

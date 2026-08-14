@@ -26,11 +26,11 @@ class BookingPolicy
             return true;
         }
 
-        // Admins with location access can view
+        // Admins with room access can view
         if ($user->isAdmin()) {
             $booking->loadMissing('room');
 
-            return $user->hasLocationAccess($booking->room->location_id);
+            return $user->hasRoomAccess($booking->room);
         }
 
         return false;
@@ -64,11 +64,11 @@ class BookingPolicy
             return true;
         }
 
-        // Admin with location access can cancel
+        // Admin with room access can cancel
         if ($user->isAdmin()) {
             $booking->loadMissing('room');
 
-            return $user->hasLocationAccess($booking->room->location_id);
+            return $user->hasRoomAccess($booking->room);
         }
 
         return false;
@@ -85,7 +85,7 @@ class BookingPolicy
 
         $booking->loadMissing('room');
 
-        return $user->hasLocationAccess($booking->room->location_id);
+        return $user->hasRoomAccess($booking->room);
     }
 
     /**

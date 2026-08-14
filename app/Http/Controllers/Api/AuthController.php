@@ -108,7 +108,7 @@ class AuthController extends Controller
         $token = $user->createToken('admin-panel')->plainTextToken;
 
         return response()->json([
-            'user' => new UserResource($user->load('location')),
+            'user' => new UserResource($user->load(['location', 'adminRooms'])),
             'token' => $token,
         ]);
     }

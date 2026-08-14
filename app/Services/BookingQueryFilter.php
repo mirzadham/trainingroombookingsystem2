@@ -15,12 +15,23 @@ class BookingQueryFilter
 {
     /**
      * Apply the standard booking filters (status, location, room, dates,
-     * time window, free-text search) plus location-admin scoping.
+     * time window, free-text search) plus location-admin and room-admin
+     * scoping.
      */
-    public static function applyBookings(Builder $query, array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
-    {
+    public static function applyBookings(
+        Builder $query,
+        array $filters,
+        ?int $locationId = null,
+        bool $isLocationAdmin = false,
+        ?array $roomIds = null
+    ): Builder {
         if ($isLocationAdmin && $locationId) {
             $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
+        }
+
+        if ($roomIds !== null) {
+            // null = no room scoping; [] = scoped to zero rooms (filter to nothing).
+            $query->whereIn('room_id', $roomIds);
         }
 
         if (! empty($filters['status'])) {
@@ -87,12 +98,16 @@ class BookingQueryFilter
      *
      * @return array{all: int, pending: int, approved: int, rejected: int, cancelled: int}
      */
-    public static function statusCounts(?int $locationId = null, bool $isLocationAdmin = false): array
+    public static function statusCounts(?int $locationId = null, bool $isLocationAdmin = false, ?array $roomIds = null): array
     {
         $query = Booking::query();
 
         if ($isLocationAdmin && $locationId) {
             $query->whereHas('room', fn ($q) => $q->where('location_id', $locationId));
+        }
+
+        if ($roomIds !== null) {
+            $query->whereIn('room_id', $roomIds);
         }
 
         $counts = (clone $query)
@@ -111,12 +126,21 @@ class BookingQueryFilter
 
     /**
      * Apply the standard audit-log filters (action, free-text search) plus
-     * location-admin scoping.
+     * location-admin and room-admin scoping.
      */
-    public static function applyAuditLogs(Builder $query, array $filters, ?int $locationId = null, bool $isLocationAdmin = false): Builder
-    {
+    public static function applyAuditLogs(
+        Builder $query,
+        array $filters,
+        ?int $locationId = null,
+        bool $isLocationAdmin = false,
+        ?array $roomIds = null
+    ): Builder {
         if ($isLocationAdmin && $locationId) {
             $query->whereHas('booking.room', fn ($q) => $q->where('location_id', $locationId));
+        }
+
+        if ($roomIds !== null) {
+            $query->whereHas('booking', fn ($q) => $q->whereIn('room_id', $roomIds));
         }
 
         if (! empty($filters['action'])) {

@@ -24,7 +24,7 @@ class AdminInvitationController extends Controller
             'token' => 'required|string',
         ]);
 
-        $invitation = AdminInvitation::with('location')
+        $invitation = AdminInvitation::with(['location', 'rooms'])
             ->where('token', $request->token)
             ->first();
 
@@ -44,6 +44,7 @@ class AdminInvitationController extends Controller
             'email' => $invitation->email,
             'role' => $invitation->role,
             'location' => $invitation->location,
+            'rooms' => $invitation->rooms,
         ]);
     }
 
@@ -91,6 +92,13 @@ class AdminInvitationController extends Controller
                 ]
             );
 
+            // Attach room scope for room-admin invites; clear any stale scope
+            // when the claimed role is not room_admin.
+            $roomIds = $invitation->role === 'room_admin'
+                ? $invitation->rooms()->pluck('rooms.id')->all()
+                : [];
+            $user->adminRooms()->sync($roomIds);
+
             // Mark invitation accepted
             $invitation->update([
                 'accepted_at' => now(),
@@ -114,7 +122,7 @@ class AdminInvitationController extends Controller
         ]);
 
         return response()->json([
-            'user' => new UserResource($user->load('location')),
+            'user' => new UserResource($user->load(['location', 'adminRooms'])),
             'token' => $token,
             'message' => 'Administrative account provisioned successfully.',
         ], 201);

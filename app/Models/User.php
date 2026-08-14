@@ -70,6 +70,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Room::class, 'favorites')->withTimestamps();
     }
 
+    /**
+     * Rooms this user administers (room-admin scope).
+     */
+    public function adminRooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Room::class, 'admin_room_user')->withTimestamps();
+    }
+
     public function waitlistEntries(): HasMany
     {
         return $this->hasMany(WaitlistEntry::class);
@@ -93,6 +101,11 @@ class User extends Authenticatable
     public function isLocationAdmin(): bool
     {
         return $this->role === UserRole::LocationAdmin;
+    }
+
+    public function isRoomAdmin(): bool
+    {
+        return $this->role === UserRole::RoomAdmin;
     }
 
     /**
@@ -146,5 +159,45 @@ class User extends Authenticatable
         }
 
         return false;
+    }
+
+    /**
+     * Check if admin has access to a specific room.
+     *
+     * Super admins access every room, location admins every room in their
+     * campus, and room admins only their explicitly assigned rooms.
+     */
+    public function hasRoomAccess(Room $room): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->isLocationAdmin()) {
+            return $this->location_id === $room->location_id;
+        }
+
+        if ($this->isRoomAdmin()) {
+            return $this->adminRooms()->whereKey($room->id)->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Room IDs this admin is scoped to.
+     *
+     * null means room-level scoping does not apply (super admins and
+     * location admins keep their location-based scoping); an empty array
+     * means the room admin is scoped to zero rooms (callers must filter
+     * accordingly — never treat [] as "no filter").
+     */
+    public function adminRoomIds(): ?array
+    {
+        if (! $this->isRoomAdmin()) {
+            return null;
+        }
+
+        return $this->adminRooms()->pluck('rooms.id')->all();
     }
 }

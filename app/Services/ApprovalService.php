@@ -257,7 +257,7 @@ class ApprovalService
     }
 
     /**
-     * Validate that the admin has access to this booking's location.
+     * Validate that the admin has access to this booking's room.
      */
     private function validateAdminAccess(Booking $booking, User $admin): void
     {
@@ -269,11 +269,10 @@ class ApprovalService
 
         // Load the room's location if not loaded
         $booking->loadMissing('room.location');
-        $locationId = $booking->room->location_id;
 
-        if (! $admin->hasLocationAccess($locationId)) {
+        if (! $admin->hasRoomAccess($booking->room)) {
             throw ValidationException::withMessages([
-                'authorization' => 'You do not have access to bookings at this location.',
+                'authorization' => 'You do not have access to bookings in this room.',
             ]);
         }
     }

@@ -114,6 +114,7 @@ export default function ClaimInvite() {
     const getRoleLabel = (role) => {
         if (role === 'super_admin') return 'Super Administrator';
         if (role === 'location_admin') return 'Location Administrator';
+        if (role === 'room_admin') return 'Room Administrator';
         return 'Administrator';
     };
 
@@ -264,6 +265,8 @@ export default function ClaimInvite() {
                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
                                         invitationData.role === 'super_admin'
                                             ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                                            : invitationData.role === 'room_admin'
+                                            ? 'bg-amber-50 text-amber-700 border border-amber-100'
                                             : 'bg-pink-50 text-pink-700 border border-pink-100'
                                     }`}>
                                         {getRoleLabel(invitationData.role)}
@@ -276,6 +279,16 @@ export default function ClaimInvite() {
                                         </span>
                                         <span className="font-semibold text-slate-800">
                                             {invitationData.location.name}
+                                        </span>
+                                    </div>
+                                )}
+                                {invitationData.rooms?.length > 0 && (
+                                    <div className="flex items-start justify-between gap-3 text-xs border-t border-slate-100 pt-2">
+                                        <span className="text-slate-400 flex items-center gap-1.5 shrink-0">
+                                            <Briefcase className="w-3.5 h-3.5 text-slate-400" /> Assigned Rooms
+                                        </span>
+                                        <span className="font-semibold text-slate-800 text-right">
+                                            {invitationData.rooms.map(r => r.name).join(', ')}
                                         </span>
                                     </div>
                                 )}

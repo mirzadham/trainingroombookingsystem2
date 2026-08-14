@@ -20,7 +20,9 @@ class UserResource extends JsonResource
             'user_type' => $this->user_type,
             'phone' => $this->phone,
             'department' => $this->department,
+            'location_id' => $this->location_id,
             'location' => new LocationResource($this->whenLoaded('location')),
+            'admin_rooms' => RoomResource::collection($this->whenLoaded('adminRooms')),
         ];
     }
 }
